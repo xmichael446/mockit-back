@@ -1,0 +1,4591 @@
+[
+    {
+        "name": "Work and studies, schools and workplaces",
+        "part": 1,
+        "slug": "work-and-studies-schools-and-workplaces",
+        "questions": [
+            {
+                "text": "Do you work or are you a student?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What work do you do? / What subjects are you studying?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Why did you choose that job?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Why did you choose to study that subject?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like your job?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Is there anything you dislike about your job?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you like about your studies?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you dislike about your studies?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What was your dream job when you were young?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you changed your mind on your dream job?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Hometown, area you live in",
+        "part": 1,
+        "slug": "hometown-area-you-live-in",
+        "questions": [
+            {
+                "text": "Please describe your hometown a little.",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What is your town well-known for?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like your hometown?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Is that a big city or a small place?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "How long have you been living there?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you think you will continue living there for a long time?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Would you like to live in the countryside in the future?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you ever lived in the countryside?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you ever spend time in the countryside?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What is the difference between living in the countryside and the city?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do people living in the countryside like to do?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you like to do in the countryside?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "How has your town changed over the last 20 years?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Home and accommodation",
+        "part": 1,
+        "slug": "home-and-accommodation",
+        "questions": [
+            {
+                "text": "What colour would you choose to paint the walls of your room?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What colour would you never use in your home?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Can you describe the place where you live?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What kind of housing accommodation do you live in?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you like about your flat?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Which room does your family spend most of the time in?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What can you see from the windows where you live?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you prefer living in a house or a flat?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What would you like to change in your flat?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you dislike about your flat?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Art",
+        "part": 1,
+        "slug": "art",
+        "questions": [
+            {
+                "text": "Do you like modern art or traditional art?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like art?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you ever visited an art gallery?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you think it would be interesting for you to be an artist?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Carrying things",
+        "part": 1,
+        "slug": "carrying-things",
+        "questions": [
+            {
+                "text": "What do you do if your item is heavy?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "When you go out what do you carry with you?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "When you go to different places, do you carry different kinds of things?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What is the difference between the things you carry in the evening and in the morning?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Shoes",
+        "part": 1,
+        "slug": "shoes",
+        "questions": [
+            {
+                "text": "How often do you buy shoes?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you ever bought shoes online?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like to wear shoes that are comfortable or good-looking?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do people like to wear shoes that are comfortable or good-looking?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What is your favourite type of shoes?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "How much money do you usually spend on shoes?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Plants",
+        "part": 1,
+        "slug": "plants",
+        "questions": [
+            {
+                "text": "Do you keep plants?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you ever had a plant?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you know anything about growing a plant?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What plants did you grow when you were younger?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do people in your country send plants as gifts?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Noisy places, quiet places",
+        "part": 1,
+        "slug": "noisy-places-quiet-places",
+        "questions": [
+            {
+                "text": "Do you like quiet or noisy places?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Would you like to go to quiet or noisy places on weekends when you are free?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Public places",
+        "part": 1,
+        "slug": "public-places",
+        "questions": [
+            {
+                "text": "Have you ever talked with someone you don't know in public places?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you wear headphones in public places?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Having a break",
+        "part": 1,
+        "slug": "having-a-break",
+        "questions": [
+            {
+                "text": "What do you usually do during a break?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you like to do during a break?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "How often do you take a break?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you take a nap when you have a rest?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "How do you feel after taking a nар?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Rules",
+        "part": 1,
+        "slug": "rules",
+        "questions": [
+            {
+                "text": "Are there any rules for students at your school?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you think students would benefit more from more rules?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you have a teacher who does his or her job very well?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Museums",
+        "part": 1,
+        "slug": "museums",
+        "questions": [
+            {
+                "text": "What did you learn from visiting museums and art galleries?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you think museums are important?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Are there many museums in your hometown?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like visiting museums and art galleries?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you often visit museums?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "When was the last time you visited a museum?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Doing something well",
+        "part": 1,
+        "slug": "doing-something-well",
+        "questions": [
+            {
+                "text": "Have you ever had an experience where you did something well?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you ever had an experience where your teacher thought you did a good job?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you often tell your friends when they do something well?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Dream job, plans for future",
+        "part": 1,
+        "slug": "dream-job-plans-for-future",
+        "questions": [
+            {
+                "text": "What was your dream job when you were young?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you changed your mind on your dream job?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Advertisements",
+        "part": 1,
+        "slug": "advertisements",
+        "questions": [
+            {
+                "text": "How do you feel about advertisements?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like advertisements?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like advertisements on TV?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Is there much advertising in your country?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What are the different places where we see advertisements?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What advertising do you have in your country?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you often see advertisements when you are on your phone or computer?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What kind of advertising do you like?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you see a lot of advertising on trains or other transport?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Is there an advertisement that made an impression on you when you were a child?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Borrowing and lending things",
+        "part": 1,
+        "slug": "borrowing-and-lending-things",
+        "questions": [
+            {
+                "text": "Have you ever borrowed books from others?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you ever borrowed money from others?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like to lend things to others?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "How do you feel when people don't return things they borrowed from you?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you mind if others borrow money from you?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Crowded places",
+        "part": 1,
+        "slug": "crowded-places",
+        "questions": [
+            {
+                "text": "Do most people like crowded places?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like crowded places?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "When was the last time you were in a crowded place?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Is the city where you live crowded?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Is there a crowded place near where you live?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Sharing things",
+        "part": 1,
+        "slug": "sharing-things",
+        "questions": [
+            {
+                "text": "When you were a kid, did your parents encourage you to share things with others?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Is there anything you don't want to share?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What kind of things are not suitable for sharing?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What kind of things do you like to share with others?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you have anything to share with others?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Who is the first person you would like to share good news with?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What kind of news do you share with your friends?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Fruits and vegetables",
+        "part": 1,
+        "slug": "fruits-and-vegetables",
+        "questions": [
+            {
+                "text": "Do you think it's easy to grow vegetables?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Should schools teach students how to grow vegetables?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Are you interested in growing vegetables and fruits?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Is growing vegetables popular in your country?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do many people grow vegetables in your city?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Going out, cash",
+        "part": 1,
+        "slug": "going-out-cash",
+        "questions": [
+            {
+                "text": "How often do you use cash?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you often bring cash with you?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you always take your mobile phone with you when going out?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you bring food or snacks with you when going out?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Friends",
+        "part": 1,
+        "slug": "friends",
+        "questions": [
+            {
+                "text": "What do you and your friends do together?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Are friends important to you?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you value about your friends?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you have a friend you have known for a long time?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Where do you and your friends often meet?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you prefer to spend time with one friend or with a group of friends?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Would you invite friends to your home?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Is there a difference between where you meet friends now and where you used to meet them in the past?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you often go out with your friends?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Why are some places suitable for meeting while others are not?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Chatting",
+        "part": 1,
+        "slug": "chatting",
+        "questions": [
+            {
+                "text": "Do you argue with friends?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you prefer to chat with a group of people or with only one friend?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you prefer to communicate face-to-face or via social media?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like chatting with friends?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you usually chat about with your friends?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Staying with old people",
+        "part": 1,
+        "slug": "staying-with-old-people",
+        "questions": [
+            {
+                "text": "Have you ever worked with old people?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Are you happy to work with people who are older than you?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What are the benefits of being friends with or working with old people?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you enjoy spending time with old people?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Animals and pets",
+        "part": 1,
+        "slug": "animals-and-pets",
+        "questions": [
+            {
+                "text": "What's your favourite animal?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you ever had a pet?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What's the most popular animal in your country?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Where do you prefer to keep your pet, indoors or outdoors?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Days off",
+        "part": 1,
+        "slug": "days-off",
+        "questions": [
+            {
+                "text": "When was the last time you had a few days off?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you do when you have days off?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What would you like to do if you had a day off tomorrow?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you usually spend your days off with your parents or with your friends?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Food",
+        "part": 1,
+        "slug": "food",
+        "questions": [
+            {
+                "text": "What kinds of food do you particularly like?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What kinds of food are most popular in your country?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Is there any food you don't like?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What kind of food did you like when you were young?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Keys",
+        "part": 1,
+        "slug": "keys",
+        "questions": [
+            {
+                "text": "Have you ever locked yourself out?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you think it's a good idea to leave your keys with a neighbour?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you ever lost your keys?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you always bring a lot of keys with you?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Dreams",
+        "part": 1,
+        "slug": "dreams",
+        "questions": [
+            {
+                "text": "Do you remember your dreams when you wake up?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you think dreams will affect life?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you think dreams have special meanings?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like hearing other people's dreams?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you share your dreams with others?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you want to make your dreams come true?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Reading",
+        "part": 1,
+        "slug": "reading",
+        "questions": [
+            {
+                "text": "Do you like reading?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What books do you like to read?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What book did you read recently?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What did you learn from it?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you prefer to read on paper or on a screen?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "When do you need to read carefully, and when not?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you prefer scanning or detailed reading?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Gifts",
+        "part": 1,
+        "slug": "gifts",
+        "questions": [
+            {
+                "text": "What kind of gifts are popular in your country?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What's the best gift you have ever received?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you give others as gifts?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What gift have you received recently?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "How do we choose gifts?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you think you are good at choosing gifts?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you ever sent handmade gifts to others?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Morning Time",
+        "part": 1,
+        "slug": "morning-time",
+        "questions": [
+            {
+                "text": "Do you like to get up early?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What is your morning routine?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you usually do in the morning?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What did you do in the morning when you were little?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you spend your mornings doing the same things on both weekends and weekdays?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Hobby",
+        "part": 1,
+        "slug": "hobby",
+        "questions": [
+            {
+                "text": "Do you have any hobbies?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you have the same hobbies as your family members?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Did you have any hobbies when you were a child?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you have a hobby that you've had since childhood?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Sports",
+        "part": 1,
+        "slug": "sports",
+        "questions": [
+            {
+                "text": "Have you ever been part of a sports team?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Are team sports popular in your culture?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you like watching team games?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What are the differences between team sports and individual sports?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Typing",
+        "part": 1,
+        "slug": "typing",
+        "questions": [
+            {
+                "text": "Do you type on a desktop or laptop keyboard every day?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "When did you learn how to type on a keyboard?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "How do you improve your typing?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Walking",
+        "part": 1,
+        "slug": "walking",
+        "questions": [
+            {
+                "text": "Do you walk a lot?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Did you often go outside to have a walk when you were a child?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Why do people like to walk in parks?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Where would you like to take a long walk if you had the chance?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Where have you gone for a walk lately?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Buildings",
+        "part": 1,
+        "slug": "buildings",
+        "questions": [
+            {
+                "text": "Do you take photos of buildings?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Is there a building that you would like to visit?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Views",
+        "part": 1,
+        "slug": "views",
+        "questions": [
+            {
+                "text": "Do you like taking pictures of different views?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you prefer views in urban areas or rural areas?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you prefer views in your own country or in other countries?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Scenery",
+        "part": 1,
+        "slug": "scenery",
+        "questions": [
+            {
+                "text": "Do you like to take pictures of good scenery?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you look out the window at the scenery when travelling by bus or car?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you prefer the mountains or the sea?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What are the most beautiful sights you have seen while travelling?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Childhood activities",
+        "part": 1,
+        "slug": "childhood-activities",
+        "questions": [
+            {
+                "text": "What did you enjoy doing as a child?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Did you enjoy your childhood?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Did you prefer to do activities alone or with a group of people when you were a child?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Stages in life",
+        "part": 1,
+        "slug": "stages-in-life",
+        "questions": [
+            {
+                "text": "How do people remember each stage of their lives?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "At what age do you think people are the happiest?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you enjoy being the age you are now?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What did you often do with your friends in your childhood?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you have any plans for the next five years?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What do you think is the most important thing at the moment?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Daily routine",
+        "part": 1,
+        "slug": "daily-routine",
+        "questions": [
+            {
+                "text": "How do you organise your study time?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What is your daily study routine?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you ever change your plans?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Have you ever changed your routine?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "What's your favourite time of the day?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you go to sleep early or stay up late?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you often stay up late?",
+                "bullet_points": null,
+                "difficulty": 1
+            },
+            {
+                "text": "Do you think it's important to have a daily routine for your study?",
+                "bullet_points": null,
+                "difficulty": 1
+            }
+        ]
+    },
+    {
+        "name": "Place with a lot of trees",
+        "part": 2,
+        "slug": "place-with-a-lot-of-trees",
+        "questions": [
+            {
+                "text": "Describe a place with a lot of trees that you would like to visit (for example, forest, oasis).",
+                "bullet_points": [
+                    "what park it is and where it is",
+                    "how you know about it",
+                    "why you want to go there",
+                    "what it is like"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Parks, Nature",
+        "part": 3,
+        "slug": "parks-nature",
+        "questions": [
+            {
+                "text": "Why do people like visiting places with trees or forests?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why is it important to have parks in the city?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What benefits can a park bring to a city?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Are natural views better than city views?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do all people need some nature?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Are people hard-wired to protect the environment?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Friend of yours who is good at singing or music",
+        "part": 2,
+        "slug": "friend-of-yours-who-is-good-at-singing-or-music",
+        "questions": [
+            {
+                "text": "Describe a friend of yours who is good at singing or music.",
+                "bullet_points": [
+                    "who this person is",
+                    "where or when you listen to their singing or music",
+                    "what kind of songs this person likes",
+                    "how you feel when listening to their singing or music"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Music",
+        "part": 3,
+        "slug": "music",
+        "questions": [
+            {
+                "text": "Do you think the government should invest more money in concerts?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should every child learn to play a musical instrument?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the benefits of children learning a musical instrument?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kinds of music do you like to listen to?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kinds of music are most popular in your country?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kind of music do people like at different ages?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it necessary for the government to require all children to learn music?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think music lessons are important?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think music is beneficial for children at school?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Wild animal you want to know more about",
+        "part": 2,
+        "slug": "wild-animal-you-want-to-know-more-about",
+        "questions": [
+            {
+                "text": "Describe a wild animal that you want to know more about.",
+                "bullet_points": [
+                    "what it is",
+                    "when you saw it",
+                    "where you saw it",
+                    "why you want to know more about it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Wild animals",
+        "part": 3,
+        "slug": "wild-animals",
+        "questions": [
+            {
+                "text": "Why are some people more willing to protect wild animals than others?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should parents take their children to the zoo to see wild animals?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do you think wild animals should be protected?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think animals are important?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Are there any wild animals in the city?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think it's a good idea to let animals stay in local parks for people to see?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it more important to protect wild animals or the environment?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should people educate children to protect wild animals?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people attach more importance to protecting RARE animals?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Good friend who is important to you",
+        "part": 2,
+        "slug": "good-friend-who-is-important-to-you",
+        "questions": [
+            {
+                "text": "Describe a good friend who is important to you.",
+                "bullet_points": [
+                    "who this person is, how long you've known each other",
+                    "how you met each other",
+                    "what you did together",
+                    "explain why he or she is important to you"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Friendship",
+        "part": 3,
+        "slug": "friendship",
+        "questions": [
+            {
+                "text": "Do you think it is better for children to have a few close friends or many casual friends?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think a child's relationship with friends can be replaced by that with other people, like parents",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it possible for managers to be friends with their workers?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How do children make friends at school?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the differences between friends made inside and outside the workplace?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How do children make friends when they are not at school?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Getting lost",
+        "part": 2,
+        "slug": "getting-lost",
+        "questions": [
+            {
+                "text": "Describe an occasion when you lost your way.",
+                "bullet_points": [
+                    "where it was",
+                    "what happened",
+                    "how you felt",
+                    "how you found your way"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Getting lost, maps",
+        "part": 3,
+        "slug": "getting-lost-maps",
+        "questions": [
+            {
+                "text": "Why do some people get lost more easily than others?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think it is important to be able to read a map?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How can people find their way when they are lost?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think that children should be taught to read paper maps at school?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Are paper maps still necessary?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How do people react when they get lost?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think it's important to do some preparation before you travel to new places?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Trip you’d like to make again",
+        "part": 2,
+        "slug": "trip-youd-like-to-make-again",
+        "questions": [
+            {
+                "text": "Describe a trip you would like to make again.",
+                "bullet_points": [
+                    "where you went",
+                    "what you did there",
+                    "who you went there with",
+                    "why you'd like to make the trip again"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Travelling",
+        "part": 3,
+        "slug": "travelling",
+        "questions": [
+            {
+                "text": "What do you need to do before you travel?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What preparations should people make before going on holiday?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do people like travelling?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What would happen if no preparation were made before the trip?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people prefer to travel in their own country rather than going abroad?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Natural talent",
+        "part": 2,
+        "slug": "natural-talent",
+        "questions": [
+            {
+                "text": "Describe a natural talent that you want to improve.",
+                "bullet_points": [
+                    "what it is",
+                    "when you discovered it",
+                    "how you want to improve it",
+                    "how you feel about it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Talents",
+        "part": 3,
+        "slug": "talents",
+        "questions": [
+            {
+                "text": "Do you think it's more interesting to watch famous people's or ordinary people's shows?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it possible for us to know that children who are 3 or 4 years old will become musicians and",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think artists with talents should focus on their talents?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do people like to watch talent shows?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it easy to identify children's talents?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Person who runs a family business",
+        "part": 2,
+        "slug": "person-who-runs-a-family-business",
+        "questions": [
+            {
+                "text": "Describe a person who runs a family business.",
+                "bullet_points": [
+                    "who this person is",
+                    "what business this person does",
+                    "what products it sells",
+                    "what you have learned from this person"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Business",
+        "part": 3,
+        "slug": "business",
+        "questions": [
+            {
+                "text": "Is it good to work with family members?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Would you like to start a family business?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the advantages and disadvantages of family businesses?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kinds of family businesses are common in your country?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What makes a successful family business?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people open their own business?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the drawbacks of working in a family-owned company?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Good habit",
+        "part": 2,
+        "slug": "good-habit",
+        "questions": [
+            {
+                "text": "Describe a habit your friend has and you want to develop.",
+                "bullet_points": [
+                    "who your friend is, what habit your friend has",
+                    "when you noticed this habit",
+                    "why you want to develop this habit",
+                    "how you will develop this habit"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Habits",
+        "part": 3,
+        "slug": "habits",
+        "questions": [
+            {
+                "text": "Why do we develop bad habits?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What can we do to get rid of bad habits?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think a person's good habits would influence those around him or her? How?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What habits should children have?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What should parents do to teach their children good habits?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some habits change when people get older, and how do people change their habits?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Old thing in your family",
+        "part": 2,
+        "slug": "old-thing-in-your-family",
+        "questions": [
+            {
+                "text": "Describe an important old thing that your family has kept for a long time.",
+                "bullet_points": [
+                    "what it is",
+                    "how your family first got this thing",
+                    "how long your family has kept it",
+                    "why this thing is important to your family"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Old things",
+        "part": 3,
+        "slug": "old-things",
+        "questions": [
+            {
+                "text": "What are the differences between the things old people keep and those young people keep?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the differences between the things that people keep today and the things that people kept in the past?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think that keeping old things in a family is a great way to connect with the past?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do grown-ups hate to throw away old things?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "As well as family photographs, what are some other things that people keep in their family for a long time?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "In your culture, what sorts of things do people pass down from generation to generation?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Apology",
+        "part": 2,
+        "slug": "apology",
+        "questions": [
+            {
+                "text": "Describe a time when someone apologized to you.",
+                "bullet_points": [
+                    "who this person was, when this happened",
+                    "why this person had to apologize to you",
+                    "what this person said for apologizing",
+                    "explain how you felt about the apology"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Saying “sorry”",
+        "part": 3,
+        "slug": "saying-sorry",
+        "questions": [
+            {
+                "text": "Is it important to say sorry?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "In what situations do people say sorry?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should people apologise for anything wrong they do?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people hate to say sorry?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think people often say 'sorry' when they don't really mean it?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think every 'sorry' is from the bottom of the heart?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do people in your country like to say 'sorry'?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Are women better than men at recognizing emotions?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Speaking a foreign language for the first time",
+        "part": 2,
+        "slug": "speaking-a-foreign-language-for-the-first-time",
+        "questions": [
+            {
+                "text": "Describe the first time when you used a foreign language to communicate.",
+                "bullet_points": [
+                    "where it happened",
+                    "when it happened",
+                    "who you talked to",
+                    "how you felt about the conversation"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Languages",
+        "part": 3,
+        "slug": "languages",
+        "questions": [
+            {
+                "text": "Will minority languages disappear in the future?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Does one's age affect their language learning?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "At what age should children start learning a foreign language?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Which skill is more important, speaking or writing?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Does a person still need to learn other languages, if he or she is good at English?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Exciting activity you tried for the first time",
+        "part": 2,
+        "slug": "exciting-activity-you-tried-for-the-first-time",
+        "questions": [
+            {
+                "text": "Describe an exciting activity you tried for the first time.",
+                "bullet_points": [
+                    "what you did, when and where you did it",
+                    "who you did it with",
+                    "whether it was difficult or easy",
+                    "why this activity was new or exciting for you"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "New things, dangerous things",
+        "part": 3,
+        "slug": "new-things-dangerous-things",
+        "questions": [
+            {
+                "text": "Why do people like doing dangerous things?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people enjoy extreme sports?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why are some people afraid of trying (or unwilling to try) new things?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think fear stops people from trying new things?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think that children adapt to new things more easily than adults?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What can people learn from doing dangerous activities?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the benefits of trying new things?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Something interesting on social media",
+        "part": 2,
+        "slug": "something-interesting-on-social-media",
+        "questions": [
+            {
+                "text": "Describe a time you saw something interesting on social media.",
+                "bullet_points": [
+                    "when it was",
+                    "where you saw it",
+                    "what you saw",
+                    "why it was interesting"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Social media",
+        "part": 3,
+        "slug": "social-media",
+        "questions": [
+            {
+                "text": "What are the advantages and disadvantages of using social media?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Does social media influencepeople's lives?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do people like using social media?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kind of things are popular on social media?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it easy to find real friends on a social networking website?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Book you read",
+        "part": 2,
+        "slug": "book-you-read",
+        "questions": [
+            {
+                "text": "Describe a book you read that you found useful.",
+                "bullet_points": [
+                    "what the book is and what it is about",
+                    "why you read it",
+                    "how you felt about it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Reading",
+        "part": 3,
+        "slug": "reading",
+        "questions": [
+            {
+                "text": "Which is better, paper books or e-books?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What should the government do to make libraries better?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think old people spend more time reading than young people?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Have libraries changed a lot with the development of the Internet?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What should we do to prevent modern libraries from closing down?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the types of books that young people like to read?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Area of science you’re interested in",
+        "part": 2,
+        "slug": "area-of-science-youre-interested-in",
+        "questions": [
+            {
+                "text": "Describe an area of science that interests you.",
+                "bullet_points": [
+                    "what science it is",
+                    "how you got interested in it",
+                    "how you learn this science",
+                    "why this science is interesting to you"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Science",
+        "part": 3,
+        "slug": "science",
+        "questions": [
+            {
+                "text": "Should scientists explain the research process to the public?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How do you find out about scientific news?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should people continue studying science after finishing school?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some children not like learning science at school?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think science is important?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How does science influence our life?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should children learn science?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What science subject is the most important for children to learn?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Which area of science is the most important in the last one hundred years?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Successful sportsperson you admire",
+        "part": 2,
+        "slug": "successful-sportsperson-you-admire",
+        "questions": [
+            {
+                "text": "Describe a successful sportsperson you admire.",
+                "bullet_points": [
+                    "who this person is",
+                    "what this person has achieved",
+                    "how you know about this person",
+                    "explain why you like this person"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Athletes, sports",
+        "part": 3,
+        "slug": "athletes-sports",
+        "questions": [
+            {
+                "text": "Is it easy to identify children's talents?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is talent important in sports?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What characteristics do you think an athlete should have?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why are there so few top athletes?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kind of sports are popular in your country?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What is the most popular sport in your country?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should students have physical education and do sports at school?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Toy or game you liked in your childhood",
+        "part": 2,
+        "slug": "toy-or-game-you-liked-in-your-childhood",
+        "questions": [
+            {
+                "text": "Describe a toy that you liked when you were a child.",
+                "bullet_points": [
+                    "what the toy was",
+                    "who gave it to you",
+                    "how you used this toy",
+                    "explain how you felt when you got this toy"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Toys, kids and ads",
+        "part": 3,
+        "slug": "toys-kids-and-ads",
+        "questions": [
+            {
+                "text": "How does advertising influence children?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think advertising that targets children should be banned?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What toys are popular with boys and girls in your country now?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What's the difference between the toys kids play now and those they played in the past?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think parents should buy more toys for their kids or spend more time with them?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the advantages and disadvantages of modern toys?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Waiting for something special",
+        "part": 2,
+        "slug": "waiting-for-something-special",
+        "questions": [
+            {
+                "text": "Describe a time you waited for something special.",
+                "bullet_points": [
+                    "what you were waiting for, how you felt",
+                    "what you did while waiting",
+                    "why you waited for it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Waiting and patience",
+        "part": 3,
+        "slug": "waiting-and-patience",
+        "questions": [
+            {
+                "text": "Why are some people unwilling to wait?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the daily experiences that people have to wait for?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "On what occasions do people usually need to wait?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Who behaves better when waiting, a child or an adult?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the positive and negative effects of waiting on society?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Where do children learn to be patient, at home or at school?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Compared to the past, are people more patient now?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Interesting building",
+        "part": 2,
+        "slug": "interesting-building",
+        "questions": [
+            {
+                "text": "Describe an interesting building you saw during a trip.",
+                "bullet_points": [
+                    "what it is",
+                    "what it looks like",
+                    "what it is used for now",
+                    "what you learned there"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Scenic spots, buildings",
+        "part": 3,
+        "slug": "scenic-spots-buildings",
+        "questions": [
+            {
+                "text": "Should all scenic spots charge an entry fee?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is visiting scenic spots the best choice for us while travelling?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people like to live in big cities?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it necessary for tourists to visit landmarks when travelling in a place?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Which do most people prefer, living in a bungalow or in a tall building?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Important decision made with the help of other people",
+        "part": 2,
+        "slug": "important-decision-made-with-the-help-of-other-people",
+        "questions": [
+            {
+                "text": "Describe an important decision made with the help of other people.",
+                "bullet_points": [
+                    "what the decision was",
+                    "why you made the decision",
+                    "who helped you make the decision",
+                    "how you felt about it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Making decisions",
+        "part": 3,
+        "slug": "making-decisions",
+        "questions": [
+            {
+                "text": "What kind of decisions do you think are meaningful?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What important decisions should be made by teenagers themselves?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why are some people unwilling to make quick decisions?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do people like to ask for advice about their personal life or their work?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do people like to ask others for advice?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Dinner with your friends or family",
+        "part": 2,
+        "slug": "dinner-with-your-friends-or-family",
+        "questions": [
+            {
+                "text": "Describe a great dinner that you and your friends or family members enjoyed.",
+                "bullet_points": [
+                    "who organised this dinner, where you had",
+                    "what you talked about during the meal",
+                    "what you ate and drank",
+                    "why you had this meal with your friends"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Eating out, food",
+        "part": 3,
+        "slug": "eating-out-food",
+        "questions": [
+            {
+                "text": "Why is it important to share food with others during a celebration?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you like to cook at home?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it a hassle to prepare a meal at home?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do people prefer to eat out at restaurants or eat at home on special occasions?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What food do you eat on special occasions?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "People are spending less and less time having meals with their families these days. Is this good or bad?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What do people talk about during meals?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Creative person you admire",
+        "part": 2,
+        "slug": "creative-person-you-admire",
+        "questions": [
+            {
+                "text": "Describe a creative person (artist, musician) you admire.",
+                "bullet_points": [
+                    "who this person is",
+                    "how you know this person",
+                    "what their greatest achievement is",
+                    "why you think this person is creative"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Creativity, inspiration",
+        "part": 3,
+        "slug": "creativity-inspiration",
+        "questions": [
+            {
+                "text": "Do you think visual media (film, photography) is important in how news is presented?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should every child learn to play a musical instrument?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the benefits of children learning a musical instrument?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What can schools do to nurture children's creativity?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think art (drawing) can make a person more creative?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How do artists acquire inspiration?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kind of jobs require creativity?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Speech you gave",
+        "part": 2,
+        "slug": "speech-you-gave",
+        "questions": [
+            {
+                "text": "Describe a talk you gave to a group of people.",
+                "bullet_points": [
+                    "who you gave the speech to",
+                    "what the speech was about",
+                    "why you gave the speech",
+                    "how you felt about the speech"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Communication, speeches",
+        "part": 3,
+        "slug": "communication-speeches",
+        "questions": [
+            {
+                "text": "What benefits does the Internet bring to communication?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What personal qualities does a good communicator need to have?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Water sport you want to try",
+        "part": 2,
+        "slug": "water-sport-you-want-to-try",
+        "questions": [
+            {
+                "text": "Describe a water sport you want to try.",
+                "bullet_points": [
+                    "what the sport is",
+                    "whether it will be easy or difficult",
+                    "what you would have to do for it",
+                    "why you want to do it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Swimming, water, water transportation",
+        "part": 3,
+        "slug": "swimming-water-water-transportation",
+        "questions": [
+            {
+                "text": "What do you think of people who waste water?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the characteristics of goods transported by water?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the pluses and minuses of transporting goods on water?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Are rivers and lakes good for transport?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do people like to live near water?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What water sports are popular in your country?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do people like water sports?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is being able to swim important?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think it's good to teach swimming in schools?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Positive change in your daily routine",
+        "part": 2,
+        "slug": "positive-change-in-your-daily-routine",
+        "questions": [
+            {
+                "text": "Describe a positive change that you have made recently in your daily routine.",
+                "bullet_points": [
+                    "what the change is and how you've made it",
+                    "why you think it's a positive change",
+                    "how you feel about the change"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Changes, daily routine",
+        "part": 3,
+        "slug": "changes-daily-routine",
+        "questions": [
+            {
+                "text": "What do people normally plan in their daily lives?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is time management important in our daily lives?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What changes do people often make?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Who would make changes more often, young people or old people?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it good for people to change jobs frequently?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Who should get more promotion opportunities in the workplace, young people or older people?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Long journey you had",
+        "part": 2,
+        "slug": "long-journey-you-had",
+        "questions": [
+            {
+                "text": "Describe a long journey you had.",
+                "bullet_points": [
+                    "where you went",
+                    "who you had the journey with",
+                    "why you had a long journey",
+                    "how you felt about the journey"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Travelling, long journeys",
+        "part": 3,
+        "slug": "travelling-long-journeys",
+        "questions": [
+            {
+                "text": "What are the differences between group travelling and travelling alone?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What do we need to prepare for a long journey?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What is good and bad about travelling by plane?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people prefer to travel in their own country rather than going abroad?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do people choose to travel or live abroad?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why are more and more young people going on long trips nowadays?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people prefer long journeys?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Electricity cut off",
+        "part": 2,
+        "slug": "electricity-cut-off",
+        "questions": [
+            {
+                "text": "Describe a time when the electricity suddenly went off.",
+                "bullet_points": [
+                    "where and when it happened",
+                    "how long it lasted",
+                    "what you did during this time",
+                    "how you felt about it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Electricity, electric vehicles",
+        "part": 3,
+        "slug": "electricity-electric-vehicles",
+        "questions": [
+            {
+                "text": "Do people use more electricity now than before?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How did people manage to live without electricity in the ancient world?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Which is better, electric bicycles or ordinary bicycles?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think electric bicycles will replace ordinary bicycles in the future?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Which is better, electric cars or petrol cars?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it difficult for the government to replace all the petrol cars with electric cars?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Good service you received",
+        "part": 2,
+        "slug": "good-service-you-received",
+        "questions": [
+            {
+                "text": "Describe an occasion when you received good service from a company or shop.",
+                "bullet_points": [
+                    "what company or business it was and what this company does",
+                    "what the service was and who helped you",
+                    "where you received this good service",
+                    "why you think it was good service"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Shopping, service",
+        "part": 3,
+        "slug": "shopping-service",
+        "questions": [
+            {
+                "text": "What are the benefits and drawbacks of consumerism for a country's economy?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the advantages and disadvantages of shopping at a big shopping centre?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What makes large shopping malls so popular?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the differences between shopping online and in-store?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What do you think are the pros and cons of shopping online?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Are small shops important?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the advantages and disadvantages of shopping in small shops?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Something you broke",
+        "part": 2,
+        "slug": "something-you-broke",
+        "questions": [
+            {
+                "text": "Describe a time when you broke something.",
+                "bullet_points": [
+                    "what it was",
+                    "when and where it happened",
+                    "how you broke it",
+                    "what you did after that"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Fixing things, handmade items",
+        "part": 3,
+        "slug": "fixing-things-handmade-items",
+        "questions": [
+            {
+                "text": "Do you think handmade clothes are more valuable?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think clothes produced in the factory are of better quality than those made by hand?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kind of people like to fix things by themselves?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is the older generation better at fixing things?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kind of things are more likely to be broken by people at home?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think elderly people should teach young people to fix things?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Interesting traditional story",
+        "part": 2,
+        "slug": "interesting-traditional-story",
+        "questions": [
+            {
+                "text": "Describe an interesting traditional story.",
+                "bullet_points": [
+                    "what it is about",
+                    "how you knew it, who told you the story",
+                    "how you felt when you first heard it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Stories",
+        "part": 3,
+        "slug": "stories",
+        "questions": [
+            {
+                "text": "What kind of stories do children like to listen to?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What can a child learn from a story?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do most children like listening to stories before bedtime?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the benefits of bedtime stories for children?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is a good storyline important for a movie?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do all stories for children have happy endings?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Invention",
+        "part": 2,
+        "slug": "invention",
+        "questions": [
+            {
+                "text": "Describe an invention that is useful in your daily life.",
+                "bullet_points": [
+                    "what it is",
+                    "how it changed the world",
+                    "how popular it is"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Inventions",
+        "part": 3,
+        "slug": "inventions",
+        "questions": [
+            {
+                "text": "Do all inventions bring benefits to our world?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Who should support and sponsor inventors, governments or private companies?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the qualities of a scientist (or inventor)?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What do you think have been some of the most important inventions in the past 100 years or so?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Are there any other inventions that make the world better?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Natural place",
+        "part": 2,
+        "slug": "natural-place",
+        "questions": [
+            {
+                "text": "Describe a natural place (for example, park, mountains).",
+                "bullet_points": [
+                    "what park it is and where it is",
+                    "how you know about it",
+                    "why you want to go there",
+                    "what it is like"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Natural places",
+        "part": 3,
+        "slug": "natural-places",
+        "questions": [
+            {
+                "text": "What kind of people like to visit natural places?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the differences between a natural place and a city?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think that going to the park is the only way to get closer to nature?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What can people gain from going to natural places?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think it's a good idea to let animals stay in local parks for people to see?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Are there any wild animals in the city?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Popular person",
+        "part": 2,
+        "slug": "popular-person",
+        "questions": [
+            {
+                "text": "Describe a popular person.",
+                "bullet_points": [
+                    "who this person is, how this person became famous",
+                    "how you know this person",
+                    "why you think this person is interesting"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Popularity",
+        "part": 3,
+        "slug": "popularity",
+        "questions": [
+            {
+                "text": "Why are some students popular in school?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it important for a teacher to be popular?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think good teachers are always popular among students?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the qualities of being a good teacher?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it easier to become popular nowadays?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do people want to be popular?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Unusual meal",
+        "part": 2,
+        "slug": "unusual-meal",
+        "questions": [
+            {
+                "text": "Describe an unusual meal you had.",
+                "bullet_points": [
+                    "when it happened",
+                    "where you ate it",
+                    "how you felt about it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Restaurants",
+        "part": 3,
+        "slug": "restaurants",
+        "questions": [
+            {
+                "text": "What are the advantages and disadvantages of eating at a restaurant?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What fast food restaurants are there in your country?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do people eat fast food at home?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people choose to eat out instead of ordering takeout?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do people in your country socialize in restaurants?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do people in your country value food culture?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Film you felt disappointed about",
+        "part": 2,
+        "slug": "film-you-felt-disappointed-about",
+        "questions": [
+            {
+                "text": "Describe a film you watched recently that you felt disappointed about.",
+                "bullet_points": [
+                    "what it was",
+                    "why you decided to watch it",
+                    "why it made you disappointed"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Movies",
+        "part": 3,
+        "slug": "movies",
+        "questions": [
+            {
+                "text": "Are actors and actresses important to movies?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think films with famous actors or actresses are more likely to become successful films?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Are historical films popular in your country?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why are Japanese animated films so popular?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you believe movie reviews?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kinds of movies are popular in your country?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should actors be paid more?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should famous actors and actresses be paid a lot of money?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Family member that made you feel proud",
+        "part": 2,
+        "slug": "family-member-that-made-you-feel-proud",
+        "questions": [
+            {
+                "text": "Describe a family member that did something that made you feel proud.",
+                "bullet_points": [
+                    "who this person is",
+                    "what this person did",
+                    "why you felt proud of them"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Being proud",
+        "part": 3,
+        "slug": "being-proud",
+        "questions": [
+            {
+                "text": "On what occasions would adults feel proud of themselves?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it a good idea to reward children for doing homework or housework?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What would children do to make their parents proud?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What did you do to make your parents proud when you were young?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What advantages of yours make you proud?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "When was the last time that you felt proud of yourself?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it good to reward children too often?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Perfect job",
+        "part": 2,
+        "slug": "perfect-job",
+        "questions": [
+            {
+                "text": "Describe your perfect job.",
+                "bullet_points": [
+                    "what it is.",
+                    "how you can get this job",
+                    "what kinds of work you would do for the job",
+                    "explain why you want to have it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Jobs",
+        "part": 3,
+        "slug": "jobs",
+        "questions": [
+            {
+                "text": "What kind of jobs do children like?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How can people find a perfect job?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What factors should people take into account when choosing a job?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Which is more important when choosing a job, high salary or interest?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is salary the main reason people choose a certain job?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Not being allowed to use a mobile phone",
+        "part": 2,
+        "slug": "not-being-allowed-to-use-a-mobile-phone",
+        "questions": [
+            {
+                "text": "Describe an experience when you were not allowed to use a mobile phone.",
+                "bullet_points": [
+                    "what you did",
+                    "when it was",
+                    "where it was",
+                    "why you were not allowed to use a mobile phone"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Mobile phones",
+        "part": 3,
+        "slug": "mobile-phones",
+        "questions": [
+            {
+                "text": "Do young and old people use phones in the same way?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What positive and negative effects do mobile phones have on friendship?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it a waste of time to take pictures with mobile phones?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Many people think mobile phones can be annoying at times. Can you give any examples of that?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think there should be laws on the use of mobile phones?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Famous person you’d like to meet",
+        "part": 2,
+        "slug": "famous-person-youd-like-to-meet",
+        "questions": [
+            {
+                "text": "Describe a famous person you'd like to meet.",
+                "bullet_points": [
+                    "who this person is",
+                    "where you'd like to meet this person",
+                    "how you know this person",
+                    "why you'd like to meet this person"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Fame and children",
+        "part": 3,
+        "slug": "fame-and-children",
+        "questions": [
+            {
+                "text": "What are the advantages and disadvantages of being a famous child?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What can children do with their fame?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What can today's children do to become famous?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do people become famous just because of their talent?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Place in your home where you can relax",
+        "part": 2,
+        "slug": "place-in-your-home-where-you-can-relax",
+        "questions": [
+            {
+                "text": "Describe a place in your home where you like to relax.",
+                "bullet_points": [
+                    "where it is",
+                    "what it is like",
+                    "what you like doing there",
+                    "why you feel relaxed there"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Having a rest, doing exercise",
+        "part": 3,
+        "slug": "having-a-rest-doing-exercise",
+        "questions": [
+            {
+                "text": "Why is it difficult for some people to relax?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think there should be classes for training young people and children how to relax?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Which is more important, mental relaxation or physical relaxation?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do people in your country exercise after work?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the benefits of doing exercise?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What is the place where people spend most of their time in their home?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Something you can’t live without",
+        "part": 2,
+        "slug": "something-you-cant-live-without",
+        "questions": [
+            {
+                "text": "Describe something you can't live without (not a computer or phone).",
+                "bullet_points": [
+                    "what it is",
+                    "how you use it",
+                    "how often you use it",
+                    "how it helps you and why you can't live without it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "New and old things, toys",
+        "part": 3,
+        "slug": "new-and-old-things-toys",
+        "questions": [
+            {
+                "text": "Do you think that keeping old things in a family is a great way to connect with the past?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do grown-ups hate to throw away old things?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How have people's shopping habits changed in recent decades?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How has the way people buy things changed?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How do shops attract customers?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What makes people buy new things?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do all children like toys?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think it's good for a child to take his or her favourite toy with them all the time?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Occasion when many people were smiling",
+        "part": 2,
+        "slug": "occasion-when-many-people-were-smiling",
+        "questions": [
+            {
+                "text": "Describe an occasion when you saw a lot of people smiling.",
+                "bullet_points": [
+                    "what occasion it was",
+                    "where it was",
+                    "why they were smiling"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Smiling",
+        "part": 3,
+        "slug": "smiling",
+        "questions": [
+            {
+                "text": "Do you think people who like to smile are more friendly?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do most people smile in photographs?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do women smile more than men? Why?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do people smile more when they are younger or older?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Advice you gave",
+        "part": 2,
+        "slug": "advice-you-gave",
+        "questions": [
+            {
+                "text": "Describe a time when you gave advice to others.",
+                "bullet_points": [
+                    "who you gave advice to",
+                    "what the situation was",
+                    "what advice you gave",
+                    "what the result was"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Advice",
+        "part": 3,
+        "slug": "advice",
+        "questions": [
+            {
+                "text": "What problems can people face if they ask many different people for advice?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people like to ask others for advice on almost everything?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "In general, what kind of person is most suitable for giving advice to others?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should people prepare before giving advice?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it good to aks advice from strangers online?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the personalities of people whose job is to give advice to others?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "App or program",
+        "part": 2,
+        "slug": "app-or-program",
+        "questions": [
+            {
+                "text": "Describe an app or program in your computer or phone.",
+                "bullet_points": [
+                    "what app or program it is",
+                    "when and where you found it",
+                    "how you use it",
+                    "how you feel about it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Apps or programs",
+        "part": 3,
+        "slug": "apps-or-programs",
+        "questions": [
+            {
+                "text": "What are the drawbacks of having too many apps?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people not like using apps?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the most and the least popular apps in your country?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kind of apps do you have on your phone?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the differences between old and young people when using apps?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Country to work or live in for",
+        "part": 2,
+        "slug": "country-to-work-or-live-in-for",
+        "questions": [
+            {
+                "text": "Describe a country in which you would like to work or live for a short period of time.",
+                "bullet_points": [
+                    "what country or city it is",
+                    "how you know about it",
+                    "what type of work you would like to do there",
+                    "why you would like to work in this country"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Working abroad, travelling",
+        "part": 3,
+        "slug": "working-abroad-travelling",
+        "questions": [
+            {
+                "text": "Why do people like travelling?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What jobs can people do abroad for a short period of time?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it good that now people have an opportunity to work abroad?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Thing your family has kept for a long time",
+        "part": 2,
+        "slug": "thing-your-family-has-kept-for-a-long-time",
+        "questions": [
+            {
+                "text": "Describe an important old thing that your family has kept for a long time.",
+                "bullet_points": [
+                    "what it is",
+                    "how your family first got this thing",
+                    "how long your family has kept it",
+                    "why this thing is important to your family"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Old things, museums",
+        "part": 3,
+        "slug": "old-things-museums",
+        "questions": [
+            {
+                "text": "What are the differences between the things that people keep today and the things that people kept in the past?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "As well as family photographs, what are some other things that people keep in their family for a long time?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "In your culture, what sorts of things do people pass down from generation to generation?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kinds of things are kept in museums?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What's the influence of technology on museums?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Trip by bike, car or motorbike you want to have",
+        "part": 2,
+        "slug": "trip-by-bike-car-or-motorbike-you-want-to-have",
+        "questions": [
+            {
+                "text": "Describe a long bike, motorbike, or car trip that you would like to take.",
+                "bullet_points": [
+                    "when you want to go",
+                    "where you want to go",
+                    "how long it will take you",
+                    "why it is interesting"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Transportation, air pollution",
+        "part": 3,
+        "slug": "transportation-air-pollution",
+        "questions": [
+            {
+                "text": "How are transportation systems in rural and urban areas different?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Which mode of transport is more popular in your country, a bicycle or car?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think air pollution comes mostly from mobile vehicles?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think people need to change the way of transportation drastically to protect the environment?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Shopping mall",
+        "part": 2,
+        "slug": "shopping-mall",
+        "questions": [
+            {
+                "text": "Describe a shop you often visit.",
+                "bullet_points": [
+                    "what shop it is, where it is",
+                    "what it sells",
+                    "why you like it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Shopping",
+        "part": 3,
+        "slug": "shopping",
+        "questions": [
+            {
+                "text": "Do you think that people buy a lot of things that they don't need?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you often buy more than you expected?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Imagination",
+        "part": 2,
+        "slug": "imagination",
+        "questions": [
+            {
+                "text": "Describe a time you needed to use your imagination.",
+                "bullet_points": [
+                    "what you did using imagination",
+                    "when it was",
+                    "whether it was easy or difficult",
+                    "how you felt"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Imagination",
+        "part": 3,
+        "slug": "imagination",
+        "questions": [
+            {
+                "text": "What kind of jobs require imagination?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do scientists need imagination in their work?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think adults can have lots of imagination?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What subjects are helpful for children's imagination?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Film you watched and enjoyed",
+        "part": 2,
+        "slug": "film-you-watched-and-enjoyed",
+        "questions": [
+            {
+                "text": "Describe a film you watched and enjoyed.",
+                "bullet_points": [
+                    "what the film was about",
+                    "when and where you watched it",
+                    "why you liked it and why you want to watch it again"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Films",
+        "part": 3,
+        "slug": "films",
+        "questions": [
+            {
+                "text": "What makes a movie a blockbuster?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Are actors and actresses important to movies?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think films with famous actors or actresses are more likely to become successful films?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kinds of movies are successful in your country?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do people in your country still like to go to a cinema?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Where do people watch movies?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do people in your country prefer to watch domestic movies or foreign movies?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think only well-known directors can create the best movies?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Story you read recently",
+        "part": 2,
+        "slug": "story-you-read-recently",
+        "questions": [
+            {
+                "text": "Describe a story you read recently.",
+                "bullet_points": [
+                    "what it is about",
+                    "when you read it",
+                    "whether you liked it",
+                    "what you learned from it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Stories",
+        "part": 3,
+        "slug": "stories",
+        "questions": [
+            {
+                "text": "Why do most children like listening to stories before bedtime?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is a good storyline important for a movie?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do children like hearing the same bedtime story?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Person who solved a problem in a smart way",
+        "part": 2,
+        "slug": "person-who-solved-a-problem-in-a-smart-way",
+        "questions": [
+            {
+                "text": "Describe a person who solved a problem in a smart way.",
+                "bullet_points": [
+                    "who this person is",
+                    "what the problem was",
+                    "what solution they gave",
+                    "why you think it was a clever solution"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Intelligence",
+        "part": 3,
+        "slug": "intelligence",
+        "questions": [
+            {
+                "text": "Are people born clever or need to learn to be clever?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why are some children more intelligent than others?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think society needs people with different types of intelligence?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Does modern society need talents of all kinds?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How do children become smart at school?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why are some people well-rounded and others only good at one thing?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Person who encouraged you to protect the nature",
+        "part": 2,
+        "slug": "person-who-encouraged-you-to-protect-the-nature",
+        "questions": [
+            {
+                "text": "Describe a person who encouraged you to protect the nature.",
+                "bullet_points": [
+                    "who this person is",
+                    "how this person encouraged you",
+                    "what this person encouraged you to do",
+                    "how you feel about this person"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Environmental protection",
+        "part": 3,
+        "slug": "environmental-protection",
+        "questions": [
+            {
+                "text": "How can parents teach their children to protect nature?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should schools teach children to get close to nature?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think there should be laws to protect nature?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Item on which you spent more than expected",
+        "part": 2,
+        "slug": "item-on-which-you-spent-more-than-expected",
+        "questions": [
+            {
+                "text": "Describe an occasion when you paid more than expected.",
+                "bullet_points": [
+                    "what you bought",
+                    "how much you paid",
+                    "why you bought it",
+                    "why you paid more"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Spending and saving money",
+        "part": 3,
+        "slug": "spending-and-saving-money",
+        "questions": [
+            {
+                "text": "What do young people spend money on?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it good and necessary to teach children to save money?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think it is important to save money?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think that people buy a lot of things that they don't need?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Person who often helps others",
+        "part": 2,
+        "slug": "person-who-often-helps-others",
+        "questions": [
+            {
+                "text": "Describe a person who often helps others.",
+                "bullet_points": [
+                    "who this person is",
+                    "how you know this person",
+                    "how this person helps you",
+                    "why you think this person is helpful"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Helping others",
+        "part": 3,
+        "slug": "helping-others",
+        "questions": [
+            {
+                "text": "What can children help parents with?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "In your view, should children be taught to help others?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should children help their parents with household chores?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kind of help do people need when looking for a new job?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Who should people ask for help, colleagues or family members?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Piece of technology you’d like to own",
+        "part": 2,
+        "slug": "piece-of-technology-youd-like-to-own",
+        "questions": [
+            {
+                "text": "Describe a piece of technology (not a phone) that you would like to own.",
+                "bullet_points": [
+                    "what it is",
+                    "how you knew it",
+                    "how much it costs",
+                    "why you'd like to own it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Technology, communication",
+        "part": 3,
+        "slug": "technology-communication",
+        "questions": [
+            {
+                "text": "What are the differences between talking with friends online and face-to-face?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What technology do people currently use?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Does technological development have a negative impact on communication among people?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think technology unites or separates people?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What effects does technology have on people’s relationships?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the differences between the technology of the past and that of today?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What are the differences between making friends in real life and online?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Encouraging someone to do what they didn’t want to do",
+        "part": 2,
+        "slug": "encouraging-someone-to-do-what-they-didnt-want-to-do",
+        "questions": [
+            {
+                "text": "Describe a time when you encouraged someone to do something that they didn't want to do.",
+                "bullet_points": [
+                    "who this person is",
+                    "what you encouraged them to do",
+                    "how this person reacted",
+                    "why you encouraged this person to do it"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Encouraging others",
+        "part": 3,
+        "slug": "encouraging-others",
+        "questions": [
+            {
+                "text": "Is the role of a leader important in a group?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How can leaders encourage employees?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "When should parents encourage their children?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think some people are better than others at persuading?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What kind of encouragement should parents give?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Friend who learned something new",
+        "part": 2,
+        "slug": "friend-who-learned-something-new",
+        "questions": [
+            {
+                "text": "Describe one of your friends who learned something new (not from a teacher).",
+                "bullet_points": [
+                    "who this person is",
+                    "what this person learned",
+                    "why they learned it",
+                    "whether it would be easier to learn from a teacher"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Learning new things",
+        "part": 3,
+        "slug": "learning-new-things",
+        "questions": [
+            {
+                "text": "Do you think learning many subjects at one time is better or learning one subject is better?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think learning many subjects is beneficial to your work?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think all teachers should have entertaining teaching styles?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should teachers make lessons fun?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is it important for people to learn new skills all life long?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think enterprises should provide training for their employees?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Person who makes plans a lot",
+        "part": 2,
+        "slug": "person-who-makes-plans-a-lot",
+        "questions": [
+            {
+                "text": "Describe a person who makes plans a lot and is good at planning.",
+                "bullet_points": [
+                    "who this person is",
+                    "how you knew this person",
+                    "what plans this person makes",
+                    "how you feel about this person"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Making plans",
+        "part": 3,
+        "slug": "making-plans",
+        "questions": [
+            {
+                "text": "In general, do you think planning is important?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think everyone in your country makes everyday plans?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think children should plan their future careers?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Should children ask their teachers or parents for advice when making plans?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "What activities do we need to plan ahead?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Is making study plans popular among young people?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think choosing a college major is closely related to a person's future career?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    },
+    {
+        "name": "Child who loves drawing or painting",
+        "part": 2,
+        "slug": "child-who-loves-drawing-or-painting",
+        "questions": [
+            {
+                "text": "Describe a child who loves drawing or painting.",
+                "bullet_points": [
+                    "who this child is",
+                    "how you knew him or her",
+                    "how often he or she draws or paints",
+                    "why he or she likes drawing or painting"
+                ],
+                "difficulty": 2
+            }
+        ]
+    },
+    {
+        "name": "Drawing, museums",
+        "part": 3,
+        "slug": "drawing-museums",
+        "questions": [
+            {
+                "text": "What is the right age for a child to learn drawing?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do most children draw more often than adults do?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Why do some people visit galleries or museums instead of viewing artworks online?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "Do you think galleries and museums should be free of charge?",
+                "bullet_points": null,
+                "difficulty": 3
+            },
+            {
+                "text": "How do artworks inspire people?",
+                "bullet_points": null,
+                "difficulty": 3
+            }
+        ]
+    }
+]
