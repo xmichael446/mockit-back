@@ -40,10 +40,3 @@ class FollowUpQuestion(TimestampedModel):
     def __str__(self):
         return f"Follow Up: {self.text}"
 
-
-class QuestionSet(TimestampedModel):
-    name = models.CharField(max_length=255)
-    topics = models.ManyToManyField(Topic, related_name="question_sets", blank=True)
-
-    def __str__(self):
-        return self.name
