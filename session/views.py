@@ -119,6 +119,13 @@ class SessionListCreateView(APIView):
         if not _is_examiner(request.user):
             return Response({"detail": "Only examiners can create sessions."}, status=403)
 
+        session_count = IELTSMockSession.objects.filter(examiner=request.user).count()
+        if session_count >= request.user.max_sessions:
+            return Response(
+                {"detail": f"Session limit reached. You can have at most {request.user.max_sessions} sessions."},
+                status=403,
+            )
+
         serializer = SessionCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         session = serializer.save(examiner=request.user)

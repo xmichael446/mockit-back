@@ -15,7 +15,8 @@ class User(AbstractUser):
         EXAMINER = 1, "Examiner"
         CANDIDATE = 2, "Candidate"
 
-    role = models.PositiveSmallIntegerField(choices=Role.choices, default=Role.CANDIDATE)
+    role = models.PositiveSmallIntegerField(choices=Role.choices, default=Role.EXAMINER)
+    max_sessions = models.PositiveIntegerField(default=5)
 
     # Guest account fields — set when a candidate joins via invite link without registration
     is_guest = models.BooleanField(default=False)

@@ -12,7 +12,7 @@ class UserMinimalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "username", "first_name", "last_name", "email", "role", "role_label", "is_guest")
+        fields = ("id", "username", "first_name", "last_name", "email", "role", "role_label", "is_guest", "max_sessions")
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -20,11 +20,11 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("username", "password", "first_name", "last_name", "email", "role")
+        fields = ("username", "password", "first_name", "email")
 
     def create(self, validated_data):
         password = validated_data.pop("password")
-        user = User(**validated_data)
+        user = User(**validated_data, role=User.Role.EXAMINER)
         user.set_password(password)
         user.save()
         return user

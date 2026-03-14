@@ -11,11 +11,11 @@ WebSocket connections authenticate via query-string token: `ws://host/ws/session
 ### POST /api/auth/register/
 No auth required.
 ```json
+// All registered users become EXAMINER (role=1). No role or last_name field.
 // Request
-{ "username": "...", "password": "...", "first_name": "...", "last_name": "...", "email": "...", "role": 1 }
-// role: 1=EXAMINER, 2=CANDIDATE
+{ "username": "...", "password": "...", "first_name": "...", "email": "..." }
 // Response 201
-{ "id": 1, "username": "...", "first_name": "...", "last_name": "...", "email": "...", "role": 1, "role_label": "Examiner", "token": "abc123..." }
+{ "token": "abc123...", "user": { "id": 1, "username": "...", "first_name": "...", "last_name": "...", "email": "...", "role": 1, "role_label": "Examiner", "is_guest": false, "max_sessions": 5 } }
 ```
 
 ### POST /api/auth/login/
