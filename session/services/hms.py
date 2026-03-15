@@ -25,7 +25,7 @@ def create_room(session_id):
         "https://api.100ms.live/v2/rooms",
         headers={"Authorization": f"Bearer {token}"},
         json={
-            "name": f"mock-session-{session_id}",
+            "name": f"mock-session-{session_id}-{uuid.uuid4().hex[:8]}",
             "template_id": settings.HMS_TEMPLATE_ID,
             "region": "eu",
         },

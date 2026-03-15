@@ -232,6 +232,7 @@ class StartSessionView(APIView):
         session = _session_qs().get(pk=session.pk)
         data = SessionSerializer(session).data
         data["hms_token"] = hms_token
+        data["room_id"] = room_id
         return Response(data)
 
 

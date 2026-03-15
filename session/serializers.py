@@ -103,6 +103,7 @@ class SessionSerializer(serializers.ModelSerializer):
             "invite_token",
             "invite_expires_at",
             "invite_accepted_at",
+            "video_room_id",
             "scheduled_at",
             "started_at",
             "ended_at",
