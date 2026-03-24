@@ -27,7 +27,6 @@ def create_room(session_id):
         json={
             "name": f"mock-session-{session_id}-{uuid.uuid4().hex[:8]}",
             "template_id": settings.HMS_TEMPLATE_ID,
-            "region": "eu",
         },
     )
     if not response.ok:
