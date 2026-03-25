@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import User
+from .models import EmailVerificationToken, User
 
 
 class UserMinimalSerializer(serializers.ModelSerializer):
@@ -42,6 +42,29 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Account is disabled.")
         data["user"] = user
         return data
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    token = serializers.UUIDField()
+
+    def validate_token(self, value):
+        try:
+            obj = EmailVerificationToken.objects.select_related("user").get(token=value)
+        except EmailVerificationToken.DoesNotExist:
+            raise serializers.ValidationError("Invalid verification token.")
+        if obj.is_used:
+            raise serializers.ValidationError("This token has already been used.")
+        if obj.is_expired:
+            raise serializers.ValidationError("This token has expired. Request a new one.")
+        self._token_obj = obj
+        return value
+
+    def get_token_obj(self):
+        return self._token_obj
+
+
+class ResendVerificationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
 
 class GuestJoinSerializer(serializers.Serializer):
