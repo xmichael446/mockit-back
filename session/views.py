@@ -936,9 +936,6 @@ class ReleaseResultView(APIView):
         except SessionResult.DoesNotExist:
             return Response({"detail": "No result to release. Submit scores first."}, status=400)
 
-        if result.is_released:
-            return Response({"detail": "Result has already been released."}, status=400)
-
         result.is_released = True
         result.released_at = timezone.now()
         result.save(update_fields=["is_released", "released_at", "updated_at"])
