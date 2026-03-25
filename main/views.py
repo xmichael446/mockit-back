@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import EmailVerificationToken
+from .models import EmailVerificationToken, User
 from .serializers import (
     GuestJoinSerializer,
     LoginSerializer,
@@ -157,7 +157,6 @@ class GuestJoinView(APIView):
         random_suffix = uuid.uuid4().hex[:10]
         guest_username = f"guest_{random_suffix}"
         entered_name = serializer.validated_data.get("first_name", "").strip()
-        from .models import User
         guest = User.objects.create(
             username=guest_username,
             first_name=entered_name or "Guest",
