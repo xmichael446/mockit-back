@@ -6,7 +6,16 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import GuestJoinSerializer, LoginSerializer, RegisterSerializer, UserMinimalSerializer
+from .models import EmailVerificationToken
+from .serializers import (
+    GuestJoinSerializer,
+    LoginSerializer,
+    RegisterSerializer,
+    ResendVerificationSerializer,
+    UserMinimalSerializer,
+    VerifyEmailSerializer,
+)
+from .services.email import send_verification_email
 
 
 class RegisterView(APIView):
@@ -21,8 +30,14 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        token, _ = Token.objects.get_or_create(user=user)
-        return Response({"token": token.key, "user": UserMinimalSerializer(user).data}, status=201)
+        if user.role == User.Role.CANDIDATE:
+            user.is_verified = True
+            user.save(update_fields=["is_verified"])
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({"token": token.key, "user": UserMinimalSerializer(user).data}, status=201)
+        verification = EmailVerificationToken.objects.create(user=user)
+        send_verification_email(user, verification.token)
+        return Response({"message": "Account created. Check your email to verify your address."}, status=201)
 
 
 class LoginView(APIView):
@@ -37,6 +52,11 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
+        if not user.is_verified and not user.is_guest and user.role != User.Role.CANDIDATE:
+            return Response(
+                {"error": "email_not_verified", "message": "Please verify your email before logging in."},
+                status=403,
+            )
         token, _ = Token.objects.get_or_create(user=user)
         return Response({"token": token.key, "user": UserMinimalSerializer(user).data})
 
@@ -60,6 +80,53 @@ class MeView(APIView):
 
     def get(self, request):
         return Response(UserMinimalSerializer(request.user).data)
+
+
+class VerifyEmailView(APIView):
+    """
+    POST /api/auth/verify-email/
+    Verify a user's email address using the token from the verification email.
+    Returns an auth token on success, logging the user in immediately.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = VerifyEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token_obj = serializer.get_token_obj()
+        user = token_obj.user
+        user.is_verified = True
+        user.save(update_fields=["is_verified"])
+        token_obj.is_used = True
+        token_obj.save(update_fields=["is_used"])
+        auth_token, _ = Token.objects.get_or_create(user=user)
+        return Response({"token": auth_token.key, "user": UserMinimalSerializer(user).data})
+
+
+class ResendVerificationView(APIView):
+    """
+    POST /api/auth/resend-verification/
+    Resend a verification email. Always returns 200 to avoid user enumeration.
+    Invalidates any existing unused tokens and issues a fresh one.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ResendVerificationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        try:
+            user = User.objects.get(email=email, is_verified=False, is_guest=False)
+        except User.DoesNotExist:
+            # Return 200 regardless — no user enumeration
+            return Response({"message": "If that email exists and is unverified, a new link has been sent."})
+        # Invalidate existing unused tokens
+        EmailVerificationToken.objects.filter(user=user, is_used=False).update(is_used=True)
+        verification = EmailVerificationToken.objects.create(user=user)
+        send_verification_email(user, verification.token)
+        return Response({"message": "If that email exists and is unverified, a new link has been sent."})
 
 
 class GuestJoinView(APIView):
@@ -98,6 +165,7 @@ class GuestJoinView(APIView):
             email="",
             role=User.Role.CANDIDATE,
             is_guest=True,
+            is_verified=True,
             guest_session=session,
             is_active=True,
         )

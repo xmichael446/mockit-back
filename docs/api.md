@@ -14,8 +14,8 @@ No auth required.
 // All registered users become EXAMINER (role=1). No role or last_name field.
 // Request
 { "username": "...", "password": "...", "first_name": "...", "email": "..." }
-// Response 201
-{ "token": "abc123...", "user": { "id": 1, "username": "...", "first_name": "...", "last_name": "...", "email": "...", "role": 1, "role_label": "Examiner", "is_guest": false, "max_sessions": 5 } }
+// Response 201 — no token; user must verify email before logging in
+{ "message": "Account created. Check your email to verify your address." }
 ```
 
 ### POST /api/auth/login/
@@ -25,6 +25,31 @@ No auth required.
 { "username": "...", "password": "..." }
 // Response 200
 { "token": "abc123...", "user": { "id": 1, "username": "...", "role": 1, "role_label": "Examiner", ... } }
+// Response 403 — email not verified
+{ "error": "email_not_verified", "message": "Please verify your email before logging in." }
+```
+
+### POST /api/auth/verify-email/
+No auth required. Validates the token from the verification email. Logs the user in on success.
+```json
+// Request
+{ "token": "<uuid>" }
+// Response 200
+{ "token": "abc123...", "user": { "id": 1, "username": "...", "role": 1, ... } }
+// Response 400
+{ "token": ["Invalid verification token."] }
+{ "token": ["This token has already been used."] }
+{ "token": ["This token has expired. Request a new one."] }
+```
+
+### POST /api/auth/resend-verification/
+No auth required. Sends a fresh verification email. Always returns 200 to prevent user enumeration.
+Invalidates any existing unused tokens before creating a new one.
+```json
+// Request
+{ "email": "user@example.com" }
+// Response 200
+{ "message": "If that email exists and is unverified, a new link has been sent." }
 ```
 
 ### POST /api/auth/logout/
@@ -594,6 +619,12 @@ Fired when the examiner releases the result. The candidate should wait for this 
 ---
 
 ## Typical Flows
+
+### Registration flow
+1. `POST /api/auth/register/` → user created, verification email sent
+2. User clicks link in email → frontend reads `?token=` from URL
+3. `POST /api/auth/verify-email/` `{"token": "<uuid>"}` → returns auth token (user is now logged in)
+4. If link expired: `POST /api/auth/resend-verification/` `{"email": "..."}` → new email sent
 
 ### Examiner flow
 1. `POST /api/auth/login/` → get token

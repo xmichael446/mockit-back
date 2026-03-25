@@ -167,3 +167,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'main.User'
+
+# Resend email
+RESEND_API_KEY = "re_WrKqx7Q6_CgyMv8DmjMW2ArG6Z5VRmb3i"
+RESEND_FROM_EMAIL = "noreply@send.xmichael446.com"
+FRONTEND_URL = "http://localhost:3000"
