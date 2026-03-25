@@ -168,5 +168,5 @@ AUTH_USER_MODEL = 'main.User'
 
 # Resend email
 RESEND_API_KEY = "re_WrKqx7Q6_CgyMv8DmjMW2ArG6Z5VRmb3i"
-RESEND_FROM_EMAIL = "noreply@send.xmichael446.com"
+RESEND_FROM_EMAIL = "noreply@xmichael446.com"
 FRONTEND_URL = "http://localhost:3000"
