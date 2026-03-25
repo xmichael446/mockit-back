@@ -12,9 +12,27 @@ class Topic(TimestampedModel):
     name = models.CharField(max_length=255, unique=True)
     part = models.PositiveSmallIntegerField(choices=IELTSSpeakingPart.choices, default=IELTSSpeakingPart.PART_1, null=True)
     slug = models.SlugField(max_length=255, unique=True)
+    topic_number = models.PositiveIntegerField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.topic_number is None and self.part is not None:
+            last = (
+                Topic.objects
+                .filter(part=self.part)
+                .exclude(pk=self.pk)
+                .order_by("-topic_number")
+                .values_list("topic_number", flat=True)
+                .first()
+            )
+            self.topic_number = (last or 0) + 1
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.get_part_display()} | {self.name}"
+
+    class Meta:
+        ordering = ["part", "topic_number"]
+        unique_together = [("part", "topic_number")]
 
 
 class Question(TimestampedModel):

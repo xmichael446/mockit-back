@@ -27,7 +27,7 @@ from .models import (
 class PresetTopicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Topic
-        fields = ("id", "name", "part", "slug")
+        fields = ("id", "topic_number", "name", "part", "slug")
 
 
 class MockPresetSerializer(serializers.ModelSerializer):

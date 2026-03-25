@@ -49,7 +49,7 @@ class TopicListView(APIView):
         qs = (
             Topic.objects
             .prefetch_related("questions__follow_ups")
-            .order_by("part", "name")
+            .order_by("topic_number")
         )
 
         part = request.query_params.get("part")

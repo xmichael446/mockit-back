@@ -49,7 +49,7 @@ class GuestJoinSerializer(serializers.Serializer):
     Validates an invite token and resolves the associated session.
     Used by POST /api/auth/guest-join/.
     """
-    invite_token = serializers.UUIDField()
+    invite_token = serializers.CharField(max_length=9)
     first_name = serializers.CharField(required=False, max_length=150, allow_blank=True, default="")
 
     def validate_invite_token(self, value):

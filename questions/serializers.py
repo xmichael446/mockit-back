@@ -22,7 +22,7 @@ class TopicSerializer(serializers.ModelSerializer):
     """Compact topic — used inside QuestionDetailSerializer and QuestionSetSerializer."""
     class Meta:
         model = Topic
-        fields = ("id", "name", "part", "slug")
+        fields = ("id", "topic_number", "name", "part", "slug")
 
 
 class TopicWithQuestionsSerializer(serializers.ModelSerializer):
@@ -31,7 +31,7 @@ class TopicWithQuestionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Topic
-        fields = ("id", "name", "part", "slug", "questions")
+        fields = ("id", "topic_number", "name", "part", "slug", "questions")
 
 
 class QuestionDetailSerializer(serializers.ModelSerializer):

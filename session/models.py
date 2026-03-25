@@ -1,3 +1,5 @@
+import random
+import string
 import uuid
 
 from django.conf import settings
@@ -7,6 +9,16 @@ from rest_framework.exceptions import ValidationError
 
 from main.models import TimestampedModel
 from questions.models import FollowUpQuestion, IELTSSpeakingPart, Question, Topic
+
+
+def _generate_invite_token():
+    """Generate a Google Meet-style token like 'abcd-efgh'."""
+    chars = string.ascii_lowercase + string.digits
+    return (
+        "".join(random.choices(chars, k=4))
+        + "-"
+        + "".join(random.choices(chars, k=4))
+    )
 
 
 # ─── Choices ──────────────────────────────────────────────────────────────────
@@ -56,7 +68,7 @@ class IELTSMockSession(TimestampedModel):
 
     status = models.PositiveSmallIntegerField(choices=SessionStatus.choices, default=SessionStatus.SCHEDULED, db_index=True,)
 
-    invite_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    invite_token = models.CharField(max_length=9, default=_generate_invite_token, editable=False, unique=True)
     invite_expires_at = models.DateTimeField(null=True, blank=True)
     invite_accepted_at = models.DateTimeField(null=True, blank=True)
 
