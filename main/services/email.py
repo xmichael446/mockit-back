@@ -4,7 +4,7 @@ from django.conf import settings
 
 def send_verification_email(user, token_uuid):
     resend.api_key = settings.RESEND_API_KEY
-    verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token_uuid}"
+    verification_url = f"{settings.FRONTEND_URL}?verify={token_uuid}"
 
     resend.Emails.send({
         "from": settings.RESEND_FROM_EMAIL,

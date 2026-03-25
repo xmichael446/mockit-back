@@ -11,11 +11,12 @@ WebSocket connections authenticate via query-string token: `ws://host/ws/session
 ### POST /api/auth/register/
 No auth required.
 ```json
-// All registered users become EXAMINER (role=1). No role or last_name field.
 // Request
-{ "username": "...", "password": "...", "first_name": "...", "email": "..." }
-// Response 201 — no token; user must verify email before logging in
+{ "username": "...", "password": "...", "first_name": "...", "email": "...", "role": 1 }
+// Response 201 — EXAMINER (role=1): no token; must verify email before logging in
 { "message": "Account created. Check your email to verify your address." }
+// Response 201 — CANDIDATE (role=2): no verification required, token returned immediately
+{ "token": "abc123...", "user": { "id": 1, "username": "...", "role": 2, "role_label": "Candidate", ... } }
 ```
 
 ### POST /api/auth/login/
@@ -25,7 +26,7 @@ No auth required.
 { "username": "...", "password": "..." }
 // Response 200
 { "token": "abc123...", "user": { "id": 1, "username": "...", "role": 1, "role_label": "Examiner", ... } }
-// Response 403 — email not verified
+// Response 403 — examiner email not verified (does not apply to candidates or guests)
 { "error": "email_not_verified", "message": "Please verify your email before logging in." }
 ```
 
@@ -620,11 +621,14 @@ Fired when the examiner releases the result. The candidate should wait for this 
 
 ## Typical Flows
 
-### Registration flow
+### Registration flow (Examiner)
 1. `POST /api/auth/register/` → user created, verification email sent
-2. User clicks link in email → frontend reads `?token=` from URL
+2. User clicks link in email → frontend reads `?verify=` from URL
 3. `POST /api/auth/verify-email/` `{"token": "<uuid>"}` → returns auth token (user is now logged in)
 4. If link expired: `POST /api/auth/resend-verification/` `{"email": "..."}` → new email sent
+
+### Registration flow (Candidate)
+1. `POST /api/auth/register/` → token returned immediately, no email verification required
 
 ### Examiner flow
 1. `POST /api/auth/login/` → get token
