@@ -80,6 +80,7 @@ class MockPresetListCreateView(APIView):
     def get(self, request):
         presets = (
             MockPreset.objects
+            .filter(owner=request.user)
             .prefetch_related("part_1", "part_2", "part_3")
             .order_by("-created_at")
         )
@@ -90,7 +91,7 @@ class MockPresetListCreateView(APIView):
             return Response({"detail": "Only examiners can create presets."}, status=403)
         serializer = MockPresetCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        preset = serializer.save()
+        preset = serializer.save(owner=request.user)
         return Response(MockPresetSerializer(preset).data, status=201)
 
 

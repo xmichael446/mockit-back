@@ -37,7 +37,7 @@ class MockPresetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MockPreset
-        fields = ("id", "name", "part_1", "part_2", "part_3", "created_at")
+        fields = ("id", "owner", "name", "part_1", "part_2", "part_3", "created_at")
 
 
 class MockPresetCreateSerializer(serializers.ModelSerializer):
@@ -48,6 +48,7 @@ class MockPresetCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = MockPreset
         fields = ("name", "part_1", "part_2", "part_3")
+        # owner is injected by the view via serializer.save(owner=request.user)
 
     def _validate_part(self, topics, expected_part: int, label: str):
         wrong = [t.name for t in topics if t.part != expected_part]
@@ -71,7 +72,7 @@ class MockPresetCreateSerializer(serializers.ModelSerializer):
         part_1 = validated_data.pop("part_1")
         part_2 = validated_data.pop("part_2")
         part_3 = validated_data.pop("part_3")
-        preset = MockPreset.objects.create(**validated_data)
+        preset = MockPreset.objects.create(**validated_data)  # owner passed via save(owner=...)
         preset.part_1.set(part_1)
         preset.part_2.set(part_2)
         preset.part_3.set(part_3)

@@ -38,6 +38,7 @@ class SpeakingCriterion(models.IntegerChoices):
 
 
 class MockPreset(TimestampedModel):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="presets", null=True)
     name = models.CharField(max_length=255)
     part_1 = models.ManyToManyField(Topic, related_name="part_1_presets")
     part_2 = models.ManyToManyField(Topic, related_name="part_2_presets")
