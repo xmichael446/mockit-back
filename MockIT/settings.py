@@ -99,6 +99,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'MockIT.wsgi.application'
 
 CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = ["https://mockit.xmichael446.com", "https://mi-back.xmichael446.com"]
 
 HMS_APP_ACCESS_KEY = "6995260763cbbe924eef8b72"
 HMS_APP_SECRET = "lt5dJBG_8Ub3vLI4GSOLlCKIH8OHxy_3FP0vp7x0vuYcfZk8ZE-6_IJglQ7rvESUfyJQkIUGpOnGsg6ifs7prQ4TVbXfWAEFlK4vel3_Uv0viwLdxYO_HK1AvUFa8Z2j0l2VhpxElh3v0NaP8gkt8eU4xC0PYJUEZdiVFNkGmUg="
@@ -145,11 +146,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
