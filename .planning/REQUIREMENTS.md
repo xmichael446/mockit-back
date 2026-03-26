@@ -56,21 +56,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | -- | Pending |
-| SEC-02 | -- | Pending |
-| REF-01 | -- | Pending |
-| REF-02 | -- | Pending |
-| REF-03 | -- | Pending |
-| EDGE-01 | -- | Pending |
-| EDGE-02 | -- | Pending |
-| EDGE-03 | -- | Pending |
-| EDGE-04 | -- | Pending |
+| SEC-01 | Phase 1 | Pending |
+| SEC-02 | Phase 1 | Pending |
+| REF-01 | Phase 2 | Pending |
+| REF-03 | Phase 2 | Pending |
+| EDGE-01 | Phase 2 | Pending |
+| EDGE-04 | Phase 2 | Pending |
+| REF-02 | Phase 3 | Pending |
+| EDGE-02 | Phase 3 | Pending |
+| EDGE-03 | Phase 3 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 9 total
-- Mapped to phases: 0
-- Unmapped: 9
+- Mapped to phases: 9
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-27*
-*Last updated: 2026-03-27 after initial definition*
+*Last updated: 2026-03-27 after roadmap creation*
