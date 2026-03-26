@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-cldk6if@i^mgu15ptn!=0+ele@dpn92^v@@m3h*nqrdwt3=3!#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "mi-back.xmichael446.com", "mockit.xmichael446.com"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "mi-back.xmichael446.com", "mockit.live", "mockit.xmichael446.com"]
 
 
 # Application definition
@@ -99,7 +99,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'MockIT.wsgi.application'
 
 CORS_ALLOW_ALL_ORIGINS = True
-CSRF_TRUSTED_ORIGINS = ["https://mockit.xmichael446.com", "https://mi-back.xmichael446.com"]
+CSRF_TRUSTED_ORIGINS = ["https://mockit.live", "https://mi-back.xmichael446.com", "https://mockit.xmichael446.com"]
 
 HMS_APP_ACCESS_KEY = "6995260763cbbe924eef8b72"
 HMS_APP_SECRET = "lt5dJBG_8Ub3vLI4GSOLlCKIH8OHxy_3FP0vp7x0vuYcfZk8ZE-6_IJglQ7rvESUfyJQkIUGpOnGsg6ifs7prQ4TVbXfWAEFlK4vel3_Uv0viwLdxYO_HK1AvUFa8Z2j0l2VhpxElh3v0NaP8gkt8eU4xC0PYJUEZdiVFNkGmUg="
@@ -169,4 +169,4 @@ AUTH_USER_MODEL = 'main.User'
 # Resend email
 RESEND_API_KEY = "re_WrKqx7Q6_CgyMv8DmjMW2ArG6Z5VRmb3i"
 RESEND_FROM_EMAIL = "noreply@xmichael446.com"
-FRONTEND_URL = "http://localhost:3000"
+FRONTEND_URL = "https://mockit.live"
