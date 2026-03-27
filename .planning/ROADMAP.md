@@ -44,7 +44,11 @@ Plans:
   3. New sessions are created with letter-only invite tokens in Google Meet format (e.g., `xyz-abcd`) rather than alphanumeric tokens
   4. If the server crashes between status update and room creation during session start, the database is left in a consistent state (no partial updates)
   5. A MockPreset that has at least one session created from it cannot be modified — the API returns a 400 if an examiner attempts to edit it
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Add state machine methods, invite token, and preset immutability to models
+- [ ] 02-02-PLAN.md — Replace inline status checks in views with model methods and wrap session start in transaction.atomic()
 
 ### Phase 3: Data Integrity and Observability
 
@@ -65,5 +69,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Security Hardening | 2/2 | Complete   | 2026-03-27 |
-| 2. Session Hardening | 0/? | Not started | - |
+| 2. Session Hardening | 0/2 | Not started | - |
 | 3. Data Integrity and Observability | 0/? | Not started | - |
