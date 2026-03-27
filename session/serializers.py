@@ -143,7 +143,7 @@ class AcceptInviteSerializer(serializers.Serializer):
     Write serializer for accepting an invite.
     `candidate` is taken from request.user in the view — not accepted from the body.
     """
-    token = serializers.CharField(max_length=9)
+    token = serializers.CharField(max_length=8)
 
     def validate(self, data):
         try:
@@ -155,12 +155,11 @@ class AcceptInviteSerializer(serializers.Serializer):
         except IELTSMockSession.DoesNotExist:
             raise serializers.ValidationError({"token": "Invalid invite token."})
 
-        if session.status != SessionStatus.SCHEDULED:
-            raise serializers.ValidationError(
-                {"token": f"Session is not accepting invitations (status: {session.get_status_display()})."}
-            )
-
-        if session.candidate is not None:
+        if not session.can_accept_invite():
+            if session.status != SessionStatus.SCHEDULED:
+                raise serializers.ValidationError(
+                    {"token": f"Session is not accepting invitations (status: {session.get_status_display()})."}
+                )
             raise serializers.ValidationError({"token": "This invite has already been accepted."})
 
         if session.invite_expires_at and timezone.now() > session.invite_expires_at:
