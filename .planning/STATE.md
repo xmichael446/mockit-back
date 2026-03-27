@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-27T00:59:17.733Z"
+last_updated: "2026-03-27T01:08:47.845Z"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # State
@@ -57,6 +57,8 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 - [Phase 01]: Used ScopedRateThrottle as default class with per-view throttle_scope (views without scope are unaffected)
 - [Phase 02]: Used SQLite settings_test.py for test runner (local PG is v13, Django 5.2 needs v14+)
 - [Phase 02]: Changed invite_token max_length 9->8 to match new xxx-yyyy format
+- [Phase 02]: ValidationError from model methods propagates through DRF -- no try/except needed in views
+- [Phase 02]: Broadcast calls placed after transaction.atomic block to prevent stale events on rollback
 
 ## Session Continuity
 
