@@ -21,8 +21,8 @@ Requirements for milestone v1.1: Clean-up, Security & Edge Cases.
 ### Edge Cases
 
 - [x] **EDGE-01**: Multi-step operations wrapped in transaction.atomic() (session start, scoring)
-- [ ] **EDGE-02**: Result release requires all 4 criterion scores to exist
-- [ ] **EDGE-03**: Email delivery failures caught and handled gracefully (no silent failures)
+- [x] **EDGE-02**: Result release requires all 4 criterion scores to exist
+- [x] **EDGE-03**: Email delivery failures caught and handled gracefully (no silent failures)
 - [x] **EDGE-04**: Preset cannot be modified after a session has been created from it
 
 ## Future Requirements
@@ -63,8 +63,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EDGE-01 | Phase 2 | Complete |
 | EDGE-04 | Phase 2 | Complete |
 | REF-02 | Phase 3 | Pending |
-| EDGE-02 | Phase 3 | Pending |
-| EDGE-03 | Phase 3 | Pending |
+| EDGE-02 | Phase 3 | Complete |
+| EDGE-03 | Phase 3 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 9 total
