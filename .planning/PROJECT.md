@@ -49,9 +49,9 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 - [x] Rate limiting on auth and invite endpoints — Validated in Phase 1: Security Hardening
 - [x] Session status state machine (centralized validation) — Validated in Phase 2: Session Hardening
 - [x] Transaction management for multi-step operations — Validated in Phase 2: Session Hardening
-- [ ] Scoring validation (require all 4 criteria before release)
-- [ ] Email delivery error handling
-- [ ] Audit logging for critical actions
+- [x] Scoring validation (require all 4 criteria before release) — Validated in Phase 3: Data Integrity and Observability
+- [x] Email delivery error handling — Validated in Phase 3: Data Integrity and Observability
+- [x] Audit logging for critical actions — Validated in Phase 3: Data Integrity and Observability
 - [x] Preset immutability after session creation — Validated in Phase 2: Session Hardening
 
 ### Out of Scope
@@ -107,4 +107,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-27 after Phase 2: Session Hardening completion*
+*Last updated: 2026-03-27 after Phase 3: Data Integrity and Observability completion — Milestone v1.1 complete*
