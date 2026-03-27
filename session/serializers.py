@@ -143,7 +143,7 @@ class AcceptInviteSerializer(serializers.Serializer):
     Write serializer for accepting an invite.
     `candidate` is taken from request.user in the view — not accepted from the body.
     """
-    token = serializers.CharField(max_length=8)
+    token = serializers.CharField(max_length=9)
 
     def validate(self, data):
         try:

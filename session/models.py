@@ -83,7 +83,7 @@ class IELTSMockSession(TimestampedModel):
 
     status = models.PositiveSmallIntegerField(choices=SessionStatus.choices, default=SessionStatus.SCHEDULED, db_index=True,)
 
-    invite_token = models.CharField(max_length=8, default=_generate_invite_token, editable=False, unique=True)
+    invite_token = models.CharField(max_length=9, default=_generate_invite_token, editable=False, unique=True)
     invite_expires_at = models.DateTimeField(null=True, blank=True)
     invite_accepted_at = models.DateTimeField(null=True, blank=True)
 
