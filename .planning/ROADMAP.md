@@ -9,7 +9,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Security Hardening** - Move secrets out of source control and protect critical endpoints from abuse
+- [x] **Phase 1: Security Hardening** - Move secrets out of source control and protect critical endpoints from abuse (completed 2026-03-27)
 - [ ] **Phase 2: Session Hardening** - Centralize status validation, strengthen invite tokens, and make multi-step operations atomic
 - [ ] **Phase 3: Data Integrity and Observability** - Enforce scoring completeness, handle email failures gracefully, and add audit logging
 
@@ -27,11 +27,11 @@
   2. A `.env` file exists (and is gitignored) containing all required secrets; the app starts correctly from a fresh clone with only this file
   3. Registration, guest-join, and accept-invite endpoints return 429 when called more than their configured threshold within the rate window
   4. Legitimate users can still register and join without hitting rate limits under normal usage
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 01-01-PLAN.md — Move secrets from settings.py to .env via python-dotenv
-- [ ] 01-02-PLAN.md — Add rate limiting to registration, guest-join, and accept-invite endpoints
+- [x] 01-02-PLAN.md — Add rate limiting to registration, guest-join, and accept-invite endpoints
 
 ### Phase 2: Session Hardening
 
@@ -64,6 +64,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Security Hardening | 0/2 | Not started | - |
+| 1. Security Hardening | 2/2 | Complete   | 2026-03-27 |
 | 2. Session Hardening | 0/? | Not started | - |
 | 3. Data Integrity and Observability | 0/? | Not started | - |

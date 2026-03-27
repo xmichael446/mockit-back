@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-27T00:27:07.660Z"
+last_updated: "2026-03-27T00:29:52.352Z"
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # State
@@ -54,6 +54,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 | Tests deferred to separate milestone | Zero coverage currently; test milestone is explicit out-of-scope for v1.1 |
 
 - [Phase 01]: Use os.environ[] fail-fast for all secrets (no .get() defaults)
+- [Phase 01]: Used ScopedRateThrottle as default class with per-view throttle_scope (views without scope are unaffected)
 
 ## Session Continuity
 
