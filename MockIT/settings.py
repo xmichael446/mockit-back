@@ -68,6 +68,14 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "main.permissions.IsEmailVerified",
     ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "register": "10/hour",
+        "guest_join": "20/hour",
+        "accept_invite": "20/hour",
+    },
 }
 
 MIDDLEWARE = [
