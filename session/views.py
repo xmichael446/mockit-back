@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+import logging
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.response import Response
@@ -39,6 +40,8 @@ from .serializers import (
     SessionSerializer,
 )
 from .services.hms import create_room, generate_app_token
+
+audit = logging.getLogger("mockit.audit")
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -132,6 +135,7 @@ class SessionListCreateView(APIView):
         serializer = SessionCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         session = serializer.save(examiner=request.user)
+        audit.info("action=session.create user=%s session=%s timestamp=%s", request.user.pk, session.pk, timezone.now().isoformat())
         session = _session_qs().get(pk=session.pk)
         return Response(SessionSerializer(session).data, status=201)
 
@@ -223,6 +227,7 @@ class StartSessionView(APIView):
             "session_id": pk,
             "started_at": session.started_at.isoformat(),
         })
+        audit.info("action=session.start user=%s session=%s timestamp=%s", request.user.pk, pk, timezone.now().isoformat())
 
         session = _session_qs().get(pk=session.pk)
         data = SessionSerializer(session).data
@@ -285,6 +290,7 @@ class EndSessionView(APIView):
             "session_id": pk,
             "ended_at": session.ended_at.isoformat(),
         })
+        audit.info("action=session.end user=%s session=%s timestamp=%s", request.user.pk, pk, timezone.now().isoformat())
 
         session = _session_qs().get(pk=session.pk)
         return Response(SessionSerializer(session).data)
@@ -886,6 +892,7 @@ class SessionResultView(APIView):
             result.overall_feedback = serializer.validated_data["overall_feedback"]
             update_fields.append("overall_feedback")
         result.save(update_fields=update_fields)
+        audit.info("action=result.submit user=%s session=%s timestamp=%s", request.user.pk, pk, timezone.now().isoformat())
 
         result = SessionResult.objects.prefetch_related("scores").get(pk=result.pk)
         return Response(SessionResultSerializer(result).data, status=201)
@@ -936,6 +943,7 @@ class ReleaseResultView(APIView):
             "released_at": result.released_at.isoformat(),
             "scores": CriterionScoreSerializer(result.scores.all(), many=True).data,
         })
+        audit.info("action=result.release user=%s session=%s timestamp=%s", request.user.pk, pk, timezone.now().isoformat())
 
         return Response(SessionResultSerializer(result).data)
 
