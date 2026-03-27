@@ -1,7 +1,9 @@
 import re
+from unittest.mock import patch
 
 from django.test import TestCase
 from rest_framework.exceptions import ValidationError
+from rest_framework.test import APIClient
 
 from main.models import User
 from questions.models import Topic
@@ -189,3 +191,63 @@ class PresetImmutabilityTests(TestCase):
         preset = MockPreset(name="Brand New Preset", owner=self.examiner)
         preset.save()  # Should not raise
         self.assertIsNotNone(preset.pk)
+
+
+class SessionStartTransactionTests(TestCase):
+    """Tests that session start rolls back on room creation failure (EDGE-01)."""
+
+    def setUp(self):
+        self.examiner = User.objects.create_user(
+            username="examiner_tx_test",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        self.candidate = User.objects.create_user(
+            username="candidate_tx_test",
+            password="testpass123",
+            role=User.Role.CANDIDATE,
+        )
+        self.preset = MockPreset.objects.create(name="Test Preset", owner=self.examiner)
+        self.session = IELTSMockSession.objects.create(
+            examiner=self.examiner,
+            candidate=self.candidate,
+            preset=self.preset,
+        )
+
+    @patch("session.views.create_room", side_effect=Exception("HMS API down"))
+    def test_rollback_on_room_failure(self, mock_create_room):
+        """If create_room() raises, session status must remain SCHEDULED."""
+        client = APIClient()
+        client.force_authenticate(user=self.examiner)
+        response = client.post(f"/api/sessions/{self.session.pk}/start/")
+        self.assertEqual(response.status_code, 502)
+
+        # Reload from DB -- status must still be SCHEDULED
+        self.session.refresh_from_db()
+        self.assertEqual(self.session.status, SessionStatus.SCHEDULED)
+        self.assertIsNone(self.session.started_at)
+
+    @patch("session.views.create_room", return_value="room-123")
+    @patch("session.views.generate_app_token", return_value="token-abc")
+    def test_successful_start_commits(self, mock_token, mock_room):
+        """Successful start commits status + room_id."""
+        client = APIClient()
+        client.force_authenticate(user=self.examiner)
+        response = client.post(f"/api/sessions/{self.session.pk}/start/")
+        self.assertEqual(response.status_code, 200)
+
+        self.session.refresh_from_db()
+        self.assertEqual(self.session.status, SessionStatus.IN_PROGRESS)
+        self.assertEqual(self.session.video_room_id, "room-123")
+        self.assertIsNotNone(self.session.started_at)
+
+    @patch("session.views.create_room", side_effect=Exception("HMS API down"))
+    @patch("session.views._broadcast")
+    def test_no_broadcast_on_failure(self, mock_broadcast, mock_create_room):
+        """_broadcast must NOT be called if room creation fails."""
+        client = APIClient()
+        client.force_authenticate(user=self.examiner)
+        response = client.post(f"/api/sessions/{self.session.pk}/start/")
+        self.assertEqual(response.status_code, 502)
+        mock_broadcast.assert_not_called()

@@ -84,12 +84,11 @@ class GuestJoinSerializer(serializers.Serializer):
         except IELTSMockSession.DoesNotExist:
             raise serializers.ValidationError("Invalid invite token.")
 
-        if session.status != SessionStatus.SCHEDULED:
-            raise serializers.ValidationError(
-                f"Session is not accepting guests (status: {session.get_status_display()})."
-            )
-
-        if session.candidate is not None:
+        if not session.can_accept_invite():
+            if session.status != SessionStatus.SCHEDULED:
+                raise serializers.ValidationError(
+                    f"Session is not accepting guests (status: {session.get_status_display()})."
+                )
             raise serializers.ValidationError("This invite has already been accepted.")
 
         if session.invite_expires_at and timezone.now() > session.invite_expires_at:
