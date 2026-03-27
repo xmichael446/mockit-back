@@ -37,8 +37,11 @@ class RegisterView(APIView):
             token, _ = Token.objects.get_or_create(user=user)
             return Response({"token": token.key, "user": UserMinimalSerializer(user).data}, status=201)
         verification = EmailVerificationToken.objects.create(user=user)
-        send_verification_email(user, verification.token)
-        return Response({"message": "Account created. Check your email to verify your address."}, status=201)
+        email_sent = send_verification_email(user, verification.token)
+        response_data = {"message": "Account created. Check your email to verify your address."}
+        if not email_sent:
+            response_data["email_warning"] = "Verification email could not be sent. You can request a new one later."
+        return Response(response_data, status=201)
 
 
 class LoginView(APIView):
@@ -126,8 +129,11 @@ class ResendVerificationView(APIView):
         # Invalidate existing unused tokens
         EmailVerificationToken.objects.filter(user=user, is_used=False).update(is_used=True)
         verification = EmailVerificationToken.objects.create(user=user)
-        send_verification_email(user, verification.token)
-        return Response({"message": "If that email exists and is unverified, a new link has been sent."})
+        email_sent = send_verification_email(user, verification.token)
+        response_data = {"message": "If that email exists and is unverified, a new link has been sent."}
+        if not email_sent:
+            response_data["email_warning"] = "Verification email could not be sent. Please try again later."
+        return Response(response_data)
 
 
 class GuestJoinView(APIView):
