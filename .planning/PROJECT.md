@@ -42,11 +42,11 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] Secrets moved to environment variables (.env)
+- [x] Secrets moved to environment variables (.env) — Validated in Phase 1: Security Hardening
 - [ ] DEBUG controlled by environment variable
 - [ ] CORS restricted to allowed origins
 - [ ] Stronger invite token generation (secrets module)
-- [ ] Rate limiting on auth and invite endpoints
+- [x] Rate limiting on auth and invite endpoints — Validated in Phase 1: Security Hardening
 - [ ] Session status state machine (centralized validation)
 - [ ] Transaction management for multi-step operations
 - [ ] Scoring validation (require all 4 criteria before release)
@@ -107,4 +107,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-27 after milestone v1.1 initialization*
+*Last updated: 2026-03-27 after Phase 1: Security Hardening completion*
