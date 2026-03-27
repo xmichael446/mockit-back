@@ -67,6 +67,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 | # | Description | Date | Commit | Status | Directory |
 |---|-------------|------|--------|--------|-----------|
 | 260327-qez | Update API docs with all error messages and scenarios | 2026-03-27 | dae4515 | Verified | [260327-qez-update-the-api-docs-to-include-all-the-p](./quick/260327-qez-update-the-api-docs-to-include-all-the-p/) |
+| 260327-qsl | Add error response format documentation to Global Errors section | 2026-03-27 | cb6e9ce | Verified | [260327-qsl-include-error-response-format-as-well-in](./quick/260327-qsl-include-error-response-format-as-well-in/) |
 
 ## Session Continuity
 
