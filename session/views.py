@@ -1,8 +1,10 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,7 +21,6 @@ from .models import (
     SessionQuestion,
     SessionRecording,
     SessionResult,
-    SessionStatus,
 )
 from .serializers import (
     AcceptInviteSerializer,
@@ -202,27 +203,18 @@ class StartSessionView(APIView):
         if request.user != session.examiner:
             return Response({"detail": "Only the session examiner can start the session."}, status=403)
 
-        if session.status != SessionStatus.SCHEDULED:
-            return Response(
-                {"detail": f"Session cannot be started. Current status: {session.get_status_display()}."},
-                status=400,
-            )
-
-        if session.candidate is None:
-            return Response(
-                {"detail": "Cannot start session: no candidate has accepted the invite yet."},
-                status=400,
-            )
+        session.start()  # raises ValidationError if not SCHEDULED or no candidate
 
         try:
-            room_id = create_room(session.pk)
+            with transaction.atomic():
+                session.save(update_fields=["status", "started_at", "updated_at"])
+                room_id = create_room(session.pk)
+                session.video_room_id = room_id
+                session.save(update_fields=["video_room_id", "updated_at"])
+        except ValidationError:
+            raise  # let DRF handle model validation errors
         except Exception as exc:
             return Response({"detail": f"Failed to create video room: {exc}"}, status=502)
-
-        session.video_room_id = room_id
-        session.status = SessionStatus.IN_PROGRESS
-        session.started_at = timezone.now()
-        session.save(update_fields=["video_room_id", "status", "started_at", "updated_at"])
 
         hms_token = generate_app_token(room_id, request.user.pk, settings.HMS_EXAMINER_ROLE)
 
@@ -254,11 +246,7 @@ class JoinSessionView(APIView):
         if request.user != session.examiner and request.user != session.candidate:
             return Response({"detail": "You are not a participant of this session."}, status=403)
 
-        if session.status != SessionStatus.IN_PROGRESS:
-            return Response(
-                {"detail": f"Session is not in progress. Current status: {session.get_status_display()}."},
-                status=400,
-            )
+        session.assert_in_progress()
 
         if not session.video_room_id:
             return Response({"detail": "Video room is not available."}, status=400)
@@ -289,14 +277,7 @@ class EndSessionView(APIView):
         if request.user != session.examiner:
             return Response({"detail": "Only the session examiner can end the session."}, status=403)
 
-        if session.status != SessionStatus.IN_PROGRESS:
-            return Response(
-                {"detail": f"Session is not in progress. Current status: {session.get_status_display()}."},
-                status=400,
-            )
-
-        session.status = SessionStatus.COMPLETED
-        session.ended_at = timezone.now()
+        session.end()  # validates IN_PROGRESS, sets status=COMPLETED + ended_at
         session.save(update_fields=["status", "ended_at", "updated_at"])
 
         _broadcast(pk, "session.ended", {
@@ -347,8 +328,7 @@ class SessionPartView(APIView):
         if request.user != session.examiner:
             return Response({"detail": "Only the examiner can start a part."}, status=403)
 
-        if session.status != SessionStatus.IN_PROGRESS:
-            return Response({"detail": "Session is not in progress."}, status=400)
+        session.assert_in_progress()
 
         part_num = request.data.get("part")
         if part_num not in (1, 2, 3):
@@ -388,8 +368,7 @@ class EndSessionPartView(APIView):
         if request.user != session.examiner:
             return Response({"detail": "Only the examiner can end a part."}, status=403)
 
-        if session.status != SessionStatus.IN_PROGRESS:
-            return Response({"detail": "Session is not in progress."}, status=400)
+        session.assert_in_progress()
 
         try:
             part = SessionPart.objects.get(session=session, part=part_num)
@@ -498,8 +477,7 @@ class AskQuestionView(APIView):
         if request.user != session.examiner:
             return Response({"detail": "Only the examiner can ask questions."}, status=403)
 
-        if session.status != SessionStatus.IN_PROGRESS:
-            return Response({"detail": "Session is not in progress."}, status=400)
+        session.assert_in_progress()
 
         try:
             session_part = SessionPart.objects.get(session=session, part=part_num)
@@ -598,8 +576,7 @@ class AnswerStartView(APIView):
         if request.user != session.candidate:
             return Response({"detail": "Only the candidate can signal answer start."}, status=403)
 
-        if session.status != SessionStatus.IN_PROGRESS:
-            return Response({"detail": "Session is not in progress."}, status=400)
+        session.assert_in_progress()
 
         try:
             sq = SessionQuestion.objects.get(pk=sq_id, session_part__session=session)
@@ -639,8 +616,7 @@ class EndQuestionView(APIView):
         if request.user != session.examiner:
             return Response({"detail": "Only the examiner can end a question."}, status=403)
 
-        if session.status != SessionStatus.IN_PROGRESS:
-            return Response({"detail": "Session is not in progress."}, status=400)
+        session.assert_in_progress()
 
         try:
             sq = SessionQuestion.objects.get(pk=sq_id, session_part__session=session)
@@ -683,8 +659,7 @@ class AskFollowUpView(APIView):
         if request.user != session.examiner:
             return Response({"detail": "Only the examiner can ask follow-ups."}, status=403)
 
-        if session.status != SessionStatus.IN_PROGRESS:
-            return Response({"detail": "Session is not in progress."}, status=400)
+        session.assert_in_progress()
 
         try:
             sq = SessionQuestion.objects.select_related("question").get(
@@ -737,8 +712,7 @@ class EndFollowUpView(APIView):
         if request.user != session.examiner:
             return Response({"detail": "Only the examiner can end follow-ups."}, status=403)
 
-        if session.status != SessionStatus.IN_PROGRESS:
-            return Response({"detail": "Session is not in progress."}, status=400)
+        session.assert_in_progress()
 
         try:
             sf = SessionFollowUp.objects.get(
