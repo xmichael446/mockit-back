@@ -30,7 +30,7 @@
 **Plans:** 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Move secrets from settings.py to .env via python-dotenv
+- [x] 01-01-PLAN.md — Move secrets from settings.py to .env via python-dotenv
 - [ ] 01-02-PLAN.md — Add rate limiting to registration, guest-join, and accept-invite endpoints
 
 ### Phase 2: Session Hardening

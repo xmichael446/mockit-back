@@ -9,7 +9,7 @@ Requirements for milestone v1.1: Clean-up, Security & Edge Cases.
 
 ### Security
 
-- [ ] **SEC-01**: All secrets (SECRET_KEY, HMS keys, RESEND key, DB credentials) loaded from .env file
+- [x] **SEC-01**: All secrets (SECRET_KEY, HMS keys, RESEND key, DB credentials) loaded from .env file
 - [ ] **SEC-02**: Rate limiting applied to registration, guest-join, and invite-accept endpoints
 
 ### Refactoring
@@ -56,7 +56,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | Phase 1 | Pending |
+| SEC-01 | Phase 1 | Complete |
 | SEC-02 | Phase 1 | Pending |
 | REF-01 | Phase 2 | Pending |
 | REF-03 | Phase 2 | Pending |

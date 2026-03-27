@@ -1,11 +1,22 @@
+---
+gsd_state_version: 1.0
+milestone: v1.1
+milestone_name: milestone
+status: unknown
+last_updated: "2026-03-27T00:27:07.660Z"
+progress:
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
+---
+
 # State
 
 ## Current Position
 
-Phase: 1 (Security Hardening) — not started
-Plan: --
-Status: Roadmap defined, awaiting phase planning
-Last activity: 2026-03-27 — Roadmap created for v1.1
+Phase: 01 (security-hardening) — EXECUTING
+Plan: 2 of 2
 
 ## Progress Bar
 
@@ -20,7 +31,7 @@ Last activity: 2026-03-27 — Roadmap created for v1.1
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** v1.1 Clean-up, Security & Edge Cases
+**Current focus:** Phase 01 — security-hardening
 **Current milestone:** v1.1
 
 ## Accumulated Context
@@ -41,6 +52,8 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 | Phase 2 bundles REF-01, REF-03, EDGE-01, EDGE-04 | REF-01 (state machine) is foundational; EDGE-01 (transactions) and EDGE-04 (preset immutability) touch the same session lifecycle code |
 | Phase 3 handles REF-02, EDGE-02, EDGE-03 | Audit logging, scoring validation, and email error handling are data-layer concerns that don't depend on the state machine |
 | Tests deferred to separate milestone | Zero coverage currently; test milestone is explicit out-of-scope for v1.1 |
+
+- [Phase 01]: Use os.environ[] fail-fast for all secrets (no .get() defaults)
 
 ## Session Continuity
 
