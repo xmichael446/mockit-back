@@ -25,6 +25,7 @@ class RegisterView(APIView):
     """
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "register"
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -146,6 +147,7 @@ class GuestJoinView(APIView):
     """
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "guest_join"
 
     def post(self, request):
         serializer = GuestJoinSerializer(data=request.data)

@@ -156,6 +156,7 @@ class AcceptInviteView(APIView):
     POST /api/sessions/accept-invite/  — candidate accepts an invitation token
     The authenticated user must have the Candidate role.
     """
+    throttle_scope = "accept_invite"
 
     def post(self, request):
         if not _is_candidate(request.user):
