@@ -15,7 +15,7 @@ Requirements for milestone v1.1: Clean-up, Security & Edge Cases.
 ### Refactoring
 
 - [x] **REF-01**: Session status checks extracted into model methods (can_start, can_end, can_ask_question, etc.)
-- [ ] **REF-02**: Audit logging added for session creation, start, end, scoring, and result release
+- [x] **REF-02**: Audit logging added for session creation, start, end, scoring, and result release
 - [x] **REF-03**: Invite token uses letter-only format like Google Meet (e.g. xyz-abcd)
 
 ### Edge Cases
@@ -62,7 +62,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REF-03 | Phase 2 | Complete |
 | EDGE-01 | Phase 2 | Complete |
 | EDGE-04 | Phase 2 | Complete |
-| REF-02 | Phase 3 | Pending |
+| REF-02 | Phase 3 | Complete |
 | EDGE-02 | Phase 3 | Complete |
 | EDGE-03 | Phase 3 | Complete |
 
