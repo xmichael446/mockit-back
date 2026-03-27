@@ -21,6 +21,7 @@ from .models import (
     SessionQuestion,
     SessionRecording,
     SessionResult,
+    SpeakingCriterion,
 )
 from .serializers import (
     AcceptInviteSerializer,
@@ -910,6 +911,19 @@ class ReleaseResultView(APIView):
             result = SessionResult.objects.prefetch_related("scores").get(session=session)
         except SessionResult.DoesNotExist:
             return Response({"detail": "No result to release. Submit scores first."}, status=400)
+
+        # EDGE-02: Require all 4 criterion scores before release
+        existing_criteria = set(result.scores.values_list("criterion", flat=True))
+        required_criteria = {c.value for c in SpeakingCriterion}
+        missing = required_criteria - existing_criteria
+        if missing:
+            missing_names = sorted(
+                SpeakingCriterion(c).name for c in missing
+            )
+            return Response(
+                {"detail": f"Cannot release: missing scores for {', '.join(missing_names)}"},
+                status=400,
+            )
 
         result.is_released = True
         result.released_at = timezone.now()
