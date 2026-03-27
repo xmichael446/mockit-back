@@ -3,19 +3,19 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-27T00:29:52.352Z"
+last_updated: "2026-03-27T00:59:17.733Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # State
 
 ## Current Position
 
-Phase: 01 (security-hardening) — EXECUTING
+Phase: 02 (session-hardening) — EXECUTING
 Plan: 2 of 2
 
 ## Progress Bar
@@ -31,7 +31,7 @@ Plan: 2 of 2
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** Phase 01 — security-hardening
+**Current focus:** Phase 02 — session-hardening
 **Current milestone:** v1.1
 
 ## Accumulated Context
@@ -55,6 +55,8 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 - [Phase 01]: Use os.environ[] fail-fast for all secrets (no .get() defaults)
 - [Phase 01]: Used ScopedRateThrottle as default class with per-view throttle_scope (views without scope are unaffected)
+- [Phase 02]: Used SQLite settings_test.py for test runner (local PG is v13, Django 5.2 needs v14+)
+- [Phase 02]: Changed invite_token max_length 9->8 to match new xxx-yyyy format
 
 ## Session Continuity
 

@@ -14,16 +14,16 @@ Requirements for milestone v1.1: Clean-up, Security & Edge Cases.
 
 ### Refactoring
 
-- [ ] **REF-01**: Session status checks extracted into model methods (can_start, can_end, can_ask_question, etc.)
+- [x] **REF-01**: Session status checks extracted into model methods (can_start, can_end, can_ask_question, etc.)
 - [ ] **REF-02**: Audit logging added for session creation, start, end, scoring, and result release
-- [ ] **REF-03**: Invite token uses letter-only format like Google Meet (e.g. xyz-abcd)
+- [x] **REF-03**: Invite token uses letter-only format like Google Meet (e.g. xyz-abcd)
 
 ### Edge Cases
 
 - [ ] **EDGE-01**: Multi-step operations wrapped in transaction.atomic() (session start, scoring)
 - [ ] **EDGE-02**: Result release requires all 4 criterion scores to exist
 - [ ] **EDGE-03**: Email delivery failures caught and handled gracefully (no silent failures)
-- [ ] **EDGE-04**: Preset cannot be modified after a session has been created from it
+- [x] **EDGE-04**: Preset cannot be modified after a session has been created from it
 
 ## Future Requirements
 
@@ -58,10 +58,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | SEC-01 | Phase 1 | Complete |
 | SEC-02 | Phase 1 | Complete |
-| REF-01 | Phase 2 | Pending |
-| REF-03 | Phase 2 | Pending |
+| REF-01 | Phase 2 | Complete |
+| REF-03 | Phase 2 | Complete |
 | EDGE-01 | Phase 2 | Pending |
-| EDGE-04 | Phase 2 | Pending |
+| EDGE-04 | Phase 2 | Complete |
 | REF-02 | Phase 3 | Pending |
 | EDGE-02 | Phase 3 | Pending |
 | EDGE-03 | Phase 3 | Pending |

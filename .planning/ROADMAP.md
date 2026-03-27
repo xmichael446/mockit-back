@@ -47,7 +47,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Add state machine methods, invite token, and preset immutability to models
+- [x] 02-01-PLAN.md — Add state machine methods, invite token, and preset immutability to models
 - [ ] 02-02-PLAN.md — Replace inline status checks in views with model methods and wrap session start in transaction.atomic()
 
 ### Phase 3: Data Integrity and Observability
