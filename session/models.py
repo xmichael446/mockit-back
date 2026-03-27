@@ -1,4 +1,4 @@
-import random
+import secrets
 import string
 import uuid
 
@@ -7,18 +7,18 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from rest_framework.exceptions import ValidationError
 
+from django.utils import timezone
+
 from main.models import TimestampedModel
 from questions.models import FollowUpQuestion, IELTSSpeakingPart, Question, Topic
 
 
 def _generate_invite_token():
-    """Generate a Google Meet-style token like 'abcd-efgh'."""
-    chars = string.ascii_lowercase + string.digits
-    return (
-        "".join(random.choices(chars, k=4))
-        + "-"
-        + "".join(random.choices(chars, k=4))
-    )
+    """Generate a Google Meet-style token: 3 letters + dash + 4 letters."""
+    letters = string.ascii_lowercase
+    part1 = "".join(secrets.choice(letters) for _ in range(3))
+    part2 = "".join(secrets.choice(letters) for _ in range(4))
+    return f"{part1}-{part2}"
 
 
 # ─── Choices ──────────────────────────────────────────────────────────────────
@@ -60,6 +60,20 @@ class MockPreset(TimestampedModel):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        if self.pk and self.sessions.exists():
+            raise ValidationError(
+                "Cannot modify a preset that has sessions created from it."
+            )
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.sessions.exists():
+            raise ValidationError(
+                "Cannot delete a preset that has sessions created from it."
+            )
+        super().delete(*args, **kwargs)
+
 
 class IELTSMockSession(TimestampedModel):
     examiner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="examiner_sessions",)
@@ -69,7 +83,7 @@ class IELTSMockSession(TimestampedModel):
 
     status = models.PositiveSmallIntegerField(choices=SessionStatus.choices, default=SessionStatus.SCHEDULED, db_index=True,)
 
-    invite_token = models.CharField(max_length=9, default=_generate_invite_token, editable=False, unique=True)
+    invite_token = models.CharField(max_length=8, default=_generate_invite_token, editable=False, unique=True)
     invite_expires_at = models.DateTimeField(null=True, blank=True)
     invite_accepted_at = models.DateTimeField(null=True, blank=True)
 
@@ -88,6 +102,57 @@ class IELTSMockSession(TimestampedModel):
     def __str__(self):
         candidate = self.candidate or "No candidate"
         return f"{self.examiner} | {candidate} | {self.get_status_display()}"
+
+    # ── State machine guards ──
+
+    def can_start(self):
+        return self.status == SessionStatus.SCHEDULED and self.candidate is not None
+
+    def can_end(self):
+        return self.status == SessionStatus.IN_PROGRESS
+
+    def can_join(self):
+        return self.status == SessionStatus.IN_PROGRESS
+
+    def can_ask_question(self):
+        return self.status == SessionStatus.IN_PROGRESS
+
+    def can_start_part(self):
+        return self.status == SessionStatus.IN_PROGRESS
+
+    def can_end_part(self):
+        return self.status == SessionStatus.IN_PROGRESS
+
+    def can_accept_invite(self):
+        return self.status == SessionStatus.SCHEDULED and self.candidate is None
+
+    # ── State machine transitions ──
+
+    def start(self):
+        if not self.can_start():
+            if self.candidate is None:
+                raise ValidationError(
+                    "Cannot start session: no candidate has accepted the invite yet."
+                )
+            raise ValidationError(
+                f"Session cannot be started. Current status: {self.get_status_display()}."
+            )
+        self.status = SessionStatus.IN_PROGRESS
+        self.started_at = timezone.now()
+
+    def end(self):
+        if not self.can_end():
+            raise ValidationError(
+                f"Session is not in progress. Current status: {self.get_status_display()}."
+            )
+        self.status = SessionStatus.COMPLETED
+        self.ended_at = timezone.now()
+
+    def assert_in_progress(self):
+        if self.status != SessionStatus.IN_PROGRESS:
+            raise ValidationError(
+                f"Session is not in progress. Current status: {self.get_status_display()}."
+            )
 
 
 class SessionPart(TimestampedModel):
