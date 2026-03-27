@@ -27,7 +27,11 @@
   2. A `.env` file exists (and is gitignored) containing all required secrets; the app starts correctly from a fresh clone with only this file
   3. Registration, guest-join, and accept-invite endpoints return 429 when called more than their configured threshold within the rate window
   4. Legitimate users can still register and join without hitting rate limits under normal usage
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Move secrets from settings.py to .env via python-dotenv
+- [ ] 01-02-PLAN.md — Add rate limiting to registration, guest-join, and accept-invite endpoints
 
 ### Phase 2: Session Hardening
 
@@ -60,6 +64,6 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Security Hardening | 0/? | Not started | - |
+| 1. Security Hardening | 0/2 | Not started | - |
 | 2. Session Hardening | 0/? | Not started | - |
 | 3. Data Integrity and Observability | 0/? | Not started | - |
