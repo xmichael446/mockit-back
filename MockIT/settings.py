@@ -181,3 +181,45 @@ AUTH_USER_MODEL = 'main.User'
 RESEND_API_KEY = os.environ["RESEND_API_KEY"]
 RESEND_FROM_EMAIL = "noreply@xmichael446.com"
 FRONTEND_URL = "https://mockit.live"
+
+# ─── Logging ──────────────────────────────────────────────────────────────────
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "audit": {
+            "format": "[AUDIT] %(message)s",
+        },
+        "standard": {
+            "format": "%(asctime)s %(levelname)s %(name)s: %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+        },
+        "audit_file": {
+            "class": "logging.FileHandler",
+            "filename": BASE_DIR / "logs" / "audit.log",
+            "formatter": "audit",
+        },
+        "audit_console": {
+            "class": "logging.StreamHandler",
+            "formatter": "audit",
+        },
+    },
+    "loggers": {
+        "mockit.audit": {
+            "handlers": ["audit_file", "audit_console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "mockit.email": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}
