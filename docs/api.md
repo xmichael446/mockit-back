@@ -6,6 +6,18 @@ WebSocket connections authenticate via query-string token: `ws://host/ws/session
 
 ---
 
+## Global Errors
+
+These errors apply to **all authenticated endpoints** and are not repeated on every endpoint below.
+
+- `401 Unauthorized` — Missing or invalid `Authorization: Token <token>` header.
+- `429 Too Many Requests` — Rate limit exceeded. Specific limits:
+  - `POST /api/auth/register/` — 10 requests/hour
+  - `POST /api/auth/guest-join/` — 20 requests/hour
+  - `POST /api/sessions/accept-invite/` — 20 requests/hour
+
+---
+
 ## Authentication
 
 ### POST /api/auth/register/
@@ -19,6 +31,9 @@ No auth required.
 { "token": "abc123...", "user": { "id": 1, "username": "...", "role": 2, "role_label": "Candidate", ... } }
 ```
 
+Errors:
+- `400` — Validation errors (username already taken, password too short, missing required fields, invalid role value)
+
 ### POST /api/auth/login/
 No auth required.
 ```json
@@ -29,6 +44,9 @@ No auth required.
 // Response 403 — examiner email not verified (does not apply to candidates or guests)
 { "error": "email_not_verified", "message": "Please verify your email before logging in." }
 ```
+
+Errors:
+- `400` — `"Invalid credentials."` | `"Account is disabled."`
 
 ### POST /api/auth/verify-email/
 No auth required. Validates the token from the verification email. Logs the user in on success.
@@ -42,6 +60,9 @@ No auth required. Validates the token from the verification email. Logs the user
 { "token": ["This token has already been used."] }
 { "token": ["This token has expired. Request a new one."] }
 ```
+
+Errors:
+- `400` — `"Invalid verification token."` | `"This token has already been used."` | `"This token has expired. Request a new one."`
 
 ### POST /api/auth/resend-verification/
 No auth required. Sends a fresh verification email. Always returns 200 to prevent user enumeration.
@@ -63,6 +84,27 @@ Invalidates any existing unused tokens before creating a new one.
 // Response 200
 { "id": 1, "username": "...", "first_name": "...", "last_name": "...", "email": "...", "role": 1, "role_label": "Examiner" }
 ```
+
+### POST /api/auth/guest-join/
+No auth required. Join a session as an ephemeral guest candidate without registration.
+Creates a throwaway user with `is_guest=True` scoped to the session.
+The returned token works for both REST and WebSocket.
+
+Rate limit: 20 requests/hour (`throttle_scope: guest_join`).
+
+```json
+// Request
+{ "invite_token": "<string>", "first_name": "<string> (optional)" }
+// Response 201
+{
+  "token": "<drf-token>",
+  "user": { "id": 1, "username": "guest_abc123...", "first_name": "Alice", "last_name": "", "role": 2, "is_guest": true },
+  "session_id": 5
+}
+```
+
+Errors:
+- `400` — `"Invalid invite token."` | `"Session is not accepting guests (status: ...)."` | `"This invite has already been accepted."` | `"This invite has expired."`
 
 ---
 
@@ -94,6 +136,10 @@ Returns all presets with nested topics.
 }
 // Response 201 — same shape as GET single preset
 ```
+
+Errors:
+- `403` — `"Only examiners can create presets."`
+- `400` — Topic ID belongs to the wrong part (e.g., a Part 2 topic supplied in `part_1`)
 
 ---
 
@@ -131,8 +177,16 @@ Examiner only.
 // Response 201 — same shape as session object above
 ```
 
+Errors:
+- `403` — `"Only examiners can create sessions."` | `"Session limit reached. You can have at most N sessions."`
+- `400` — `"scheduled_at must be in the future."`
+
 ### GET /api/sessions/<id>/
 Returns the session object. User must be examiner or candidate.
+
+Errors:
+- `404` — `"Not found."`
+- `403` — `"You are not a participant of this session."`
 
 ### POST /api/sessions/accept-invite/
 Candidate only. Accepts an invite token.
@@ -141,6 +195,10 @@ Candidate only. Accepts an invite token.
 { "token": "uuid-string" }
 // Response 200 — session object with candidate populated
 ```
+
+Errors:
+- `403` — `"Only candidates can accept invites."`
+- `400` — `"Invalid invite token."` | `"Session is not accepting invitations (status: ...)."` | `"This invite has already been accepted."` | `"This invite has expired."`
 
 ### POST /api/sessions/<id>/start/
 Examiner only. Session must be SCHEDULED. Candidate must have accepted invite.
@@ -154,6 +212,11 @@ Creates the 100ms video room. Sets status to IN_PROGRESS.
 // Broadcasts WS event: session.started
 ```
 
+Errors:
+- `403` — `"Only the session examiner can start the session."`
+- `400` — `"Cannot start session: no candidate has accepted the invite yet."` | `"Session cannot be started. Current status: ..."`
+- `502` — `"Failed to create video room: ..."`
+
 ### POST /api/sessions/<id>/join/
 Any participant. Session must be IN_PROGRESS. Returns a fresh 100ms token.
 ```json
@@ -161,12 +224,20 @@ Any participant. Session must be IN_PROGRESS. Returns a fresh 100ms token.
 { "room_id": "...", "hms_token": "eyJhbG..." }
 ```
 
+Errors:
+- `403` — `"You are not a participant of this session."`
+- `400` — `"Session is not in progress. Current status: ..."` | `"Video room is not available."`
+
 ### POST /api/sessions/<id>/end/
 Examiner only. Session must be IN_PROGRESS. Sets status to COMPLETED.
 ```json
 // Response 200 — session object
 // Broadcasts WS event: session.ended
 ```
+
+Errors:
+- `403` — `"Only the session examiner can end the session."`
+- `400` — `"Session is not in progress. Current status: ..."`
 
 ---
 
@@ -198,12 +269,21 @@ Examiner only. Session must be IN_PROGRESS. Creates and starts a part.
 ```
 Each part can only be started once per session.
 
+Errors:
+- `403` — `"You are not a participant of this session."` | `"Only the examiner can start a part."`
+- `400` — `"Session is not in progress. Current status: ..."` | `"part must be 1, 2, or 3."` | `"Part N has already been started."`
+
 ### POST /api/sessions/<id>/parts/<part_num>/end/
 Examiner only. Ends the specified part.
 ```json
 // Response 200 — part object with ended_at populated
 // Broadcasts WS event: part.ended
 ```
+
+Errors:
+- `404` — `"Part N has not been started."`
+- `403` — `"Only the examiner can end a part."`
+- `400` — `"Session is not in progress. Current status: ..."` | `"Part N has already ended."`
 
 ---
 
@@ -235,6 +315,10 @@ Examiner only. Returns all questions from the preset for this part, with trackin
 ]
 ```
 
+Errors:
+- `403` — `"Examiner only."`
+- `400` — `"This session has no preset."` | `"part_num must be 1, 2, or 3."`
+
 ### POST /api/sessions/<id>/parts/<part_num>/ask/
 Examiner only. Marks a question as asked. The part must have been started.
 ```json
@@ -243,6 +327,11 @@ Examiner only. Marks a question as asked. The part must have been started.
 // Response 201 — SessionQuestion object (see below)
 // Broadcasts WS event: question.asked
 ```
+
+Errors:
+- `404` — `"Question not found."`
+- `403` — `"Only the examiner can ask questions."`
+- `400` — `"Session is not in progress. Current status: ..."` | `"Part N has not been started yet."` | `"question_id is required."` | `"This question does not belong to the preset topics for this part."` | `"This question has already been asked in this part."`
 
 ### GET /api/sessions/<id>/parts/<part_num>/questions/
 Any participant. Returns all asked SessionQuestions for this part.
@@ -272,12 +361,22 @@ Candidate only. Signals the candidate has started speaking.
 // Broadcasts WS event: question.answer_started
 ```
 
+Errors:
+- `404` — `"Session question not found."`
+- `403` — `"Only the candidate can signal answer start."`
+- `400` — `"Session is not in progress. Current status: ..."` | `"Question has not been asked yet."` | `"Answer has already been started."`
+
 ### POST /api/sessions/<id>/session-questions/<sq_id>/end/
 Examiner only. Ends the current question.
 ```json
 // Response 200 — SessionQuestion object
 // Broadcasts WS event: question.ended
 ```
+
+Errors:
+- `404` — `"Session question not found."`
+- `403` — `"Only the examiner can end a question."`
+- `400` — `"Session is not in progress. Current status: ..."` | `"Question has not been asked yet."` | `"Question has already ended."`
 
 ---
 
@@ -301,12 +400,22 @@ Examiner only. Asks a follow-up on the given SessionQuestion.
 // Broadcasts WS event: followup.asked
 ```
 
+Errors:
+- `404` — `"Session question not found."` | `"Follow-up not found or does not belong to this question."`
+- `403` — `"Only the examiner can ask follow-ups."`
+- `400` — `"Session is not in progress. Current status: ..."` | `"follow_up_id is required."`
+
 ### POST /api/sessions/<id>/session-follow-ups/<sf_id>/end/
 Examiner only. Ends the follow-up.
 ```json
 // Response 200 — SessionFollowUp object
 // Broadcasts WS event: followup.ended
 ```
+
+Errors:
+- `404` — `"Session follow-up not found."`
+- `403` — `"Only the examiner can end follow-ups."`
+- `400` — `"Session is not in progress. Current status: ..."` | `"Follow-up has already ended."`
 
 ---
 
@@ -318,6 +427,10 @@ Examiner only. Returns notes for a question.
 [{ "id": 1, "content": "Good use of complex sentences", "created_at": "..." }]
 ```
 
+Errors:
+- `404` — `"Not found."` (session) | `"Session question not found."`
+- `403` — `"Examiner only."`
+
 ### POST /api/sessions/<id>/session-questions/<sq_id>/notes/
 Examiner only. Creates a note.
 ```json
@@ -327,9 +440,18 @@ Examiner only. Creates a note.
 // Broadcasts WS event: note.added
 ```
 
+Errors:
+- `404` — `"Not found."` (session) | `"Session question not found."`
+- `403` — `"Examiner only."`
+- `400` — `"content is required."` | `"content must be 1000 characters or fewer."`
+
 ### DELETE /api/sessions/<id>/notes/<note_id>/
 Examiner only. Returns 204 no content.
 Broadcasts WS event: note.deleted
+
+Errors:
+- `404` — `"Not found."` (session) | `"Note not found."`
+- `403` — `"Examiner only."`
 
 ---
 
@@ -354,6 +476,10 @@ Candidate: only accessible after result is released.
 ```
 Criterion values: 1=FC, 2=GRA, 3=LR, 4=PR
 
+Errors:
+- `404` — `"No result yet."`
+- `403` — `"You are not a participant."` | `"Result has not been released yet."` (candidate only)
+
 ### POST /api/sessions/<id>/result/
 Examiner only. Session must be COMPLETED. Submit/update scores.
 Calling this multiple times is idempotent — updates existing scores.
@@ -371,12 +497,20 @@ Calling this multiple times is idempotent — updates existing scores.
 // overall_band is auto-computed as avg of 4 bands rounded to nearest 0.5
 ```
 
+Errors:
+- `403` — `"You are not a participant."` | `"Only the examiner can submit results."`
+- `400` — Validation errors (invalid criterion value, band out of range 1–9, duplicate criterion entries)
+
 ### POST /api/sessions/<id>/result/release/
 Examiner only. Makes the result visible to the candidate.
 ```json
 // Response 200 — result object with is_released=true
 // Broadcasts WS event: result.released
 ```
+
+Errors:
+- `403` — `"Only the examiner can release results."`
+- `400` — `"No result to release. Submit scores first."` | `"Cannot release: missing scores for ..."`
 
 ---
 
@@ -390,6 +524,7 @@ Request: `multipart/form-data`
 | Field | Type | Required |
 |---|---|---|
 | `audio_file` | File (webm) | Yes |
+| `recording_started_at` | ISO 8601 datetime string | No (falls back to `session.started_at`) |
 
 ```json
 // Response 201
@@ -403,9 +538,9 @@ Request: `multipart/form-data`
 ```
 
 Errors:
-- `400` — `audio_file` field missing
-- `400` — a recording already exists for this session
-- `403` — only the examiner can upload
+- `404` — `"Not found."`
+- `403` — `"You are not a participant of this session."` | `"Only the examiner can upload recordings."`
+- `400` — `"A recording already exists for this session."` | `"audio_file is required."` | `"recording_started_at must be a valid ISO 8601 datetime string."`
 
 ---
 
@@ -469,7 +604,8 @@ All `*_offset` values are **seconds from `session.started_at`**. Any event whose
 `questions` lists entries in asked order. Follow-ups appear immediately after the question they belong to. Both are distinguished by the `type` field (`"question"` or `"followup"`).
 
 Errors:
-- `404` — no recording uploaded yet
+- `404` — `"Not found."` (session) | `"No recording found for this session."`
+- `403` — `"You are not a participant of this session."`
 
 ---
 
@@ -629,6 +765,11 @@ Fired when the examiner releases the result. The candidate should wait for this 
 
 ### Registration flow (Candidate)
 1. `POST /api/auth/register/` → token returned immediately, no email verification required
+
+### Guest flow (no registration)
+1. Examiner shares `invite_token` out-of-band
+2. `POST /api/auth/guest-join/` `{"invite_token": "...", "first_name": "Alice"}` → ephemeral user created, token returned
+3. Continue as candidate from step 3 of the Candidate flow below
 
 ### Examiner flow
 1. `POST /api/auth/login/` → get token
