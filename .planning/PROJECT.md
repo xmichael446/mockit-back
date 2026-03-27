@@ -45,14 +45,14 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 - [x] Secrets moved to environment variables (.env) — Validated in Phase 1: Security Hardening
 - [ ] DEBUG controlled by environment variable
 - [ ] CORS restricted to allowed origins
-- [ ] Stronger invite token generation (secrets module)
+- [x] Stronger invite token generation (secrets module) — Validated in Phase 2: Session Hardening
 - [x] Rate limiting on auth and invite endpoints — Validated in Phase 1: Security Hardening
-- [ ] Session status state machine (centralized validation)
-- [ ] Transaction management for multi-step operations
+- [x] Session status state machine (centralized validation) — Validated in Phase 2: Session Hardening
+- [x] Transaction management for multi-step operations — Validated in Phase 2: Session Hardening
 - [ ] Scoring validation (require all 4 criteria before release)
 - [ ] Email delivery error handling
 - [ ] Audit logging for critical actions
-- [ ] Preset immutability after session creation
+- [x] Preset immutability after session creation — Validated in Phase 2: Session Hardening
 
 ### Out of Scope
 
@@ -107,4 +107,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-27 after Phase 1: Security Hardening completion*
+*Last updated: 2026-03-27 after Phase 2: Session Hardening completion*
