@@ -106,7 +106,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 07-01: CandidateProfile.update_speaking_score() method wired into release_result view
+- [x] 07-01: CandidateProfile.update_speaking_score() method wired into release_result view
 
 #### Phase 8: Email Notifications
 **Goal**: Examiner receives email on new booking requests; candidate receives email on accept and reject
@@ -148,6 +148,6 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 4. Profiles | v1.2 | 2/2 | Complete   | 2026-03-30 |
 | 5. Availability Scheduling | v1.2 | 2/2 | Complete   | 2026-03-30 |
 | 6. Session Request Flow | v1.2 | 2/2 | Complete   | 2026-03-30 |
-| 7. Candidate Score Auto-Update | v1.2 | 0/1 | Not started | - |
+| 7. Candidate Score Auto-Update | v1.2 | 1/1 | Complete   | 2026-03-30 |
 | 8. Email Notifications | v1.2 | 0/1 | Not started | - |
 | 9. API Documentation | v1.2 | 0/1 | Not started | - |

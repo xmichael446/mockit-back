@@ -3,28 +3,28 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Profiles & Scheduling
 status: unknown
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-03-30T08:53:05.933Z"
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-03-30T09:09:15.238Z"
 progress:
   total_phases: 6
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 4
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # State
 
 ## Current Position
 
-Phase: 06 (session-request-flow) — EXECUTING
-Plan: 2 of 2
+Phase: 07 (candidate-score-auto-update) — EXECUTING
+Plan: 1 of 1
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** Phase 06 — session-request-flow
+**Current focus:** Phase 07 — candidate-score-auto-update
 **Current milestone:** v1.2 Profiles & Scheduling
 
 ## Accumulated Context
@@ -56,6 +56,7 @@ For v1.2 (pre-implementation):
 - [Phase 06-01]: SessionRequest.Status uses IntegerChoices matching SessionStatus pattern; DRF ValidationError raised from model methods; accepted_booked keyed by (slot_id, date) not datetime
 - [Phase 06]: select_for_update + transaction.atomic on accept path prevents double-booking under concurrency
 - [Phase 06]: _broadcast called after transaction.atomic block to prevent stale WebSocket events on rollback
+- [Phase 07-candidate-score-auto-update]: current_speaking_score update placed inside existing try/except CandidateProfile.DoesNotExist block — re-uses candidate_profile variable, guest candidates silently skipped
 
 ### Research Flags (needs codebase check during planning)
 
@@ -73,7 +74,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T08:53:05.928Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-03-30T09:09:15.233Z
+Stopped at: Completed 07-01-PLAN.md
 Resume file: None
 Next action: Run `/gsd:plan-phase 4` to plan Phase 4: Profiles

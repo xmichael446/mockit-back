@@ -20,7 +20,7 @@ Requirements for Profiles & Scheduling milestone. Each maps to roadmap phases.
 
 - [x] **STUD-01**: User (candidate) can create/update their profile with profile picture URL and target speaking score
 - [x] **STUD-02**: Student profile stores current_speaking_score (initially set manually)
-- [ ] **STUD-03**: current_speaking_score auto-updates to latest session result score when a session is completed
+- [x] **STUD-03**: current_speaking_score auto-updates to latest session result score when a session is completed
 - [x] **STUD-04**: Student profile exposes band score history data from all completed sessions
 
 ### Availability Scheduling
@@ -95,7 +95,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXAM-06 | Phase 4 | Complete |
 | STUD-01 | Phase 4 | Complete |
 | STUD-02 | Phase 4 | Complete |
-| STUD-03 | Phase 7 | Pending |
+| STUD-03 | Phase 7 | Complete |
 | STUD-04 | Phase 4 | Complete |
 | AVAIL-01 | Phase 5 | Complete |
 | AVAIL-02 | Phase 5 | Complete |
