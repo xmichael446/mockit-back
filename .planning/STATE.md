@@ -1,38 +1,32 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: milestone
-status: unknown
-last_updated: "2026-03-30T05:03:48.136Z"
+milestone: v1.2
+milestone_name: Profiles & Scheduling
+status: defining_requirements
+last_updated: "2026-03-30"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # State
 
 ## Current Position
 
-Phase: 03
-Plan: Not started
-
-## Progress Bar
-
-```
-[Phase 1: Security Hardening    ] [ ] Not started
-[Phase 2: Session Hardening     ] [ ] Not started
-[Phase 3: Data Integrity + Obs. ] [ ] Not started
-```
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-30 — Milestone v1.2 started
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-27)
+See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** Phase 03 — data-integrity-and-observability
-**Current milestone:** v1.1
+**Current focus:** Defining requirements for v1.2
+**Current milestone:** v1.2 Profiles & Scheduling
 
 ## Accumulated Context
 

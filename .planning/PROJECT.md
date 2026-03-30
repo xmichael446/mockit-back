@@ -34,11 +34,21 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 - Audit logging for critical actions — v1.1
 - Preset immutability after session creation — v1.1
 
+## Current Milestone: v1.2 Profiles & Scheduling
+
+**Goal:** Design and implement examiner/student profiles with availability scheduling and a session booking flow.
+
+**Target features:**
+- Examiner profiles (bio, credentials, verification badge, phone)
+- Student profiles (scores, auto-update from sessions)
+- Examiner availability (weekly schedule, 1-hour windows, real-time calculation)
+- Session request flow (request → accept/reject → create session)
+- Email notifications at key trigger points (stubbed)
+- Updated frontend API documentation
+
 ### Active
 
-<!-- Next milestone scope. -->
-
-_(No active requirements — define with `/gsd:new-milestone`)_
+<!-- Current scope. Building toward these. -->
 
 ### Out of Scope
 
@@ -59,6 +69,7 @@ _(No active requirements — define with `/gsd:new-milestone`)_
 - 100ms for video rooms, Resend for transactional email
 - InMemoryChannelLayer in dev, Redis planned for production
 - v1.1 shipped: 3 phases, 6 plans, 10 files changed, 515 insertions
+- v1.2 focus: marketplace layer — profiles, availability, booking flow
 - session/views.py refactored — status checks centralized into model state machine
 - 26 unit tests added in v1.1 (session state machine, invite token, preset immutability, transaction rollback)
 - Audit logging active via `mockit.audit` logger to console + `logs/audit.log`
@@ -102,4 +113,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-27 after v1.1 milestone completion*
+*Last updated: 2026-03-30 after v1.2 milestone start*
