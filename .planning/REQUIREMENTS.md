@@ -43,9 +43,9 @@ Requirements for Profiles & Scheduling milestone. Each maps to roadmap phases.
 
 ### Email Notifications
 
-- [ ] **EMAIL-01**: Examiner receives email when a new session request is created (stubbed via Resend pattern)
-- [ ] **EMAIL-02**: Candidate receives email when their request is accepted (stubbed)
-- [ ] **EMAIL-03**: Candidate receives email when their request is rejected (stubbed)
+- [x] **EMAIL-01**: Examiner receives email when a new session request is created (stubbed via Resend pattern)
+- [x] **EMAIL-02**: Candidate receives email when their request is accepted (stubbed)
+- [x] **EMAIL-03**: Candidate receives email when their request is rejected (stubbed)
 
 ### API Documentation
 
@@ -109,9 +109,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REQ-05 | Phase 6 | Complete |
 | REQ-06 | Phase 6 | Complete |
 | REQ-07 | Phase 6 | Complete |
-| EMAIL-01 | Phase 8 | Pending |
-| EMAIL-02 | Phase 8 | Pending |
-| EMAIL-03 | Phase 8 | Pending |
+| EMAIL-01 | Phase 8 | Complete |
+| EMAIL-02 | Phase 8 | Complete |
+| EMAIL-03 | Phase 8 | Complete |
 | DOCS-01 | Phase 9 | Pending |
 
 **Coverage:**

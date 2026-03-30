@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Profiles & Scheduling
 status: unknown
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-03-30T09:09:15.238Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-03-30T09:23:17.168Z"
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 7
-  completed_plans: 7
+  completed_phases: 5
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # State
 
 ## Current Position
 
-Phase: 07 (candidate-score-auto-update) — EXECUTING
+Phase: 08 (email-notifications) — EXECUTING
 Plan: 1 of 1
 
 ## Project Reference
@@ -24,7 +24,7 @@ Plan: 1 of 1
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** Phase 07 — candidate-score-auto-update
+**Current focus:** Phase 08 — email-notifications
 **Current milestone:** v1.2 Profiles & Scheduling
 
 ## Accumulated Context
@@ -57,6 +57,8 @@ For v1.2 (pre-implementation):
 - [Phase 06]: select_for_update + transaction.atomic on accept path prevents double-booking under concurrency
 - [Phase 06]: _broadcast called after transaction.atomic block to prevent stale WebSocket events on rollback
 - [Phase 07-candidate-score-auto-update]: current_speaking_score update placed inside existing try/except CandidateProfile.DoesNotExist block — re-uses candidate_profile variable, guest candidates silently skipped
+- [Phase 08-email-notifications]: Email sends are fire-and-forget (bool return, log on failure) consistent with v1.1 decision — callers ignore return value
+- [Phase 08-email-notifications]: notify_request_accepted placed after transaction.atomic block, mirroring _broadcast() discipline
 
 ### Research Flags (needs codebase check during planning)
 
@@ -74,7 +76,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T09:09:15.233Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-03-30T09:23:17.163Z
+Stopped at: Completed 08-01-PLAN.md
 Resume file: None
 Next action: Run `/gsd:plan-phase 4` to plan Phase 4: Profiles
