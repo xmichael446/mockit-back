@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Profiles & Scheduling
 status: unknown
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-03-30T09:23:17.168Z"
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-03-30T09:35:32.400Z"
 progress:
   total_phases: 6
-  completed_phases: 5
-  total_plans: 8
-  completed_plans: 8
+  completed_phases: 6
+  total_plans: 9
+  completed_plans: 9
 ---
 
 # State
 
 ## Current Position
 
-Phase: 08 (email-notifications) — EXECUTING
+Phase: 09 (api-documentation) — EXECUTING
 Plan: 1 of 1
 
 ## Project Reference
@@ -24,7 +24,7 @@ Plan: 1 of 1
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** Phase 08 — email-notifications
+**Current focus:** Phase 09 — api-documentation
 **Current milestone:** v1.2 Profiles & Scheduling
 
 ## Accumulated Context
@@ -59,6 +59,8 @@ For v1.2 (pre-implementation):
 - [Phase 07-candidate-score-auto-update]: current_speaking_score update placed inside existing try/except CandidateProfile.DoesNotExist block — re-uses candidate_profile variable, guest candidates silently skipped
 - [Phase 08-email-notifications]: Email sends are fire-and-forget (bool return, log on failure) consistent with v1.1 decision — callers ignore return value
 - [Phase 08-email-notifications]: notify_request_accepted placed after transaction.atomic block, mirroring _broadcast() discipline
+- [Phase 09-api-documentation]: Documented phone field visibility difference: detail serializer shows phone, public serializer hides it
+- [Phase 09-api-documentation]: SessionRequest status documented as integers matching IntegerChoices (0=PENDING, 1=ACCEPTED, 2=REJECTED, 3=CANCELLED)
 
 ### Research Flags (needs codebase check during planning)
 
@@ -76,7 +78,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T09:23:17.163Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-03-30T09:35:32.394Z
+Stopped at: Completed 09-01-PLAN.md
 Resume file: None
 Next action: Run `/gsd:plan-phase 4` to plan Phase 4: Profiles

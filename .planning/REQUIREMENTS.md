@@ -49,7 +49,7 @@ Requirements for Profiles & Scheduling milestone. Each maps to roadmap phases.
 
 ### API Documentation
 
-- [ ] **DOCS-01**: All new endpoints documented in docs/api/ with request/response schemas and error scenarios
+- [x] **DOCS-01**: All new endpoints documented in docs/api/ with request/response schemas and error scenarios
 
 ## Future Requirements
 
@@ -112,7 +112,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EMAIL-01 | Phase 8 | Complete |
 | EMAIL-02 | Phase 8 | Complete |
 | EMAIL-03 | Phase 8 | Complete |
-| DOCS-01 | Phase 9 | Pending |
+| DOCS-01 | Phase 9 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 26 total

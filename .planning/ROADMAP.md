@@ -133,7 +133,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 09-01: New docs/api/ domain files for profiles, availability, and requests; index update
+- [x] 09-01: New docs/api/ domain files for profiles, availability, and requests; index update
 
 ## Progress
 
@@ -150,4 +150,4 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 6. Session Request Flow | v1.2 | 2/2 | Complete   | 2026-03-30 |
 | 7. Candidate Score Auto-Update | v1.2 | 1/1 | Complete   | 2026-03-30 |
 | 8. Email Notifications | v1.2 | 1/1 | Complete   | 2026-03-30 |
-| 9. API Documentation | v1.2 | 0/1 | Not started | - |
+| 9. API Documentation | v1.2 | 1/1 | Complete   | 2026-03-30 |
