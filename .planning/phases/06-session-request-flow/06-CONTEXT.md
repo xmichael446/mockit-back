@@ -23,7 +23,7 @@ Session request model with state machine, CRUD and action endpoints (submit/acce
 - Action endpoints: `POST /api/scheduling/requests/` (create), `GET /api/scheduling/requests/` (list my requests), `POST /api/scheduling/requests/<id>/accept/`, `POST /api/scheduling/requests/<id>/reject/`, `POST /api/scheduling/requests/<id>/cancel/`
 - Accept view: `select_for_update()` on the SessionRequest row, create `IELTSMockSession` with examiner+candidate, link via FK — all inside `transaction.atomic()`
 - No MockPreset auto-creation on accept — examiner chooses preset at session start time
-- WebSocket broadcasts: `session_request.accepted` and `session_request.rejected` events via `_broadcast()` pattern for real-time frontend updates
+- WebSocket broadcast: `session_request.accepted` event via `_broadcast()` pattern (accepted-only — rejected notification deferred to Phase 8 email; no session exists for rejected requests so no WS group target)
 
 ### Claude's Discretion
 - List endpoint filtering (by status, by role)
