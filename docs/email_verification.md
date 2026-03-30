@@ -15,7 +15,7 @@ Standard flow: register → receive verification email → click link → verifi
 | `main/serializers.py` | Add `VerifyEmailSerializer`, `ResendVerificationSerializer` |
 | `main/views.py` | Modify `RegisterView` + `LoginView`, add `VerifyEmailView`, `ResendVerificationView` |
 | `main/urls.py` | Add 2 new routes |
-| `docs/api.md` | Document new endpoints + updated register/login behavior |
+| `docs/api/authentication.md` | Document new endpoints + updated register/login behavior |
 
 ---
 
@@ -76,7 +76,7 @@ path("auth/resend-verification/", ResendVerificationView.as_view()) # AllowAny
 
 ---
 
-## 6. `docs/api.md` Updates
+## 6. `docs/api/authentication.md` Updates
 
 Add to **Auth** section:
 

@@ -59,7 +59,7 @@ MockIT is an IELTS Speaking mock exam platform. Examiners conduct live sessions 
 
 ## Key Files
 
-- `docs/api.md` — complete REST + WebSocket API reference (read before touching session logic)
+- `docs/api/` — REST + WebSocket API reference split by domain (start with `docs/api/index.md`; read the relevant section before touching session logic)
 - `MockIT/settings.py` — `daphne` must be first in `INSTALLED_APPS`; channel layer is `InMemoryChannelLayer`
 - `MockIT/asgi.py` — `ProtocolTypeRouter` splitting HTTP and WebSocket traffic
 - `session/consumers.py` — WebSocket consumer
