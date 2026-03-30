@@ -69,8 +69,9 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 | 260327-qez | Update API docs with all error messages and scenarios | 2026-03-27 | dae4515 | Verified | [260327-qez-update-the-api-docs-to-include-all-the-p](./quick/260327-qez-update-the-api-docs-to-include-all-the-p/) |
 | 260327-qsl | Add error response format documentation to Global Errors section | 2026-03-27 | cb6e9ce | Verified | [260327-qsl-include-error-response-format-as-well-in](./quick/260327-qsl-include-error-response-format-as-well-in/) |
 | 260330-dz6 | Rework session scheduling: enforce scheduled_at guard + 30-min invite expiry | 2026-03-30 | 656fa37 | Verified | [260330-dz6-rework-session-scheduling-enforce-schedu](./quick/260330-dz6-rework-session-scheduling-enforce-schedu/) |
+| 260330-e53 | Extract API docs into multiple shorter files | 2026-03-30 | c051353 | Completed | [260330-e53-extract-api-docs-into-multiple-shorter-f](./quick/260330-e53-extract-api-docs-into-multiple-shorter-f/) |
 
-Last activity: 2026-03-30 - Completed quick task 260330-dz6: Rework session scheduling
+Last activity: 2026-03-30 - Completed quick task 260330-e53: Extract API docs into multiple shorter files
 
 ## Session Continuity
 
