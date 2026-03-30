@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Profiles & Scheduling
 status: unknown
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-03-30T06:23:26.534Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-30T06:58:35.817Z"
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # State
 
 ## Current Position
 
-Phase: 04 (profiles) — EXECUTING
+Phase: 05 (availability-scheduling) — EXECUTING
 Plan: 2 of 2
 
 ## Project Reference
@@ -24,7 +24,7 @@ Plan: 2 of 2
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** Phase 04 — profiles
+**Current focus:** Phase 05 — availability-scheduling
 **Current milestone:** v1.2 Profiles & Scheduling
 
 ## Accumulated Context
@@ -49,6 +49,8 @@ For v1.2 (pre-implementation):
 - [Phase 04-02]: Role mismatch on /me/ endpoints returns 404 (not 403) to avoid disclosing role information
 - [Phase 04-02]: ScoreHistory uses get_or_create() to be idempotent — double-release safe
 - [Phase 04-02]: CandidateProfile.DoesNotExist silently skipped for guest candidates without profiles
+- [Phase 05-availability-scheduling]: DayOfWeek IntegerChoices uses MON=0..SUN=6 matching Python date.weekday() — no end_time stored (always start+1h)
+- [Phase 05-availability-scheduling]: compute_available_slots filters scheduled_at__isnull=False to safely handle nullable IELTSMockSession.scheduled_at
 
 ### Research Flags (needs codebase check during planning)
 
@@ -66,7 +68,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T06:23:26.527Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-03-30T06:58:35.810Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
 Next action: Run `/gsd:plan-phase 4` to plan Phase 4: Profiles

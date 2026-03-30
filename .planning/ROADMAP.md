@@ -77,7 +77,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: AvailabilitySlot and BlockedDate models + migrations + compute_available_slots() service
+- [x] 05-01: AvailabilitySlot and BlockedDate models + migrations + compute_available_slots() service
 - [ ] 05-02: Availability CRUD endpoints and available-slots/is-available read endpoints
 
 #### Phase 6: Session Request Flow
@@ -146,7 +146,7 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 2. State Machine & Transactions | v1.1 | 2/2 | Complete | 2026-03-27 |
 | 3. Scoring, Audit & Email Errors | v1.1 | 2/2 | Complete | 2026-03-27 |
 | 4. Profiles | v1.2 | 2/2 | Complete   | 2026-03-30 |
-| 5. Availability Scheduling | v1.2 | 0/2 | Not started | - |
+| 5. Availability Scheduling | v1.2 | 1/2 | In Progress|  |
 | 6. Session Request Flow | v1.2 | 0/2 | Not started | - |
 | 7. Candidate Score Auto-Update | v1.2 | 0/1 | Not started | - |
 | 8. Email Notifications | v1.2 | 0/1 | Not started | - |
