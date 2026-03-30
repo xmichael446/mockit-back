@@ -90,11 +90,11 @@ Plans:
   3. Examiner can reject a pending request with a required rejection comment
   4. Candidate or examiner can cancel an accepted session request
   5. Concurrent accept attempts on the same slot are prevented at the database level via select_for_update
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: SessionRequest model with state machine + migrations
-- [ ] 06-02: Request submit, accept, reject, cancel endpoints with role-based permissions
+- [ ] 06-01-PLAN.md -- SessionRequest model with state machine, migration, and availability service extension
+- [ ] 06-02-PLAN.md -- Request submit, accept, reject, cancel endpoints with integration tests
 
 #### Phase 7: Candidate Score Auto-Update
 **Goal**: A candidate's current speaking score automatically reflects their most recent completed session result
