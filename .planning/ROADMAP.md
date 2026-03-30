@@ -117,7 +117,7 @@ Plans:
   2. Candidate receives an email when their request is accepted
   3. Candidate receives an email when their request is rejected
   4. Email sends occur after the transaction exits and do not block or roll back the request cycle on Resend failure
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 08-01: scheduling/services/email.py notification functions wired at all trigger points
