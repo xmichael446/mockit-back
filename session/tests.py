@@ -1,16 +1,20 @@
 import re
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.test import TestCase
 from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
-from main.models import User
+from main.models import CandidateProfile, User
 from questions.models import Topic
 from session.models import (
+    CriterionScore,
     IELTSMockSession,
     MockPreset,
+    SessionResult,
     SessionStatus,
+    SpeakingCriterion,
     _generate_invite_token,
 )
 
@@ -251,3 +255,152 @@ class SessionStartTransactionTests(TestCase):
         response = client.post(f"/api/sessions/{self.session.pk}/start/")
         self.assertEqual(response.status_code, 502)
         mock_broadcast.assert_not_called()
+
+
+class ReleaseResultScoreUpdateTests(TestCase):
+    """Tests for CandidateProfile.current_speaking_score auto-update on result release."""
+
+    def _create_full_session_with_result(self, candidate=None, has_candidate_profile=True):
+        """Helper: create examiner, optional candidate, session, result with all 4 scores."""
+        examiner = User.objects.create_user(
+            username=f"examiner_release_{self.id()}",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        if candidate is None and has_candidate_profile:
+            candidate = User.objects.create_user(
+                username=f"candidate_release_{self.id()}",
+                password="testpass123",
+                role=User.Role.CANDIDATE,
+            )
+            # CandidateProfile auto-created by signal — verify it exists
+            CandidateProfile.objects.get_or_create(user=candidate)
+
+        preset = MockPreset.objects.create(name="Release Test Preset", owner=examiner)
+        session = IELTSMockSession.objects.create(
+            examiner=examiner,
+            candidate=candidate,
+            preset=preset,
+            status=SessionStatus.COMPLETED,
+        )
+        result = SessionResult.objects.create(
+            session=session,
+            overall_band=Decimal("7.0"),
+            is_released=False,
+        )
+        for criterion in SpeakingCriterion:
+            CriterionScore.objects.create(
+                session_result=result,
+                criterion=criterion.value,
+                band=7,
+            )
+        return examiner, candidate, session, result
+
+    @patch("session.views._broadcast")
+    def test_release_updates_candidate_current_speaking_score(self, mock_broadcast):
+        """After releasing a result, candidate's current_speaking_score equals overall_band."""
+        examiner, candidate, session, result = self._create_full_session_with_result()
+        client = APIClient()
+        client.force_authenticate(user=examiner)
+
+        response = client.post(f"/api/sessions/{session.pk}/result/release/")
+        self.assertEqual(response.status_code, 200)
+
+        profile = CandidateProfile.objects.get(user=candidate)
+        self.assertEqual(profile.current_speaking_score, result.overall_band)
+
+    @patch("session.views._broadcast")
+    def test_release_no_candidate_profile_no_error(self, mock_broadcast):
+        """Releasing result for candidate without CandidateProfile does not error."""
+        examiner = User.objects.create_user(
+            username=f"examiner_noprofile_{self.id()}",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        guest = User.objects.create_user(
+            username=f"guest_noprofile_{self.id()}",
+            password="testpass123",
+            role=User.Role.CANDIDATE,
+        )
+        # Remove any auto-created profile so guest has no profile
+        CandidateProfile.objects.filter(user=guest).delete()
+
+        preset = MockPreset.objects.create(name="No Profile Preset", owner=examiner)
+        session = IELTSMockSession.objects.create(
+            examiner=examiner,
+            candidate=guest,
+            preset=preset,
+            status=SessionStatus.COMPLETED,
+        )
+        result = SessionResult.objects.create(
+            session=session,
+            overall_band=Decimal("6.5"),
+            is_released=False,
+        )
+        for criterion in SpeakingCriterion:
+            CriterionScore.objects.create(
+                session_result=result,
+                criterion=criterion.value,
+                band=6,
+            )
+
+        client = APIClient()
+        client.force_authenticate(user=examiner)
+        response = client.post(f"/api/sessions/{session.pk}/result/release/")
+        self.assertEqual(response.status_code, 200)
+
+    @patch("session.views._broadcast")
+    def test_release_no_candidate_no_error(self, mock_broadcast):
+        """Releasing result for session with candidate=None does not error."""
+        examiner = User.objects.create_user(
+            username=f"examiner_nocandidate_{self.id()}",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        preset = MockPreset.objects.create(name="No Candidate Preset", owner=examiner)
+        session = IELTSMockSession.objects.create(
+            examiner=examiner,
+            candidate=None,
+            preset=preset,
+            status=SessionStatus.COMPLETED,
+        )
+        result = SessionResult.objects.create(
+            session=session,
+            overall_band=Decimal("5.0"),
+            is_released=False,
+        )
+        for criterion in SpeakingCriterion:
+            CriterionScore.objects.create(
+                session_result=result,
+                criterion=criterion.value,
+                band=5,
+            )
+
+        client = APIClient()
+        client.force_authenticate(user=examiner)
+        response = client.post(f"/api/sessions/{session.pk}/result/release/")
+        self.assertEqual(response.status_code, 200)
+
+    @patch("session.views._broadcast")
+    def test_re_release_updates_current_speaking_score(self, mock_broadcast):
+        """Re-releasing a result (idempotent) still updates current_speaking_score correctly."""
+        examiner, candidate, session, result = self._create_full_session_with_result()
+        client = APIClient()
+        client.force_authenticate(user=examiner)
+
+        # First release
+        response = client.post(f"/api/sessions/{session.pk}/result/release/")
+        self.assertEqual(response.status_code, 200)
+
+        profile = CandidateProfile.objects.get(user=candidate)
+        self.assertEqual(profile.current_speaking_score, result.overall_band)
+
+        # Second release (idempotent) — should still succeed and keep score correct
+        response = client.post(f"/api/sessions/{session.pk}/result/release/")
+        self.assertEqual(response.status_code, 200)
+
+        profile.refresh_from_db()
+        self.assertEqual(profile.current_speaking_score, result.overall_band)
