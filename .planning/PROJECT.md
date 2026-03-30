@@ -2,7 +2,7 @@
 
 ## What This Is
 
-An IELTS Speaking mock exam platform where examiners conduct live sessions with candidates over video. Examiners ask questions from a curated question bank in real-time, then score candidates across four IELTS criteria (FC, GRA, LR, PR) with results released to candidates after the session.
+An IELTS Speaking mock exam platform where examiners conduct live sessions with candidates over video. Examiners maintain profiles with credentials, set weekly availability, and accept booking requests from candidates. Sessions are conducted with questions from a curated bank, scored across four IELTS criteria (FC, GRA, LR, PR), with results and score history tracked per candidate.
 
 ## Core Value
 
@@ -33,22 +33,17 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 - Email delivery error handling — v1.1
 - Audit logging for critical actions — v1.1
 - Preset immutability after session creation — v1.1
-
-## Current Milestone: v1.2 Profiles & Scheduling
-
-**Goal:** Design and implement examiner/student profiles with availability scheduling and a session booking flow.
-
-**Target features:**
-- Examiner profiles (bio, credentials, verification badge, phone)
-- Student profiles (scores, auto-update from sessions)
-- Examiner availability (weekly schedule, 1-hour windows, real-time calculation)
-- Session request flow (request → accept/reject → create session)
-- Email notifications at key trigger points (stubbed)
-- Updated frontend API documentation
+- Examiner profiles with bio, credentials, verification badge, phone — v1.2
+- Candidate profiles with target score, score history, auto-update — v1.2
+- Examiner weekly availability (1-hour windows, blocked dates, real-time check) — v1.2
+- Session request flow (submit → accept/reject → cancel) with atomic session creation — v1.2
+- select_for_update double-booking prevention on accept — v1.2
+- Email notifications at booking trigger points via Resend — v1.2
+- Full API docs for profiles, availability, and requests — v1.2
 
 ### Active
 
-<!-- Current scope. Building toward these. -->
+<!-- No active milestone. Run /gsd:new-milestone to start v1.3. -->
 
 ### Out of Scope
 
@@ -69,16 +64,17 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 - 100ms for video rooms, Resend for transactional email
 - InMemoryChannelLayer in dev, Redis planned for production
 - v1.1 shipped: 3 phases, 6 plans, 10 files changed, 515 insertions
-- v1.2 focus: marketplace layer — profiles, availability, booking flow
+- v1.2 shipped: 6 phases, 9 plans, 62 files changed, 8008 insertions
+- scheduling/ app added in v1.2 (availability, requests, email notifications)
+- 89+ tests across main/ and scheduling/ apps (23 profile, 62 scheduling, 4 score update)
 - session/views.py refactored — status checks centralized into model state machine
-- 26 unit tests added in v1.1 (session state machine, invite token, preset immutability, transaction rollback)
 - Audit logging active via `mockit.audit` logger to console + `logs/audit.log`
 
 ## Constraints
 
 - **Stack**: Django 5.2 + DRF + Channels 4.x — no framework changes
 - **Backward compat**: REST API and WebSocket event contracts must not break
-- **Limited tests**: 26 tests from v1.1; no comprehensive regression suite yet
+- **Growing tests**: 89+ tests from v1.2; no dedicated testing milestone yet
 - **Frontend dependency**: Any API contract changes need frontend coordination
 
 ## Key Decisions
@@ -94,6 +90,11 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 | State machine on model (not separate class) | Django convention, ValidationError for DRF integration | ✓ Good |
 | assert_in_progress() as blanket guard | Simpler than per-action guards; 4 specific guards left unused | ⚠️ Revisit if actions need distinct status rules |
 | Python logging for audit (not DB model) | No new deps, file + console output, meets admin visibility requirement | ✓ Good |
+| Profile models as OneToOne on User in main/ | Avoid circular imports, profiles are User extensions | ✓ Good — clean separation |
+| scheduling/ app for availability + requests | Separate domain from session lifecycle | ✓ Good — clean boundaries |
+| AvailabilitySlot FK to User (not ExaminerProfile) | Simpler FK chain, ExaminerProfile accessed separately | ✓ Good — consistent pattern |
+| select_for_update on accept path | Prevent double-booking race conditions | ✓ Good — database-level safety |
+| Email sends after transaction exits | Same discipline as _broadcast, prevents stale emails | ✓ Good — consistent pattern |
 
 ## Evolution
 

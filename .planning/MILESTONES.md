@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.2 Profiles & Scheduling (Shipped: 2026-03-30)
+
+**Phases completed:** 6 phases, 9 plans, 17 tasks
+
+**Key accomplishments:**
+
+- Four Django profile models (ExaminerProfile, CandidateProfile, ExaminerCredential, ScoreHistory) with Uzbekistan phone validation, auto-creation via post_save signal, admin registration, and 6 passing tests
+- Profile CRUD endpoints with public/private serializer split, credential management, atomic session count increment, and score history wiring
+- AvailabilitySlot and BlockedDate models with compute_available_slots() and is_currently_available() service functions — 11 unit tests passing via TDD
+- 6 REST endpoints for examiner availability management with DRF serializers, ownership enforcement, and 32 scheduling tests (all passing)
+- SessionRequest model with PENDING/ACCEPTED/REJECTED/CANCELLED state machine (6 transition methods), migration, and availability service extended to mark ACCEPTED requests as booked slots
+- Session request endpoints with atomic accept (select_for_update), slot validation, role guards, and 16 integration tests covering all flows
+- CandidateProfile.current_speaking_score auto-updated to overall_band on every result release via 2-line addition inside existing try/except block in ReleaseResultView.post()
+- Three Resend-pattern notification functions wired into session request lifecycle (new request to examiner, accepted/rejected to candidate)
+- REST API documentation for all v1.2 endpoints: profiles (8 endpoints), availability/blocked-dates (9 endpoints), and session requests (5 endpoints) added to docs/api/ with full request/response schemas and error scenarios
+
+---
+
 ## v1.1 Clean-up, Security & Edge Cases (Shipped: 2026-03-27)
 
 **Phases completed:** 3 phases, 6 plans, 11 tasks

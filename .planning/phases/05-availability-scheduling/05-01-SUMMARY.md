@@ -120,6 +120,17 @@ None — no external service configuration required.
 - `compute_available_slots()` and `is_currently_available()` are the two key entry points for the API views in Plan 02
 - Known extension point: Phase 6's `SessionRequest` (ACCEPTED status) should also be counted as bookings in `compute_available_slots()` — documented in research Open Questions
 
+## Self-Check: PASSED
+
+- scheduling/models.py: FOUND
+- scheduling/services/availability.py: FOUND
+- scheduling/tests.py: FOUND
+- scheduling/migrations/0001_initial.py: FOUND
+- 05-01-SUMMARY.md: FOUND
+- Commit c3ec827 (Task 1 scaffold): FOUND
+- Commit ea850f7 (Task 2 implementation): FOUND
+- 11/11 tests pass
+
 ---
 *Phase: 05-availability-scheduling*
 *Completed: 2026-03-30*
