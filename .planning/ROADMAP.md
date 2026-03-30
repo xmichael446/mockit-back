@@ -130,7 +130,7 @@ Plans:
   1. docs/api/ contains new domain files covering profiles, availability, and session requests with request/response schemas and error scenarios
   2. docs/api/index.md links to all new domain files
   3. No existing docs/api/ file has had its documented field names, types, or status codes changed (contract audit passes)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 09-01: New docs/api/ domain files for profiles, availability, and requests; index update
