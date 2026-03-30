@@ -26,7 +26,7 @@ Requirements for Profiles & Scheduling milestone. Each maps to roadmap phases.
 ### Availability Scheduling
 
 - [x] **AVAIL-01**: Examiner can define weekly recurring availability as 1-hour windows (08:00-22:00) per day of week
-- [ ] **AVAIL-02**: Examiner can update/delete their recurring availability slots
+- [x] **AVAIL-02**: Examiner can update/delete their recurring availability slots
 - [x] **AVAIL-03**: API returns computed available slots for an examiner (recurring schedule minus booked sessions)
 - [x] **AVAIL-04**: API returns is_currently_available boolean for an examiner at request time
 - [x] **AVAIL-05**: Examiner can block specific dates as exceptions to their recurring schedule
@@ -98,7 +98,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STUD-03 | Phase 7 | Pending |
 | STUD-04 | Phase 4 | Complete |
 | AVAIL-01 | Phase 5 | Complete |
-| AVAIL-02 | Phase 5 | Pending |
+| AVAIL-02 | Phase 5 | Complete |
 | AVAIL-03 | Phase 5 | Complete |
 | AVAIL-04 | Phase 5 | Complete |
 | AVAIL-05 | Phase 5 | Complete |

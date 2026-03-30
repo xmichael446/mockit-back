@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Profiles & Scheduling
 status: unknown
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-03-30T06:58:35.817Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-30T07:18:05.690Z"
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # State
@@ -51,6 +51,8 @@ For v1.2 (pre-implementation):
 - [Phase 04-02]: CandidateProfile.DoesNotExist silently skipped for guest candidates without profiles
 - [Phase 05-availability-scheduling]: DayOfWeek IntegerChoices uses MON=0..SUN=6 matching Python date.weekday() — no end_time stored (always start+1h)
 - [Phase 05-availability-scheduling]: compute_available_slots filters scheduled_at__isnull=False to safely handle nullable IELTSMockSession.scheduled_at
+- [Phase 05-02]: IntegrityError on unique_together caught in view POST and returned as 400 (DRF serializer cannot validate without examiner FK at validation time)
+- [Phase 05-02]: Examiner test users need is_verified=True due to global IsEmailVerified permission class
 
 ### Research Flags (needs codebase check during planning)
 
@@ -68,7 +70,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T06:58:35.810Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-03-30T07:18:05.678Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
 Next action: Run `/gsd:plan-phase 4` to plan Phase 4: Profiles
