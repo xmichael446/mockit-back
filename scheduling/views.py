@@ -1,6 +1,7 @@
 import zoneinfo
 from datetime import date
 
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -32,7 +33,13 @@ class AvailabilitySlotListCreateView(APIView):
             )
         serializer = AvailabilitySlotSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(examiner=request.user)
+        try:
+            serializer.save(examiner=request.user)
+        except IntegrityError:
+            return Response(
+                {"detail": "You already have an availability slot for this day and time."},
+                status=400,
+            )
         return Response(serializer.data, status=201)
 
 
