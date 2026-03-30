@@ -951,6 +951,8 @@ class ReleaseResultView(APIView):
                     session=session,
                     defaults={"overall_band": result.overall_band},
                 )
+                candidate_profile.current_speaking_score = result.overall_band
+                candidate_profile.save(update_fields=["current_speaking_score", "updated_at"])
             except CandidateProfile.DoesNotExist:
                 pass  # Guest candidates created before Phase 4 migration have no profile
 
