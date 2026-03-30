@@ -109,6 +109,91 @@ class TestSessionRequestModel(TestCase):
             req.cancel()
 
 
+class TestComputeAvailableSlotsWithRequests(TestCase):
+    """Unit tests for compute_available_slots() with SessionRequest awareness."""
+
+    def setUp(self):
+        self.examiner = User.objects.create_user(
+            username="req_slots_examiner",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        self.candidate = User.objects.create_user(
+            username="req_slots_candidate",
+            password="testpass123",
+            role=User.Role.CANDIDATE,
+        )
+        # Monday 09:00 slot
+        self.slot = AvailabilitySlot.objects.create(
+            examiner=self.examiner,
+            day_of_week=AvailabilitySlot.DayOfWeek.MON,
+            start_time=time(9, 0),
+        )
+
+    def _get_monday_slot(self, result):
+        monday = next(d for d in result if d["date"] == "2026-03-30")
+        return next(s for s in monday["slots"] if s["start"] == "09:00")
+
+    def test_accepted_request_marks_slot_booked(self):
+        """Slot with an ACCEPTED SessionRequest for the same date shows status 'booked'."""
+        req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=date(2026, 3, 30),
+        )
+        req.accept()
+        req.save()
+        result = compute_available_slots(self.examiner.id, date(2026, 3, 30))
+        slot_status = self._get_monday_slot(result)
+        self.assertEqual(slot_status["status"], "booked")
+
+    def test_pending_request_slot_still_available(self):
+        """Slot with a PENDING SessionRequest still shows status 'available'."""
+        SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=date(2026, 3, 30),
+        )
+        result = compute_available_slots(self.examiner.id, date(2026, 3, 30))
+        slot_status = self._get_monday_slot(result)
+        self.assertEqual(slot_status["status"], "available")
+
+    def test_cancelled_request_slot_still_available(self):
+        """Slot with a CANCELLED SessionRequest still shows status 'available'."""
+        req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=date(2026, 3, 30),
+        )
+        req.cancel()
+        req.save()
+        result = compute_available_slots(self.examiner.id, date(2026, 3, 30))
+        slot_status = self._get_monday_slot(result)
+        self.assertEqual(slot_status["status"], "available")
+
+    def test_blocked_date_takes_priority_over_accepted_request(self):
+        """Blocked date still takes priority over ACCEPTED request (status 'blocked' not 'booked')."""
+        req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=date(2026, 3, 30),
+        )
+        req.accept()
+        req.save()
+        BlockedDate.objects.create(
+            examiner=self.examiner,
+            date=date(2026, 3, 30),
+        )
+        result = compute_available_slots(self.examiner.id, date(2026, 3, 30))
+        slot_status = self._get_monday_slot(result)
+        self.assertEqual(slot_status["status"], "blocked")
+
+
 class TestComputeAvailableSlots(TestCase):
     """Unit tests for compute_available_slots() service function."""
 

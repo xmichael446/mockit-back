@@ -3,7 +3,7 @@ from datetime import timezone as dt_timezone
 
 from django.utils import timezone
 
-from scheduling.models import AvailabilitySlot, BlockedDate
+from scheduling.models import AvailabilitySlot, BlockedDate, SessionRequest
 from session.models import IELTSMockSession, SessionStatus
 
 
@@ -48,6 +48,15 @@ def compute_available_slots(examiner_id: int, week_date: date) -> list[dict]:
     ).values_list("scheduled_at", flat=True)
     booked_starts = set(booked_sessions)
 
+    # Fetch accepted session requests within this week window
+    accepted_requests = SessionRequest.objects.filter(
+        examiner_id=examiner_id,
+        status=SessionRequest.Status.ACCEPTED,
+        requested_date__gte=week_start,
+        requested_date__lt=week_end,
+    ).values_list("availability_slot_id", "requested_date")
+    accepted_booked = {(slot_id, req_date) for slot_id, req_date in accepted_requests}
+
     # Fetch blocked dates within this week window
     blocked_dates = set(
         BlockedDate.objects.filter(
@@ -74,6 +83,8 @@ def compute_available_slots(examiner_id: int, week_date: date) -> list[dict]:
             if current_day in blocked_dates:
                 status = "blocked"
             elif any(slot_start_dt <= bs < slot_end_dt for bs in booked_starts):
+                status = "booked"
+            elif (slot.id, current_day) in accepted_booked:
                 status = "booked"
             else:
                 status = "available"
