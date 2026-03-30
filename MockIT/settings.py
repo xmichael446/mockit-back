@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'main.apps.MainConfig',
     'questions.apps.QuestionsConfig',
     'session.apps.SessionConfig',
+    'scheduling.apps.SchedulingConfig',
 ]
 
 ASGI_APPLICATION = 'MockIT.asgi.application'
