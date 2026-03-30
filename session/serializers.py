@@ -128,8 +128,8 @@ class SessionCreateSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
-        # invite_expires_at: whichever comes first — 7 days from now or scheduled_at
-        expires = min(timezone.now() + timedelta(days=7), validated_data["scheduled_at"])
+        # invite_expires_at: 30 minutes from session creation
+        expires = timezone.now() + timedelta(minutes=30)
         return IELTSMockSession.objects.create(
             examiner=validated_data["examiner"],
             preset=validated_data.get("preset"),

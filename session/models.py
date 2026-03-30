@@ -106,7 +106,11 @@ class IELTSMockSession(TimestampedModel):
     # ── State machine guards ──
 
     def can_start(self):
-        return self.status == SessionStatus.SCHEDULED and self.candidate is not None
+        return (
+            self.status == SessionStatus.SCHEDULED
+            and self.candidate is not None
+            and timezone.now() >= self.scheduled_at
+        )
 
     def can_end(self):
         return self.status == SessionStatus.IN_PROGRESS
@@ -133,6 +137,10 @@ class IELTSMockSession(TimestampedModel):
             if self.candidate is None:
                 raise ValidationError(
                     "Cannot start session: no candidate has accepted the invite yet."
+                )
+            if self.scheduled_at and timezone.now() < self.scheduled_at:
+                raise ValidationError(
+                    "Cannot start session before the scheduled time."
                 )
             raise ValidationError(
                 f"Session cannot be started. Current status: {self.get_status_display()}."
