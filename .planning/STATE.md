@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Profiles & Scheduling
-status: defining_requirements
+status: ready_to_plan
 last_updated: "2026-03-30"
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
-  total_plans: 0
+  total_plans: 9
   completed_plans: 0
 ---
 
@@ -15,58 +15,54 @@ progress:
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-30 — Milestone v1.2 started
+Phase: 4 of 9 (Profiles — first v1.2 phase)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-03-30 — Roadmap created for v1.2 Profiles & Scheduling
+
+Progress: [░░░░░░░░░░] 0% (v1.2 phases only)
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** Defining requirements for v1.2
+**Current focus:** Phase 4 — Profiles
 **Current milestone:** v1.2 Profiles & Scheduling
 
 ## Accumulated Context
 
-- Brownfield project: codebase fully mapped in .planning/codebase/
-- Zero test coverage -- all changes require careful manual verification
-- session/views.py (1031 lines) is the largest and most fragile file
-- Hardcoded secrets in settings.py are the most critical security issue
-- REF-01 (state machine) is the foundational refactor for Phase 2 — other edge case fixes build on it
-- Multi-step session start (status update + room creation + token generation) has no transaction wrapping
-- Invite token currently uses random.choices() with ~47 bits entropy — needs secrets module
+### Decisions
 
-## Decisions
-
-| Decision | Rationale |
-|----------|-----------|
-| Phase 1 ships SEC-01 and SEC-02 together | Both are independent security fixes with no coupling to session logic; secrets must ship first |
-| Phase 2 bundles REF-01, REF-03, EDGE-01, EDGE-04 | REF-01 (state machine) is foundational; EDGE-01 (transactions) and EDGE-04 (preset immutability) touch the same session lifecycle code |
-| Phase 3 handles REF-02, EDGE-02, EDGE-03 | Audit logging, scoring validation, and email error handling are data-layer concerns that don't depend on the state machine |
-| Tests deferred to separate milestone | Zero coverage currently; test milestone is explicit out-of-scope for v1.1 |
-
-- [Phase 01]: Use os.environ[] fail-fast for all secrets (no .get() defaults)
-- [Phase 01]: Used ScopedRateThrottle as default class with per-view throttle_scope (views without scope are unaffected)
-- [Phase 02]: Used SQLite settings_test.py for test runner (local PG is v13, Django 5.2 needs v14+)
-- [Phase 02]: Changed invite_token max_length 9->8 to match new xxx-yyyy format
+From v1.1 (carry-forward constraints):
 - [Phase 02]: ValidationError from model methods propagates through DRF -- no try/except needed in views
 - [Phase 02]: Broadcast calls placed after transaction.atomic block to prevent stale events on rollback
 - [Phase 03-01]: Email send returns bool rather than raising -- callers decide how to surface failure
-- [Phase 03]: Used Python logging %s formatting for proper lazy evaluation in audit log calls
 
-### Quick Tasks Completed
+For v1.2 (pre-implementation):
+- Profile models (ExaminerProfile, CandidateProfile) go in main/models.py as OneToOne on User (avoid circular imports)
+- scheduling/ app owns AvailabilitySlot, SessionRequest, views, permissions, email service stubs
+- Email sends must be called after transaction exits (same discipline as _broadcast)
+- select_for_update() + transaction.atomic() required on SessionRequest accept path (double-booking prevention)
+- Phone field: ExaminerProfilePublicSerializer hides phone; ExaminerProfileDetailSerializer shows it to owner
 
-| # | Description | Date | Commit | Status | Directory |
-|---|-------------|------|--------|--------|-----------|
-| 260327-qez | Update API docs with all error messages and scenarios | 2026-03-27 | dae4515 | Verified | [260327-qez-update-the-api-docs-to-include-all-the-p](./quick/260327-qez-update-the-api-docs-to-include-all-the-p/) |
-| 260327-qsl | Add error response format documentation to Global Errors section | 2026-03-27 | cb6e9ce | Verified | [260327-qsl-include-error-response-format-as-well-in](./quick/260327-qsl-include-error-response-format-as-well-in/) |
-| 260330-dz6 | Rework session scheduling: enforce scheduled_at guard + 30-min invite expiry | 2026-03-30 | 656fa37 | Verified | [260330-dz6-rework-session-scheduling-enforce-schedu](./quick/260330-dz6-rework-session-scheduling-enforce-schedu/) |
-| 260330-e53 | Extract API docs into multiple shorter files | 2026-03-30 | c051353 | Completed | [260330-e53-extract-api-docs-into-multiple-shorter-f](./quick/260330-e53-extract-api-docs-into-multiple-shorter-f/) |
+### Research Flags (needs codebase check during planning)
 
-Last activity: 2026-03-30 - Completed quick task 260330-e53: Extract API docs into multiple shorter files
+- Phase 6: Confirm _broadcast() discipline holds for accept flow before writing view
+- Phase 7: Identify exact line in session/views.py:release_result where update_speaking_score() should be called
+- Phase 4: Confirm MEDIA_ROOT/MEDIA_URL not duplicated (media/ directory may already exist for SessionRecording)
+
+### Pending Todos
+
+None yet.
+
+### Blockers/Concerns
+
+None yet.
 
 ## Session Continuity
 
-Next action: Run `/gsd:plan-phase 1` to plan Phase 1: Security Hardening
+Last session: 2026-03-30
+Stopped at: Roadmap created — all 26 v1.2 requirements mapped across Phases 4-9
+Resume file: None
+Next action: Run `/gsd:plan-phase 4` to plan Phase 4: Profiles

@@ -87,38 +87,38 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EXAM-01 | — | Pending |
-| EXAM-02 | — | Pending |
-| EXAM-03 | — | Pending |
-| EXAM-04 | — | Pending |
-| EXAM-05 | — | Pending |
-| EXAM-06 | — | Pending |
-| STUD-01 | — | Pending |
-| STUD-02 | — | Pending |
-| STUD-03 | — | Pending |
-| STUD-04 | — | Pending |
-| AVAIL-01 | — | Pending |
-| AVAIL-02 | — | Pending |
-| AVAIL-03 | — | Pending |
-| AVAIL-04 | — | Pending |
-| AVAIL-05 | — | Pending |
-| REQ-01 | — | Pending |
-| REQ-02 | — | Pending |
-| REQ-03 | — | Pending |
-| REQ-04 | — | Pending |
-| REQ-05 | — | Pending |
-| REQ-06 | — | Pending |
-| REQ-07 | — | Pending |
-| EMAIL-01 | — | Pending |
-| EMAIL-02 | — | Pending |
-| EMAIL-03 | — | Pending |
-| DOCS-01 | — | Pending |
+| EXAM-01 | Phase 4 | Pending |
+| EXAM-02 | Phase 4 | Pending |
+| EXAM-03 | Phase 4 | Pending |
+| EXAM-04 | Phase 4 | Pending |
+| EXAM-05 | Phase 4 | Pending |
+| EXAM-06 | Phase 4 | Pending |
+| STUD-01 | Phase 4 | Pending |
+| STUD-02 | Phase 4 | Pending |
+| STUD-03 | Phase 7 | Pending |
+| STUD-04 | Phase 4 | Pending |
+| AVAIL-01 | Phase 5 | Pending |
+| AVAIL-02 | Phase 5 | Pending |
+| AVAIL-03 | Phase 5 | Pending |
+| AVAIL-04 | Phase 5 | Pending |
+| AVAIL-05 | Phase 5 | Pending |
+| REQ-01 | Phase 6 | Pending |
+| REQ-02 | Phase 6 | Pending |
+| REQ-03 | Phase 6 | Pending |
+| REQ-04 | Phase 6 | Pending |
+| REQ-05 | Phase 6 | Pending |
+| REQ-06 | Phase 6 | Pending |
+| REQ-07 | Phase 6 | Pending |
+| EMAIL-01 | Phase 8 | Pending |
+| EMAIL-02 | Phase 8 | Pending |
+| EMAIL-03 | Phase 8 | Pending |
+| DOCS-01 | Phase 9 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 26 total
-- Mapped to phases: 0
-- Unmapped: 26 ⚠️
+- Mapped to phases: 26
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-30*
-*Last updated: 2026-03-30 after initial definition*
+*Last updated: 2026-03-30 after roadmap creation (all 26 requirements mapped)*
