@@ -2,12 +2,18 @@ import uuid
 
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
+from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import EmailVerificationToken, User
+from .models import CandidateProfile, EmailVerificationToken, ExaminerCredential, ExaminerProfile, User
 from .serializers import (
+    CandidateProfileDetailSerializer,
+    CandidateProfilePublicSerializer,
+    ExaminerCredentialSerializer,
+    ExaminerProfileDetailSerializer,
+    ExaminerProfilePublicSerializer,
     GuestJoinSerializer,
     LoginSerializer,
     RegisterSerializer,
@@ -16,6 +22,14 @@ from .serializers import (
     VerifyEmailSerializer,
 )
 from .services.email import send_verification_email
+
+
+def _is_examiner(user):
+    return user.role == User.Role.EXAMINER
+
+
+def _is_candidate(user):
+    return user.role == User.Role.CANDIDATE
 
 
 class RegisterView(APIView):
@@ -217,3 +231,102 @@ class GuestJoinView(APIView):
             },
             status=201,
         )
+
+
+class ExaminerProfileMeView(APIView):
+    """
+    GET  /api/profiles/examiner/me/  — Retrieve own examiner profile (examiner only)
+    PATCH /api/profiles/examiner/me/ — Update own examiner profile (examiner only)
+    """
+    parser_classes = [MultiPartParser, JSONParser]
+
+    def get(self, request):
+        if not _is_examiner(request.user):
+            return Response({"detail": "Examiner profile not found."}, status=404)
+        profile = request.user.examiner_profile
+        return Response(ExaminerProfileDetailSerializer(profile).data)
+
+    def patch(self, request):
+        if not _is_examiner(request.user):
+            return Response({"detail": "Examiner profile not found."}, status=404)
+        profile = request.user.examiner_profile
+        serializer = ExaminerProfileDetailSerializer(profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+class ExaminerProfilePublicView(APIView):
+    """
+    GET /api/profiles/examiner/<id>/ — View examiner's public profile (any authenticated user)
+    """
+
+    def get(self, request, pk):
+        try:
+            profile = ExaminerProfile.objects.select_related("user", "credential").get(pk=pk)
+        except ExaminerProfile.DoesNotExist:
+            return Response({"detail": "Examiner profile not found."}, status=404)
+        return Response(ExaminerProfilePublicSerializer(profile).data)
+
+
+class ExaminerCredentialView(APIView):
+    """
+    GET  /api/profiles/examiner/me/credential/ — Retrieve own credential
+    PUT  /api/profiles/examiner/me/credential/ — Create or update own credential
+    """
+
+    def get(self, request):
+        if not _is_examiner(request.user):
+            return Response({"detail": "Examiner profile not found."}, status=404)
+        profile = request.user.examiner_profile
+        try:
+            credential = profile.credential
+        except ExaminerCredential.DoesNotExist:
+            return Response({"detail": "No credential found."}, status=404)
+        return Response(ExaminerCredentialSerializer(credential).data)
+
+    def put(self, request):
+        if not _is_examiner(request.user):
+            return Response({"detail": "Examiner profile not found."}, status=404)
+        profile = request.user.examiner_profile
+        credential, _ = ExaminerCredential.objects.get_or_create(examiner_profile=profile)
+        serializer = ExaminerCredentialSerializer(credential, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+class CandidateProfileMeView(APIView):
+    """
+    GET  /api/profiles/candidate/me/  — Retrieve own candidate profile (candidate only)
+    PATCH /api/profiles/candidate/me/ — Update own candidate profile (candidate only)
+    """
+    parser_classes = [MultiPartParser, JSONParser]
+
+    def get(self, request):
+        if not _is_candidate(request.user):
+            return Response({"detail": "Candidate profile not found."}, status=404)
+        profile = request.user.candidate_profile
+        return Response(CandidateProfileDetailSerializer(profile).data)
+
+    def patch(self, request):
+        if not _is_candidate(request.user):
+            return Response({"detail": "Candidate profile not found."}, status=404)
+        profile = request.user.candidate_profile
+        serializer = CandidateProfileDetailSerializer(profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+class CandidateProfilePublicView(APIView):
+    """
+    GET /api/profiles/candidate/<id>/ — View candidate's public profile (any authenticated user)
+    """
+
+    def get(self, request, pk):
+        try:
+            profile = CandidateProfile.objects.select_related("user").prefetch_related("score_history").get(pk=pk)
+        except CandidateProfile.DoesNotExist:
+            return Response({"detail": "Candidate profile not found."}, status=404)
+        return Response(CandidateProfilePublicSerializer(profile).data)

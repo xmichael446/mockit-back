@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import EmailVerificationToken, User
+from .models import CandidateProfile, EmailVerificationToken, ExaminerCredential, ExaminerProfile, ScoreHistory, User
 
 
 class UserMinimalSerializer(serializers.ModelSerializer):
@@ -99,3 +99,103 @@ class GuestJoinSerializer(serializers.Serializer):
 
     def get_session(self):
         return self._session
+
+
+class UserNestedSerializer(serializers.ModelSerializer):
+    """Read-only nested user fields for profile responses."""
+    class Meta:
+        model = User
+        fields = ("id", "username", "email", "first_name", "last_name")
+        read_only_fields = ("id", "username", "email", "first_name", "last_name")
+
+
+class ExaminerCredentialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExaminerCredential
+        fields = ("id", "listening_score", "reading_score", "writing_score", "speaking_score", "certificate_url")
+
+
+class ExaminerProfileDetailSerializer(serializers.ModelSerializer):
+    """Owner view — phone visible, writable fields."""
+    user = UserNestedSerializer(read_only=True)
+    credential = ExaminerCredentialSerializer(read_only=True)
+
+    class Meta:
+        model = ExaminerProfile
+        fields = (
+            "id", "user", "bio", "full_legal_name", "phone",
+            "profile_picture", "is_verified", "completed_session_count", "credential",
+        )
+        read_only_fields = ("is_verified", "completed_session_count")
+
+
+class ExaminerProfilePublicSerializer(serializers.ModelSerializer):
+    """Public view — phone hidden, all read-only."""
+    user = UserNestedSerializer(read_only=True)
+    credential = ExaminerCredentialSerializer(read_only=True)
+
+    class Meta:
+        model = ExaminerProfile
+        fields = (
+            "id", "user", "bio", "full_legal_name",
+            "profile_picture", "is_verified", "completed_session_count", "credential",
+        )
+        read_only_fields = (
+            "id", "user", "bio", "full_legal_name",
+            "profile_picture", "is_verified", "completed_session_count", "credential",
+        )
+
+
+class ScoreHistorySerializer(serializers.ModelSerializer):
+    session_id = serializers.IntegerField(source="session.pk", read_only=True)
+
+    class Meta:
+        model = ScoreHistory
+        fields = ("id", "session_id", "overall_band", "created_at")
+        read_only_fields = ("id", "session_id", "overall_band", "created_at")
+
+
+class CandidateProfileDetailSerializer(serializers.ModelSerializer):
+    """Owner view — writable fields."""
+    user = UserNestedSerializer(read_only=True)
+    score_history = ScoreHistorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CandidateProfile
+        fields = (
+            "id", "user", "profile_picture", "target_speaking_score",
+            "current_speaking_score", "score_history",
+        )
+
+    def validate_target_speaking_score(self, value):
+        if value is not None:
+            if value < 1 or value > 9:
+                raise serializers.ValidationError("Score must be between 1.0 and 9.0.")
+            if (value * 2) % 1 != 0:
+                raise serializers.ValidationError("Score must be a multiple of 0.5.")
+        return value
+
+    def validate_current_speaking_score(self, value):
+        if value is not None:
+            if value < 1 or value > 9:
+                raise serializers.ValidationError("Score must be between 1.0 and 9.0.")
+            if (value * 2) % 1 != 0:
+                raise serializers.ValidationError("Score must be a multiple of 0.5.")
+        return value
+
+
+class CandidateProfilePublicSerializer(serializers.ModelSerializer):
+    """Public view — read-only, includes score history."""
+    user = UserNestedSerializer(read_only=True)
+    score_history = ScoreHistorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CandidateProfile
+        fields = (
+            "id", "user", "profile_picture", "target_speaking_score",
+            "current_speaking_score", "score_history",
+        )
+        read_only_fields = (
+            "id", "user", "profile_picture", "target_speaking_score",
+            "current_speaking_score", "score_history",
+        )

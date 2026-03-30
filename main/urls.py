@@ -1,6 +1,19 @@
 from django.urls import path
 
-from .views import GuestJoinView, LoginView, LogoutView, MeView, RegisterView, ResendVerificationView, VerifyEmailView
+from .views import (
+    CandidateProfileMeView,
+    CandidateProfilePublicView,
+    ExaminerCredentialView,
+    ExaminerProfileMeView,
+    ExaminerProfilePublicView,
+    GuestJoinView,
+    LoginView,
+    LogoutView,
+    MeView,
+    RegisterView,
+    ResendVerificationView,
+    VerifyEmailView,
+)
 
 urlpatterns = [
     path("auth/register/", RegisterView.as_view(), name="auth-register"),
@@ -10,4 +23,9 @@ urlpatterns = [
     path("auth/verify-email/", VerifyEmailView.as_view(), name="auth-verify-email"),
     path("auth/resend-verification/", ResendVerificationView.as_view(), name="auth-resend-verification"),
     path("auth/guest-join/", GuestJoinView.as_view(), name="auth-guest-join"),
+    path("profiles/examiner/me/", ExaminerProfileMeView.as_view(), name="examiner-profile-me"),
+    path("profiles/examiner/me/credential/", ExaminerCredentialView.as_view(), name="examiner-credential"),
+    path("profiles/examiner/<int:pk>/", ExaminerProfilePublicView.as_view(), name="examiner-profile-public"),
+    path("profiles/candidate/me/", CandidateProfileMeView.as_view(), name="candidate-profile-me"),
+    path("profiles/candidate/<int:pk>/", CandidateProfilePublicView.as_view(), name="candidate-profile-public"),
 ]
