@@ -93,7 +93,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md -- SessionRequest model with state machine, migration, and availability service extension
+- [x] 06-01-PLAN.md -- SessionRequest model with state machine, migration, and availability service extension
 - [ ] 06-02-PLAN.md -- Request submit, accept, reject, cancel endpoints with integration tests
 
 #### Phase 7: Candidate Score Auto-Update
@@ -147,7 +147,7 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 3. Scoring, Audit & Email Errors | v1.1 | 2/2 | Complete | 2026-03-27 |
 | 4. Profiles | v1.2 | 2/2 | Complete   | 2026-03-30 |
 | 5. Availability Scheduling | v1.2 | 2/2 | Complete   | 2026-03-30 |
-| 6. Session Request Flow | v1.2 | 0/2 | Not started | - |
+| 6. Session Request Flow | v1.2 | 1/2 | In Progress|  |
 | 7. Candidate Score Auto-Update | v1.2 | 0/1 | Not started | - |
 | 8. Email Notifications | v1.2 | 0/1 | Not started | - |
 | 9. API Documentation | v1.2 | 0/1 | Not started | - |

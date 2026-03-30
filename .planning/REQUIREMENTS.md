@@ -34,11 +34,11 @@ Requirements for Profiles & Scheduling milestone. Each maps to roadmap phases.
 ### Session Request
 
 - [ ] **REQ-01**: Candidate can submit a session request for a specific valid time slot with optional comment
-- [ ] **REQ-02**: Requested time is strictly validated against examiner's actual availability (schedule minus bookings minus exceptions)
+- [x] **REQ-02**: Requested time is strictly validated against examiner's actual availability (schedule minus bookings minus exceptions)
 - [ ] **REQ-03**: Examiner can accept a pending request (auto-creates linked IELTSMockSession)
 - [ ] **REQ-04**: Examiner can reject a pending request with required rejection comment
-- [ ] **REQ-05**: Session request uses state machine pattern (PENDING -> ACCEPTED/REJECTED/CANCELLED)
-- [ ] **REQ-06**: Accept flow uses select_for_update to prevent double-booking race conditions
+- [x] **REQ-05**: Session request uses state machine pattern (PENDING -> ACCEPTED/REJECTED/CANCELLED)
+- [x] **REQ-06**: Accept flow uses select_for_update to prevent double-booking race conditions
 - [ ] **REQ-07**: Candidate or examiner can cancel an accepted session request
 
 ### Email Notifications
@@ -103,11 +103,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AVAIL-04 | Phase 5 | Complete |
 | AVAIL-05 | Phase 5 | Complete |
 | REQ-01 | Phase 6 | Pending |
-| REQ-02 | Phase 6 | Pending |
+| REQ-02 | Phase 6 | Complete |
 | REQ-03 | Phase 6 | Pending |
 | REQ-04 | Phase 6 | Pending |
-| REQ-05 | Phase 6 | Pending |
-| REQ-06 | Phase 6 | Pending |
+| REQ-05 | Phase 6 | Complete |
+| REQ-06 | Phase 6 | Complete |
 | REQ-07 | Phase 6 | Pending |
 | EMAIL-01 | Phase 8 | Pending |
 | EMAIL-02 | Phase 8 | Pending |
