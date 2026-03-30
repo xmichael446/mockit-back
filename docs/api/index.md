@@ -9,6 +9,9 @@ WebSocket connections authenticate via query-string token: `ws://host/ws/session
 |---------|-------------|
 | [Global Errors](global-errors.md) | Error shapes, rate limits |
 | [Authentication](authentication.md) | Register, login, logout, guest join |
+| [Profiles](profiles.md) | Examiner and candidate profiles |
+| [Availability](availability.md) | Recurring schedule, blocked dates, computed slots |
+| [Session Requests](requests.md) | Request, accept, reject, cancel bookings |
 | [Presets](presets.md) | Examiner preset CRUD |
 | [Sessions](sessions.md) | Session lifecycle |
 | [Session Parts](session-parts.md) | Part start/end |
