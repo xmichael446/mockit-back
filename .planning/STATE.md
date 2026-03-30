@@ -2,32 +2,29 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Profiles & Scheduling
-status: ready_to_plan
-last_updated: "2026-03-30"
+status: unknown
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-30T06:12:44.676Z"
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 9
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # State
 
 ## Current Position
 
-Phase: 4 of 9 (Profiles — first v1.2 phase)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-30 — Roadmap created for v1.2 Profiles & Scheduling
-
-Progress: [░░░░░░░░░░] 0% (v1.2 phases only)
+Phase: 04 (profiles) — EXECUTING
+Plan: 2 of 2
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** Phase 4 — Profiles
+**Current focus:** Phase 04 — profiles
 **Current milestone:** v1.2 Profiles & Scheduling
 
 ## Accumulated Context
@@ -35,16 +32,20 @@ See: .planning/PROJECT.md (updated 2026-03-30)
 ### Decisions
 
 From v1.1 (carry-forward constraints):
+
 - [Phase 02]: ValidationError from model methods propagates through DRF -- no try/except needed in views
 - [Phase 02]: Broadcast calls placed after transaction.atomic block to prevent stale events on rollback
 - [Phase 03-01]: Email send returns bool rather than raising -- callers decide how to surface failure
 
 For v1.2 (pre-implementation):
+
 - Profile models (ExaminerProfile, CandidateProfile) go in main/models.py as OneToOne on User (avoid circular imports)
 - scheduling/ app owns AvailabilitySlot, SessionRequest, views, permissions, email service stubs
 - Email sends must be called after transaction exits (same discipline as _broadcast)
 - select_for_update() + transaction.atomic() required on SessionRequest accept path (double-booking prevention)
 - Phone field: ExaminerProfilePublicSerializer hides phone; ExaminerProfileDetailSerializer shows it to owner
+- [Phase 04-01]: Tests run via DJANGO_SETTINGS_MODULE=MockIT.settings_test (SQLite in-memory) because PG 13 installed but Django 5.2 requires PG 14
+- [Phase 04-01]: Updated .env DB_PORT to 5433 to match actual PostgreSQL cluster port
 
 ### Research Flags (needs codebase check during planning)
 
@@ -62,7 +63,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30
-Stopped at: Roadmap created — all 26 v1.2 requirements mapped across Phases 4-9
+Last session: 2026-03-30T06:12:44.670Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
 Next action: Run `/gsd:plan-phase 4` to plan Phase 4: Profiles
