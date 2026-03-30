@@ -223,6 +223,8 @@ Examiner only.
 // Response 201 — same shape as session object above
 ```
 
+`invite_expires_at` is set to **30 minutes after session creation**. The invite token becomes invalid after this window regardless of `scheduled_at`.
+
 Errors:
 - `403` — `"Only examiners can create sessions."` | `"Session limit reached. You can have at most N sessions."`
 - `400` — `"scheduled_at must be in the future."`
@@ -235,7 +237,7 @@ Errors:
 - `403` — `"You are not a participant of this session."`
 
 ### POST /api/sessions/accept-invite/
-Candidate only. Accepts an invite token.
+Candidate only. Accepts an invite token. The token expires **30 minutes after the session was created** — candidates must accept within this window.
 ```json
 // Request
 { "token": "uuid-string" }
@@ -247,7 +249,7 @@ Errors:
 - `400` — `"Invalid invite token."` | `"Session is not accepting invitations (status: ...)."` | `"This invite has already been accepted."` | `"This invite has expired."`
 
 ### POST /api/sessions/<id>/start/
-Examiner only. Session must be SCHEDULED. Candidate must have accepted invite.
+Examiner only. Session must be SCHEDULED. Candidate must have accepted invite. Current time must be at or after `scheduled_at`.
 Creates the 100ms video room. Sets status to IN_PROGRESS.
 ```json
 // Response 200
@@ -260,7 +262,7 @@ Creates the 100ms video room. Sets status to IN_PROGRESS.
 
 Errors:
 - `403` — `"Only the session examiner can start the session."`
-- `400` — `"Cannot start session: no candidate has accepted the invite yet."` | `"Session cannot be started. Current status: ..."`
+- `400` — `"Cannot start session: no candidate has accepted the invite yet."` | `"Cannot start session before the scheduled time."` | `"Session cannot be started. Current status: ..."`
 - `502` — `"Failed to create video room: ..."`
 
 ### POST /api/sessions/<id>/join/
