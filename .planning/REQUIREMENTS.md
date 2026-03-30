@@ -14,7 +14,7 @@ Requirements for Profiles & Scheduling milestone. Each maps to roadmap phases.
 - [x] **EXAM-03**: Examiner profile shows is_verified badge status (admin-managed boolean)
 - [x] **EXAM-04**: Examiner profile includes phone number field supporting Uzbekistan format
 - [x] **EXAM-05**: Examiner profile displays completed session count
-- [ ] **EXAM-06**: User (candidate) can view an examiner's public profile
+- [x] **EXAM-06**: User (candidate) can view an examiner's public profile
 
 ### Student Profile
 
@@ -92,7 +92,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXAM-03 | Phase 4 | Complete |
 | EXAM-04 | Phase 4 | Complete |
 | EXAM-05 | Phase 4 | Complete |
-| EXAM-06 | Phase 4 | Pending |
+| EXAM-06 | Phase 4 | Complete |
 | STUD-01 | Phase 4 | Complete |
 | STUD-02 | Phase 4 | Complete |
 | STUD-03 | Phase 7 | Pending |
