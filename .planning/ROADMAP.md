@@ -103,7 +103,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. After an examiner releases session results, the candidate's current_speaking_score updates to the overall band from that session without any manual action
   2. The update fires only on result release, not on intermediate saves, and does not break the existing release flow
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 07-01: CandidateProfile.update_speaking_score() method wired into release_result view
