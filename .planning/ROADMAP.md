@@ -74,7 +74,7 @@ Plans:
   2. Examiner can block specific dates as exceptions that override their recurring schedule
   3. Candidate can retrieve computed available slots for an examiner for a given week (schedule minus accepted bookings minus exceptions)
   4. API returns a real-time is_currently_available boolean for an examiner at request time
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 05-01: AvailabilitySlot and BlockedDate models + migrations + compute_available_slots() service
