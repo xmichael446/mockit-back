@@ -10,7 +10,8 @@ from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from main.models import User
+from django.db.models import F
+from main.models import CandidateProfile, ExaminerProfile, ScoreHistory, User
 from questions.models import Question, FollowUpQuestion
 from questions.serializers import QuestionDetailSerializer
 from .models import (
@@ -285,6 +286,11 @@ class EndSessionView(APIView):
 
         session.end()  # validates IN_PROGRESS, sets status=COMPLETED + ended_at
         session.save(update_fields=["status", "ended_at", "updated_at"])
+
+        # Increment examiner's completed session count atomically
+        ExaminerProfile.objects.filter(user=session.examiner).update(
+            completed_session_count=F("completed_session_count") + 1
+        )
 
         _broadcast(pk, "session.ended", {
             "session_id": pk,
@@ -935,6 +941,18 @@ class ReleaseResultView(APIView):
         result.is_released = True
         result.released_at = timezone.now()
         result.save(update_fields=["is_released", "released_at", "updated_at"])
+
+        # Append score history record for candidate
+        if session.candidate and result.overall_band is not None:
+            try:
+                candidate_profile = CandidateProfile.objects.get(user=session.candidate)
+                ScoreHistory.objects.get_or_create(
+                    candidate_profile=candidate_profile,
+                    session=session,
+                    defaults={"overall_band": result.overall_band},
+                )
+            except CandidateProfile.DoesNotExist:
+                pass  # Guest candidates created before Phase 4 migration have no profile
 
         _broadcast(pk, "result.released", {
             "session_id": pk,
