@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Profiles & Scheduling
 status: unknown
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-30T08:39:11.508Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-30T08:53:05.933Z"
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # State
@@ -54,6 +54,8 @@ For v1.2 (pre-implementation):
 - [Phase 05-02]: IntegrityError on unique_together caught in view POST and returned as 400 (DRF serializer cannot validate without examiner FK at validation time)
 - [Phase 05-02]: Examiner test users need is_verified=True due to global IsEmailVerified permission class
 - [Phase 06-01]: SessionRequest.Status uses IntegerChoices matching SessionStatus pattern; DRF ValidationError raised from model methods; accepted_booked keyed by (slot_id, date) not datetime
+- [Phase 06]: select_for_update + transaction.atomic on accept path prevents double-booking under concurrency
+- [Phase 06]: _broadcast called after transaction.atomic block to prevent stale WebSocket events on rollback
 
 ### Research Flags (needs codebase check during planning)
 
@@ -71,7 +73,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T08:39:11.501Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-03-30T08:53:05.928Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
 Next action: Run `/gsd:plan-phase 4` to plan Phase 4: Profiles
