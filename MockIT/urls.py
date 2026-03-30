@@ -24,4 +24,5 @@ urlpatterns = [
     path("api/", include("main.urls")),
     path("api/", include("questions.urls")),
     path("api/", include("session.urls")),
+    path("api/scheduling/", include("scheduling.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
