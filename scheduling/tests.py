@@ -1,4 +1,4 @@
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from datetime import timezone as dt_timezone
 from unittest.mock import patch
 
@@ -633,3 +633,401 @@ class TestIsAvailableEndpoint(TestCase):
             f"/api/scheduling/examiners/{self.candidate.pk}/is-available/"
         )
         self.assertEqual(resp.status_code, 404)
+
+
+def _next_monday():
+    """Return the next Monday (never today even if today is Monday)."""
+    today = date.today()
+    days_ahead = (7 - today.weekday()) % 7 or 7
+    return today + timedelta(days=days_ahead)
+
+
+class TestSessionRequestAPI(TestCase):
+    def setUp(self):
+        self.examiner = User.objects.create_user(
+            username="req_examiner",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        self.examiner_token = Token.objects.create(user=self.examiner)
+        self.candidate = User.objects.create_user(
+            username="req_candidate",
+            password="testpass123",
+            role=User.Role.CANDIDATE,
+            is_verified=True,
+        )
+        self.candidate_token = Token.objects.create(user=self.candidate)
+        self.other_user = User.objects.create_user(
+            username="other_user",
+            password="testpass123",
+            role=User.Role.CANDIDATE,
+            is_verified=True,
+        )
+        self.other_token = Token.objects.create(user=self.other_user)
+        self.client = APIClient()
+
+        # Monday 09:00 slot — DayOfWeek.MON == 0
+        self.slot = AvailabilitySlot.objects.create(
+            examiner=self.examiner,
+            day_of_week=AvailabilitySlot.DayOfWeek.MON,
+            start_time=time(9, 0),
+        )
+        self.next_monday = _next_monday()
+
+    def _auth(self, token):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+
+    # ── Submit tests ──────────────────────────────────────────────────────────
+
+    def test_submit_request(self):
+        """Candidate submitting a valid request returns 201 with status=PENDING."""
+        self._auth(self.candidate_token)
+        resp = self.client.post(
+            "/api/scheduling/requests/",
+            {
+                "availability_slot": self.slot.pk,
+                "requested_date": self.next_monday.isoformat(),
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(resp.data["status"], SessionRequest.Status.PENDING)
+        self.assertEqual(SessionRequest.objects.count(), 1)
+
+    def test_submit_by_examiner(self):
+        """Examiner attempting to submit a request returns 403."""
+        self._auth(self.examiner_token)
+        resp = self.client.post(
+            "/api/scheduling/requests/",
+            {
+                "availability_slot": self.slot.pk,
+                "requested_date": self.next_monday.isoformat(),
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 403)
+
+    def test_submit_booked_slot(self):
+        """Submitting a request for a booked slot returns 400."""
+        # Create an accepted request first to mark slot as booked
+        req = SessionRequest.objects.create(
+            candidate=self.other_user,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+        req.accept()
+        req.save()
+
+        self._auth(self.candidate_token)
+        resp = self.client.post(
+            "/api/scheduling/requests/",
+            {
+                "availability_slot": self.slot.pk,
+                "requested_date": self.next_monday.isoformat(),
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    def test_submit_weekday_mismatch(self):
+        """Submitting a request where date weekday != slot day_of_week returns 400."""
+        self._auth(self.candidate_token)
+        # next_monday is Monday (weekday=0); slot is also Monday — use Tuesday instead
+        next_tuesday = self.next_monday + timedelta(days=1)
+        resp = self.client.post(
+            "/api/scheduling/requests/",
+            {
+                "availability_slot": self.slot.pk,
+                "requested_date": next_tuesday.isoformat(),
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    def test_submit_duplicate(self):
+        """Submitting a duplicate active request for the same slot+date returns 400."""
+        # First request
+        SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+
+        self._auth(self.candidate_token)
+        resp = self.client.post(
+            "/api/scheduling/requests/",
+            {
+                "availability_slot": self.slot.pk,
+                "requested_date": self.next_monday.isoformat(),
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    # ── List tests ────────────────────────────────────────────────────────────
+
+    def test_list_examiner(self):
+        """GET by examiner returns only requests addressed to them."""
+        SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+        # Another request for a different examiner should not appear
+        other_examiner = User.objects.create_user(
+            username="other_examiner",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        other_slot = AvailabilitySlot.objects.create(
+            examiner=other_examiner,
+            day_of_week=AvailabilitySlot.DayOfWeek.MON,
+            start_time=time(10, 0),
+        )
+        SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=other_examiner,
+            availability_slot=other_slot,
+            requested_date=self.next_monday,
+        )
+
+        self._auth(self.examiner_token)
+        resp = self.client.get("/api/scheduling/requests/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data), 1)
+        self.assertEqual(resp.data[0]["examiner"], self.examiner.pk)
+
+    def test_list_candidate(self):
+        """GET by candidate returns only their own requests."""
+        SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+        # Other user's request should not appear
+        other_examiner = User.objects.create_user(
+            username="other_examiner2",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        other_slot = AvailabilitySlot.objects.create(
+            examiner=other_examiner,
+            day_of_week=AvailabilitySlot.DayOfWeek.MON,
+            start_time=time(10, 0),
+        )
+        SessionRequest.objects.create(
+            candidate=self.other_user,
+            examiner=other_examiner,
+            availability_slot=other_slot,
+            requested_date=self.next_monday,
+        )
+
+        self._auth(self.candidate_token)
+        resp = self.client.get("/api/scheduling/requests/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data), 1)
+        self.assertEqual(resp.data[0]["candidate"], self.candidate.pk)
+
+    def test_list_filter_status(self):
+        """GET ?status=1 filters requests by status PENDING."""
+        pending_req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+        # Create a rejected request for same candidate
+        rejected_req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday + timedelta(weeks=1),
+        )
+        rejected_req.reject("Not available")
+        rejected_req.save()
+
+        self._auth(self.candidate_token)
+        resp = self.client.get("/api/scheduling/requests/?status=1")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data), 1)
+        self.assertEqual(resp.data[0]["id"], pending_req.pk)
+
+    # ── Accept tests ──────────────────────────────────────────────────────────
+
+    def test_accept_creates_session(self):
+        """POST accept by examiner creates IELTSMockSession with correct scheduled_at."""
+        req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+
+        self._auth(self.examiner_token)
+        resp = self.client.post(f"/api/scheduling/requests/{req.pk}/accept/")
+        self.assertEqual(resp.status_code, 200)
+
+        req.refresh_from_db()
+        self.assertEqual(req.status, SessionRequest.Status.ACCEPTED)
+        self.assertIsNotNone(req.session)
+
+        session = req.session
+        self.assertEqual(session.examiner, self.examiner)
+        self.assertEqual(session.candidate, self.candidate)
+        self.assertEqual(session.status, SessionStatus.SCHEDULED)
+
+        expected_scheduled_at = datetime.combine(
+            self.next_monday, self.slot.start_time, tzinfo=dt_timezone.utc
+        )
+        self.assertEqual(session.scheduled_at, expected_scheduled_at)
+
+    def test_accept_by_candidate(self):
+        """POST accept by candidate returns 403."""
+        req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+
+        self._auth(self.candidate_token)
+        resp = self.client.post(f"/api/scheduling/requests/{req.pk}/accept/")
+        self.assertEqual(resp.status_code, 403)
+
+    def test_accept_already_accepted(self):
+        """POST accept on an already-accepted request returns 400 (state machine guard)."""
+        req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+        # Accept once via direct model call
+        req.accept()
+        session = IELTSMockSession.objects.create(
+            examiner=req.examiner,
+            candidate=req.candidate,
+            scheduled_at=datetime.combine(
+                req.requested_date, self.slot.start_time, tzinfo=dt_timezone.utc
+            ),
+        )
+        req.session = session
+        req.save()
+
+        self._auth(self.examiner_token)
+        resp = self.client.post(f"/api/scheduling/requests/{req.pk}/accept/")
+        self.assertEqual(resp.status_code, 400)
+
+    # ── Reject tests ──────────────────────────────────────────────────────────
+
+    def test_reject_with_comment(self):
+        """POST reject with rejection_comment sets status=REJECTED."""
+        req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+
+        self._auth(self.examiner_token)
+        resp = self.client.post(
+            f"/api/scheduling/requests/{req.pk}/reject/",
+            {"rejection_comment": "Not available on this date"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200)
+
+        req.refresh_from_db()
+        self.assertEqual(req.status, SessionRequest.Status.REJECTED)
+        self.assertEqual(req.rejection_comment, "Not available on this date")
+
+    def test_reject_without_comment(self):
+        """POST reject without rejection_comment returns 400."""
+        req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+
+        self._auth(self.examiner_token)
+        resp = self.client.post(
+            f"/api/scheduling/requests/{req.pk}/reject/",
+            {},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    # ── Cancel tests ──────────────────────────────────────────────────────────
+
+    def test_cancel_by_candidate(self):
+        """POST cancel by candidate on ACCEPTED request sets status=CANCELLED."""
+        req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+        req.accept()
+        session = IELTSMockSession.objects.create(
+            examiner=req.examiner,
+            candidate=req.candidate,
+            scheduled_at=datetime.combine(
+                req.requested_date, self.slot.start_time, tzinfo=dt_timezone.utc
+            ),
+        )
+        req.session = session
+        req.save()
+
+        self._auth(self.candidate_token)
+        resp = self.client.post(f"/api/scheduling/requests/{req.pk}/cancel/")
+        self.assertEqual(resp.status_code, 200)
+
+        req.refresh_from_db()
+        self.assertEqual(req.status, SessionRequest.Status.CANCELLED)
+
+    def test_cancel_by_examiner(self):
+        """POST cancel by examiner on ACCEPTED request sets status=CANCELLED."""
+        req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+        req.accept()
+        session = IELTSMockSession.objects.create(
+            examiner=req.examiner,
+            candidate=req.candidate,
+            scheduled_at=datetime.combine(
+                req.requested_date, self.slot.start_time, tzinfo=dt_timezone.utc
+            ),
+        )
+        req.session = session
+        req.save()
+
+        self._auth(self.examiner_token)
+        resp = self.client.post(f"/api/scheduling/requests/{req.pk}/cancel/")
+        self.assertEqual(resp.status_code, 200)
+
+        req.refresh_from_db()
+        self.assertEqual(req.status, SessionRequest.Status.CANCELLED)
+
+    def test_cancel_unrelated_user(self):
+        """POST cancel by an unrelated user returns 403."""
+        req = SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=self.next_monday,
+        )
+
+        self._auth(self.other_token)
+        resp = self.client.post(f"/api/scheduling/requests/{req.pk}/cancel/")
+        self.assertEqual(resp.status_code, 403)
