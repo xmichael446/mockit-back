@@ -4,12 +4,109 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
 from main.models import User
-from scheduling.models import AvailabilitySlot, BlockedDate
+from scheduling.models import AvailabilitySlot, BlockedDate, SessionRequest
 from scheduling.services.availability import compute_available_slots, is_currently_available
 from session.models import IELTSMockSession, SessionStatus
+
+
+class TestSessionRequestModel(TestCase):
+    """Unit tests for SessionRequest model state machine."""
+
+    def setUp(self):
+        self.examiner = User.objects.create_user(
+            username="sr_examiner",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        self.candidate = User.objects.create_user(
+            username="sr_candidate",
+            password="testpass123",
+            role=User.Role.CANDIDATE,
+        )
+        self.slot = AvailabilitySlot.objects.create(
+            examiner=self.examiner,
+            day_of_week=AvailabilitySlot.DayOfWeek.MON,
+            start_time=time(9, 0),
+        )
+
+    def _make_request(self):
+        return SessionRequest.objects.create(
+            candidate=self.candidate,
+            examiner=self.examiner,
+            availability_slot=self.slot,
+            requested_date=date(2026, 3, 30),
+        )
+
+    def test_default_status_is_pending(self):
+        """SessionRequest created with default status PENDING (status == 1)."""
+        req = self._make_request()
+        self.assertEqual(req.status, SessionRequest.Status.PENDING)
+
+    def test_accept_from_pending(self):
+        """accept() on PENDING request sets status to ACCEPTED (status == 2)."""
+        req = self._make_request()
+        req.accept()
+        self.assertEqual(req.status, SessionRequest.Status.ACCEPTED)
+
+    def test_reject_from_pending(self):
+        """reject('reason') on PENDING request sets status to REJECTED (status == 3) and stores rejection_comment."""
+        req = self._make_request()
+        req.reject("Not available")
+        self.assertEqual(req.status, SessionRequest.Status.REJECTED)
+        self.assertEqual(req.rejection_comment, "Not available")
+
+    def test_cancel_from_pending(self):
+        """cancel() on PENDING request sets status to CANCELLED (status == 4)."""
+        req = self._make_request()
+        req.cancel()
+        self.assertEqual(req.status, SessionRequest.Status.CANCELLED)
+
+    def test_cancel_from_accepted(self):
+        """cancel() on ACCEPTED request sets status to CANCELLED (status == 4)."""
+        req = self._make_request()
+        req.accept()
+        req.cancel()
+        self.assertEqual(req.status, SessionRequest.Status.CANCELLED)
+
+    def test_accept_raises_if_already_accepted(self):
+        """accept() on ACCEPTED request raises ValidationError."""
+        req = self._make_request()
+        req.accept()
+        with self.assertRaises(ValidationError):
+            req.accept()
+
+    def test_accept_raises_if_rejected(self):
+        """accept() on REJECTED request raises ValidationError."""
+        req = self._make_request()
+        req.reject("reason")
+        with self.assertRaises(ValidationError):
+            req.accept()
+
+    def test_reject_raises_if_accepted(self):
+        """reject() on ACCEPTED request raises ValidationError."""
+        req = self._make_request()
+        req.accept()
+        with self.assertRaises(ValidationError):
+            req.reject("reason")
+
+    def test_cancel_raises_if_rejected(self):
+        """cancel() on REJECTED request raises ValidationError."""
+        req = self._make_request()
+        req.reject("reason")
+        with self.assertRaises(ValidationError):
+            req.cancel()
+
+    def test_cancel_raises_if_cancelled(self):
+        """cancel() on CANCELLED request raises ValidationError."""
+        req = self._make_request()
+        req.cancel()
+        with self.assertRaises(ValidationError):
+            req.cancel()
 
 
 class TestComputeAvailableSlots(TestCase):
