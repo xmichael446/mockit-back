@@ -59,11 +59,11 @@ Plans:
   3. Candidate can view an examiner's public profile (phone field hidden from public view)
   4. Candidate can create and update their own profile with profile picture URL and target speaking score
   5. Candidate profile exposes band score history derived from all completed sessions
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: ExaminerProfile and CandidateProfile models + migrations in main/models.py
-- [ ] 04-02: Profile read/write endpoints and permissions in scheduling/ app
+- [ ] 04-01: Profile models, signals, admin, and Pillow install
+- [ ] 04-02: Profile serializers, views, URL patterns, and cross-app integration
 
 #### Phase 5: Availability Scheduling
 **Goal**: Examiners can define recurring weekly availability and candidates can view computed open slots
