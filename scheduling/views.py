@@ -19,6 +19,11 @@ from .serializers import (
     SessionRequestSerializer,
 )
 from .services.availability import compute_available_slots, is_currently_available
+from scheduling.services.email import (
+    notify_new_request,
+    notify_request_accepted,
+    notify_request_rejected,
+)
 
 
 def _is_examiner(user):
@@ -205,6 +210,7 @@ class SessionRequestListCreateView(APIView):
             )
 
         serializer.save(candidate=request.user, examiner=availability_slot.examiner)
+        notify_new_request(serializer.instance)
         return Response(serializer.data, status=201)
 
 
@@ -238,12 +244,13 @@ class AcceptRequestView(APIView):
             req.session = session
             req.save(update_fields=["status", "session", "updated_at"])
 
-        # Broadcast AFTER atomic block to prevent stale events on rollback
+        # Broadcast and notify AFTER atomic block to prevent stale events on rollback
         _broadcast(
             session.pk,
             "session_request.accepted",
             {"session_request_id": req.pk, "session_id": session.pk},
         )
+        notify_request_accepted(req)
 
         return Response(SessionRequestSerializer(req).data)
 
@@ -261,6 +268,7 @@ class RejectRequestView(APIView):
 
         req.reject(serializer.validated_data["rejection_comment"])
         req.save(update_fields=["status", "rejection_comment", "updated_at"])
+        notify_request_rejected(req)
 
         return Response(SessionRequestSerializer(req).data)
 
