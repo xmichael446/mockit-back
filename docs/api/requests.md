@@ -1,12 +1,12 @@
 # Session Requests
 
-Session request `status` values: `0=PENDING`, `1=ACCEPTED`, `2=REJECTED`, `3=CANCELLED`.
+Session request `status` values: `1=PENDING`, `2=ACCEPTED`, `3=REJECTED`, `4=CANCELLED`.
 
 ### GET /api/scheduling/requests/
 Both roles. Examiner sees requests where they are the examiner; candidate sees own submitted requests.
 
 Query params:
-- `status` (optional) — filter by status integer, e.g. `?status=0`
+- `status` (optional) — filter by status integer, e.g. `?status=1`
 
 ```json
 // Response 200
@@ -20,7 +20,7 @@ Query params:
     "session": null,
     "comment": "Looking forward to the session",
     "rejection_comment": null,
-    "status": 0,
+    "status": 1,
     "created_at": "2024-06-01T10:00:00Z",
     "updated_at": "2024-06-01T10:00:00Z"
   }
@@ -53,7 +53,7 @@ Validation:
   "session": null,
   "comment": "Looking forward to the session",
   "rejection_comment": null,
-  "status": 0,
+  "status": 1,
   "created_at": "2024-06-01T10:00:00Z",
   "updated_at": "2024-06-01T10:00:00Z"
 }
@@ -78,7 +78,7 @@ Broadcasts WS event: `session_request.accepted`
   "session": 7,
   "comment": "Looking forward to the session",
   "rejection_comment": null,
-  "status": 1,
+  "status": 2,
   "created_at": "2024-06-01T10:00:00Z",
   "updated_at": "2024-06-10T09:00:00Z"
 }
@@ -104,7 +104,7 @@ Examiner only. Reject a PENDING request. `rejection_comment` is required.
   "session": null,
   "comment": "Looking forward to the session",
   "rejection_comment": "I am unavailable on that date.",
-  "status": 2,
+  "status": 3,
   "created_at": "2024-06-01T10:00:00Z",
   "updated_at": "2024-06-10T09:00:00Z"
 }
@@ -118,7 +118,7 @@ Errors:
 ### POST /api/scheduling/requests/<id>/cancel/
 Candidate or examiner. Cancel a PENDING or ACCEPTED request.
 ```json
-// Response 200 — request object with status=3 (CANCELLED)
+// Response 200 — request object with status=4 (CANCELLED)
 {
   "id": 1,
   "candidate": 2,
@@ -128,7 +128,7 @@ Candidate or examiner. Cancel a PENDING or ACCEPTED request.
   "session": null,
   "comment": "Looking forward to the session",
   "rejection_comment": null,
-  "status": 3,
+  "status": 4,
   "created_at": "2024-06-01T10:00:00Z",
   "updated_at": "2024-06-10T09:00:00Z"
 }
