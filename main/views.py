@@ -275,13 +275,13 @@ class ExaminerProfileMeView(APIView):
     def get(self, request):
         if not _is_examiner(request.user):
             return Response({"detail": "Examiner profile not found."}, status=404)
-        profile = request.user.examiner_profile
+        profile, _ = ExaminerProfile.objects.get_or_create(user=request.user)
         return Response(ExaminerProfileDetailSerializer(profile).data)
 
     def patch(self, request):
         if not _is_examiner(request.user):
             return Response({"detail": "Examiner profile not found."}, status=404)
-        profile = request.user.examiner_profile
+        profile, _ = ExaminerProfile.objects.get_or_create(user=request.user)
         serializer = ExaminerProfileDetailSerializer(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -310,7 +310,7 @@ class ExaminerCredentialView(APIView):
     def get(self, request):
         if not _is_examiner(request.user):
             return Response({"detail": "Examiner profile not found."}, status=404)
-        profile = request.user.examiner_profile
+        profile, _ = ExaminerProfile.objects.get_or_create(user=request.user)
         try:
             credential = profile.credential
         except ExaminerCredential.DoesNotExist:
@@ -320,7 +320,7 @@ class ExaminerCredentialView(APIView):
     def put(self, request):
         if not _is_examiner(request.user):
             return Response({"detail": "Examiner profile not found."}, status=404)
-        profile = request.user.examiner_profile
+        profile, _ = ExaminerProfile.objects.get_or_create(user=request.user)
         credential, _ = ExaminerCredential.objects.get_or_create(examiner_profile=profile)
         serializer = ExaminerCredentialSerializer(credential, data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -338,13 +338,13 @@ class CandidateProfileMeView(APIView):
     def get(self, request):
         if not _is_candidate(request.user):
             return Response({"detail": "Candidate profile not found."}, status=404)
-        profile = request.user.candidate_profile
+        profile, _ = CandidateProfile.objects.get_or_create(user=request.user)
         return Response(CandidateProfileDetailSerializer(profile).data)
 
     def patch(self, request):
         if not _is_candidate(request.user):
             return Response({"detail": "Candidate profile not found."}, status=404)
-        profile = request.user.candidate_profile
+        profile, _ = CandidateProfile.objects.get_or_create(user=request.user)
         serializer = CandidateProfileDetailSerializer(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
