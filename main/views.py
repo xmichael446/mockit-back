@@ -2,6 +2,7 @@ import uuid
 
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
+from rest_framework.generics import ListAPIView
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -231,6 +232,37 @@ class GuestJoinView(APIView):
             },
             status=201,
         )
+
+
+class ExaminerDirectoryView(ListAPIView):
+    """
+    GET /api/profiles/examiners/
+    Any authenticated user. Lists all examiner public profiles (paginated).
+    Phone field is hidden.
+
+    Query parameters:
+    - is_verified: 'true' to show only verified, 'false' for unverified only
+    - ordering: 'completed_session_count' (asc) or '-completed_session_count' (desc)
+    """
+    serializer_class = ExaminerProfilePublicSerializer
+
+    def get_queryset(self):
+        qs = ExaminerProfile.objects.select_related("user", "credential").all()
+
+        is_verified_param = self.request.query_params.get("is_verified")
+        if is_verified_param is not None:
+            if is_verified_param.lower() == "true":
+                qs = qs.filter(is_verified=True)
+            elif is_verified_param.lower() == "false":
+                qs = qs.filter(is_verified=False)
+
+        ordering_param = self.request.query_params.get("ordering")
+        if ordering_param in ("completed_session_count", "-completed_session_count"):
+            qs = qs.order_by(ordering_param)
+        else:
+            qs = qs.order_by("pk")
+
+        return qs
 
 
 class ExaminerProfileMeView(APIView):

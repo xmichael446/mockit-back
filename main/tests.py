@@ -268,3 +268,80 @@ class CandidateProfilePublicTests(TestCase):
         response = self.client.get(f"/api/profiles/candidate/{profile.pk}/")
         self.assertEqual(response.status_code, 200)
         self.assertIn("score_history", response.data)
+
+
+class ExaminerDirectoryTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        # examiner1: verified, 10 sessions
+        self.examiner1 = User.objects.create_user(
+            username="dir_examiner1", password="testpass123", role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        profile1 = self.examiner1.examiner_profile
+        profile1.is_verified = True
+        profile1.completed_session_count = 10
+        profile1.save()
+
+        # examiner2: verified, 3 sessions
+        self.examiner2 = User.objects.create_user(
+            username="dir_examiner2", password="testpass123", role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        profile2 = self.examiner2.examiner_profile
+        profile2.is_verified = True
+        profile2.completed_session_count = 3
+        profile2.save()
+
+        # examiner3: not verified, 7 sessions
+        self.examiner3 = User.objects.create_user(
+            username="dir_examiner3", password="testpass123", role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        profile3 = self.examiner3.examiner_profile
+        profile3.is_verified = False
+        profile3.completed_session_count = 7
+        profile3.save()
+
+        self.token = Token.objects.create(user=self.examiner1)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
+
+    def test_list_all_examiners(self):
+        response = self.client.get("/api/profiles/examiners/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("results", response.data)
+        self.assertIn("count", response.data)
+        self.assertEqual(response.data["count"], 3)
+
+    def test_filter_verified_only(self):
+        response = self.client.get("/api/profiles/examiners/?is_verified=true")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 2)
+
+    def test_filter_unverified(self):
+        response = self.client.get("/api/profiles/examiners/?is_verified=false")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+
+    def test_ordering_by_session_count(self):
+        response = self.client.get("/api/profiles/examiners/?ordering=completed_session_count")
+        self.assertEqual(response.status_code, 200)
+        counts = [item["completed_session_count"] for item in response.data["results"]]
+        self.assertEqual(counts, sorted(counts))
+
+    def test_ordering_descending(self):
+        response = self.client.get("/api/profiles/examiners/?ordering=-completed_session_count")
+        self.assertEqual(response.status_code, 200)
+        counts = [item["completed_session_count"] for item in response.data["results"]]
+        self.assertEqual(counts, sorted(counts, reverse=True))
+
+    def test_phone_hidden(self):
+        response = self.client.get("/api/profiles/examiners/")
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("phone", response.data["results"][0])
+
+    def test_unauthenticated_rejected(self):
+        self.client.credentials()
+        response = self.client.get("/api/profiles/examiners/")
+        self.assertEqual(response.status_code, 401)

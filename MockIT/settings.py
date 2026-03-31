@@ -77,6 +77,8 @@ REST_FRAMEWORK = {
         "guest_join": "20/hour",
         "accept_invite": "20/hour",
     },
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
 }
 
 MIDDLEWARE = [
