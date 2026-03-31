@@ -1,5 +1,36 @@
 # Profiles
 
+### GET /api/profiles/examiners/
+Any authenticated user. Lists all examiner public profiles (paginated). Phone field is hidden.
+
+Query parameters:
+- `is_verified` (optional): `true` to show only verified examiners, `false` for unverified only
+- `ordering` (optional): `completed_session_count` (ascending) or `-completed_session_count` (descending)
+
+```json
+// Response 200
+{
+  "count": 25,
+  "next": "https://example.com/api/profiles/examiners/?page=2",
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "user": { "id": 1, "username": "john_examiner", "email": "john@example.com", "first_name": "John", "last_name": "Doe" },
+      "bio": "IELTS examiner with 10 years experience",
+      "full_legal_name": "John Michael Doe",
+      "profile_picture": "https://example.com/media/profiles/john.jpg",
+      "is_verified": true,
+      "completed_session_count": 5,
+      "credential": { "id": 1, "listening_score": 8.5, "reading_score": 8.0, "writing_score": 7.5, "speaking_score": 9.0, "certificate_url": "https://example.com/media/credentials/cert.pdf" }
+    }
+  ]
+}
+```
+
+Errors:
+- `401` — Authentication required
+
 ### GET /api/profiles/examiner/me/
 Examiner only. Returns own full profile including phone and credential.
 ```json
