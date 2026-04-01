@@ -18,7 +18,7 @@ from .serializers import (
     SessionRequestRejectSerializer,
     SessionRequestSerializer,
 )
-from .services.availability import compute_available_slots, is_currently_available
+from .services.availability import compute_available_slots, is_currently_available, is_slot_available
 from scheduling.services.email import (
     notify_new_request,
     notify_request_accepted,
@@ -35,17 +35,13 @@ def _is_candidate(user):
 
 
 def _validate_slot_available(examiner_id, slot_id, requested_date):
-    """Validate that the given slot is available on the requested date using compute_available_slots."""
-    week_data = compute_available_slots(examiner_id, requested_date)
-    target_date_str = requested_date.isoformat()
-    day_data = next((d for d in week_data if d["date"] == target_date_str), None)
-    if not day_data:
-        raise ValidationError("Requested date not found in examiner's schedule.")
-    slot_data = next((s for s in day_data["slots"] if s["slot_id"] == slot_id), None)
-    if not slot_data:
+    """Validate that the given slot is available on the requested date."""
+    try:
+        status = is_slot_available(examiner_id, slot_id, requested_date)
+    except ValueError:
         raise ValidationError("This time slot does not exist in the examiner's schedule.")
-    if slot_data["status"] != "available":
-        raise ValidationError(f"This slot is {slot_data['status']} and cannot be booked.")
+    if status != "available":
+        raise ValidationError(f"This slot is {status} and cannot be booked.")
 
 
 class AvailabilitySlotListCreateView(APIView):

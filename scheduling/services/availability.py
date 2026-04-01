@@ -103,6 +103,46 @@ def compute_available_slots(examiner_id: int, week_date: date) -> list[dict]:
     return result
 
 
+def is_slot_available(examiner_id: int, slot_id: int, requested_date: date) -> str:
+    """
+    Check a single slot's availability on a specific date.
+    Returns "available", "booked", or "blocked".
+    """
+    # Check blocked date first (cheapest)
+    if BlockedDate.objects.filter(examiner_id=examiner_id, date=requested_date).exists():
+        return "blocked"
+
+    # Verify the slot exists and belongs to this examiner
+    try:
+        slot = AvailabilitySlot.objects.get(pk=slot_id, examiner_id=examiner_id)
+    except AvailabilitySlot.DoesNotExist:
+        raise ValueError("Slot not found.")
+
+    # Check for existing booked session in this slot window
+    slot_start_dt = datetime.combine(requested_date, slot.start_time, tzinfo=dt_timezone.utc)
+    slot_end_dt = slot_start_dt + timedelta(hours=1)
+
+    if IELTSMockSession.objects.filter(
+        examiner_id=examiner_id,
+        status__in=[SessionStatus.SCHEDULED, SessionStatus.IN_PROGRESS],
+        scheduled_at__isnull=False,
+        scheduled_at__gte=slot_start_dt,
+        scheduled_at__lt=slot_end_dt,
+    ).exists():
+        return "booked"
+
+    # Check for accepted session request on this exact slot+date
+    if SessionRequest.objects.filter(
+        examiner_id=examiner_id,
+        availability_slot_id=slot_id,
+        requested_date=requested_date,
+        status=SessionRequest.Status.ACCEPTED,
+    ).exists():
+        return "booked"
+
+    return "available"
+
+
 def is_currently_available(examiner_id: int) -> dict:
     """
     Returns whether the examiner is currently available.
