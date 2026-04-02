@@ -8,8 +8,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Run dev server (HTTP only)
 python manage.py runserver
 
-# Run with WebSocket support (required for session features)
-daphne MockIT.asgi:application
 
 # Migrations
 python manage.py migrate
