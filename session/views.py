@@ -125,6 +125,28 @@ class MockPresetListCreateView(APIView):
         return Response(MockPresetSerializer(preset).data, status=201)
 
 
+class MockPresetDeleteView(APIView):
+    """
+    DELETE /api/presets/<pk>/
+    Owner only. Deletes a preset if it is not used by any session.
+    """
+
+    def delete(self, request, pk):
+        try:
+            preset = MockPreset.objects.get(pk=pk)
+        except MockPreset.DoesNotExist:
+            return Response({"detail": "Preset not found."}, status=404)
+
+        if preset.owner != request.user:
+            return Response({"detail": "Only the preset owner can delete it."}, status=403)
+
+        if IELTSMockSession.objects.filter(preset=preset).exists():
+            return Response({"detail": "Cannot delete a preset that is used by existing sessions."}, status=400)
+
+        preset.delete()
+        return Response(status=204)
+
+
 # ─── Sessions ─────────────────────────────────────────────────────────────────
 
 class SessionListCreateView(APIView):

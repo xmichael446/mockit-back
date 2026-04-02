@@ -32,3 +32,14 @@ Returns all presets with nested topics.
 Errors:
 - `403` — `"Only examiners can create presets."`
 - `400` — Topic ID belongs to the wrong part (e.g., a Part 2 topic supplied in `part_1`)
+
+### DELETE /api/presets/<id>/
+Owner only. Deletes a preset. Cannot delete a preset that is used by existing sessions.
+```json
+// Response 204 — No Content
+```
+
+Errors:
+- `404` — `"Preset not found."`
+- `403` — `"Only the preset owner can delete it."`
+- `400` — `"Cannot delete a preset that is used by existing sessions."`

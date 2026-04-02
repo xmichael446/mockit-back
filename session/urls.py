@@ -13,6 +13,7 @@ from .views import (
     EndSessionPartView,
     EndSessionView,
     JoinSessionView,
+    MockPresetDeleteView,
     MockPresetListCreateView,
     NoteDeleteView,
     NoteListCreateView,
@@ -30,6 +31,7 @@ from .views import (
 urlpatterns = [
     # ── Presets ──────────────────────────────────────────────────────────────
     path("presets/", MockPresetListCreateView.as_view(), name="preset-list-create"),
+    path("presets/<int:pk>/", MockPresetDeleteView.as_view(), name="preset-delete"),
 
     # ── Sessions (core) ───────────────────────────────────────────────────────
     path("sessions/", SessionListCreateView.as_view(), name="session-list-create"),
