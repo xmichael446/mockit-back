@@ -44,3 +44,15 @@
 8. On `session.ended`: show "waiting for examiner feedback" screen
 9. On `result.released` WS event: display scores and feedback immediately (full result is included in the event — no extra GET needed)
 10. `GET /api/sessions/<id>/recording/` → retrieve the recording URL and timecodes to review the session
+
+### Sharing a session publicly
+1. Session must be completed with a released result
+2. `POST /api/sessions/<id>/share/` → get `share_token` (examiner or candidate)
+3. Build share URL: `https://yourfrontend.com/shared/<share_token>`
+4. Viewer visits the link — frontend calls `GET /api/sessions/shared/<share_token>/`
+5. Response contains recording + timeline + band scores + profiles (no auth needed)
+
+### Cancelling a session
+1. Session must be SCHEDULED with no candidate (invite not yet accepted)
+2. `POST /api/sessions/<id>/cancel/` → session cancelled, invite expired
+3. Cancelled session no longer counts toward `max_sessions` limit

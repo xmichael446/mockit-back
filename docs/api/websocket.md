@@ -104,6 +104,12 @@ Only visible to examiner (both connect, but notes are private context; broadcast
 { "type": "note.deleted", "note_id": 1, "session_question_id": 7 }
 ```
 
+#### `session.cancelled`
+Fired when the examiner cancels a scheduled session (before any candidate accepted the invite).
+```json
+{ "type": "session.cancelled", "session_id": 5 }
+```
+
 #### `result.released`
 Fired when the examiner releases the result. The candidate should wait for this event — do **not** poll the result endpoint. The event carries the full result so the candidate can display it immediately without an extra GET request.
 ```json

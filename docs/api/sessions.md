@@ -95,3 +95,18 @@ Examiner only. Session must be IN_PROGRESS. Sets status to COMPLETED.
 Errors:
 - `403` — `"Only the session examiner can end the session."`
 - `400` — `"Session is not in progress. Current status: ..."`
+
+### POST /api/sessions/<id>/cancel/
+Examiner only. Cancels a SCHEDULED session that has no candidate (invite not yet accepted). Sets status to CANCELLED, expires the invite, and broadcasts a WebSocket event.
+```json
+// Response 200
+{ "detail": "Session cancelled." }
+// Broadcasts WS event: session.cancelled
+```
+
+Errors:
+- `404` — `"Not found."`
+- `403` — `"Only the session examiner can cancel the session."`
+- `400` — `"Only scheduled sessions with no candidate can be cancelled."`
+
+**Note:** Cancelled sessions do not count toward the examiner's `max_sessions` limit.

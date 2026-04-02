@@ -20,6 +20,7 @@ WebSocket connections authenticate via query-string token: `ws://host/ws/session
 | [Notes](notes.md) | Examiner notes |
 | [Results](results.md) | Scoring and release |
 | [Recording](recording.md) | Audio recording upload/retrieval |
+| [Sharing](sharing.md) | Public share links for completed sessions |
 | [Topics](topics.md) | Read-only question bank |
 | [WebSocket](websocket.md) | Real-time session events |
 | [Typical Flows](typical-flows.md) | End-to-end usage examples |
