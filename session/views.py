@@ -3,6 +3,7 @@ from channels.layers import get_channel_layer
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
+from datetime import datetime
 from django.utils import timezone
 import logging
 from rest_framework.exceptions import ValidationError
@@ -65,6 +66,25 @@ def _is_examiner(user):
 
 def _is_candidate(user):
     return user.role == User.Role.CANDIDATE
+
+
+def _event_time(request):
+    """Use client-provided ISO timestamp if present, otherwise server time.
+
+    Clients can send ``"client_ts": "2024-01-05T14:05:00.123Z"`` in the
+    request body so that recording-playback offsets reflect the actual moment
+    the user pressed the button, not when the server processed the request.
+    """
+    client_ts = request.data.get("client_ts")
+    if client_ts:
+        try:
+            dt = datetime.fromisoformat(client_ts)
+            if timezone.is_naive(dt):
+                dt = timezone.make_aware(dt)
+            return dt
+        except (ValueError, TypeError):
+            pass
+    return timezone.now()
 
 
 def _broadcast(session_id, event_type, data):
@@ -357,7 +377,7 @@ class SessionPartView(APIView):
         part = SessionPart.objects.create(
             session=session,
             part=part_num,
-            started_at=timezone.now(),
+            started_at=_event_time(request),
         )
 
         _broadcast(pk, "part.started", {
@@ -395,7 +415,7 @@ class EndSessionPartView(APIView):
         if part.ended_at is not None:
             return Response({"detail": f"Part {part_num} has already ended."}, status=400)
 
-        part.ended_at = timezone.now()
+        part.ended_at = _event_time(request)
         part.save(update_fields=["ended_at", "updated_at"])
 
         _broadcast(pk, "part.ended", {
@@ -531,7 +551,7 @@ class AskQuestionView(APIView):
             session_part=session_part,
             question=question,
             order=order,
-            asked_at=timezone.now(),
+            asked_at=_event_time(request),
         )
 
         _broadcast(pk, "question.asked", {
@@ -606,7 +626,7 @@ class AnswerStartView(APIView):
         if sq.answer_started_at is not None:
             return Response({"detail": "Answer has already been started."}, status=400)
 
-        sq.answer_started_at = timezone.now()
+        sq.answer_started_at = _event_time(request)
         sq.save(update_fields=["answer_started_at", "updated_at"])
 
         _broadcast(pk, "question.answer_started", {
@@ -646,7 +666,7 @@ class EndQuestionView(APIView):
         if sq.ended_at is not None:
             return Response({"detail": "Question has already ended."}, status=400)
 
-        sq.ended_at = timezone.now()
+        sq.ended_at = _event_time(request)
         sq.save(update_fields=["ended_at", "updated_at"])
 
         _broadcast(pk, "question.ended", {
@@ -700,7 +720,7 @@ class AskFollowUpView(APIView):
         sf = SessionFollowUp.objects.create(
             session_question=sq,
             follow_up=follow_up,
-            asked_at=timezone.now(),
+            asked_at=_event_time(request),
         )
 
         _broadcast(pk, "followup.asked", {
@@ -742,7 +762,7 @@ class EndFollowUpView(APIView):
         if sf.ended_at is not None:
             return Response({"detail": "Follow-up has already ended."}, status=400)
 
-        sf.ended_at = timezone.now()
+        sf.ended_at = _event_time(request)
         sf.save(update_fields=["ended_at", "updated_at"])
 
         _broadcast(pk, "followup.ended", {

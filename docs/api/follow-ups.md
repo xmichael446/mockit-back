@@ -5,6 +5,8 @@ Examiner only. Asks a follow-up on the given SessionQuestion.
 ```json
 // Request
 { "follow_up_id": 10 }
+// or with optional client timestamp for accurate recording offsets:
+{ "follow_up_id": 10, "client_ts": "2024-01-05T14:08:00.123Z" }
 // The follow_up_id must belong to the question's follow_ups list.
 // Response 201
 {
@@ -24,8 +26,10 @@ Errors:
 - `400` — `"Session is not in progress. Current status: ..."` | `"follow_up_id is required."`
 
 ### POST /api/sessions/<id>/session-follow-ups/<sf_id>/end/
-Examiner only. Ends the follow-up.
+Examiner only. Ends the follow-up. Optional `"client_ts"` (ISO 8601) for accurate recording offsets.
 ```json
+// Request (body is optional)
+{ "client_ts": "2024-01-05T14:09:30.000Z" }
 // Response 200 — SessionFollowUp object
 // Broadcasts WS event: followup.ended
 ```

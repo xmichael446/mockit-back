@@ -35,6 +35,8 @@ Examiner only. Marks a question as asked. The part must have been started.
 ```json
 // Request
 { "question_id": 42 }
+// or with optional client timestamp for accurate recording offsets:
+{ "question_id": 42, "client_ts": "2024-01-05T14:06:00.123Z" }
 // Response 201 — SessionQuestion object (see below)
 // Broadcasts WS event: question.asked
 ```
@@ -66,8 +68,10 @@ Any participant. Returns all asked SessionQuestions for this part.
 ```
 
 ### POST /api/sessions/<id>/session-questions/<sq_id>/answer-start/
-Candidate only. Signals the candidate has started speaking.
+Candidate only. Signals the candidate has started speaking. Optional `"client_ts"` (ISO 8601) for accurate recording offsets.
 ```json
+// Request (body is optional)
+{ "client_ts": "2024-01-05T14:06:05.789Z" }
 // Response 200 — SessionQuestion object
 // Broadcasts WS event: question.answer_started
 ```
@@ -78,8 +82,10 @@ Errors:
 - `400` — `"Session is not in progress. Current status: ..."` | `"Question has not been asked yet."` | `"Answer has already been started."`
 
 ### POST /api/sessions/<id>/session-questions/<sq_id>/end/
-Examiner only. Ends the current question.
+Examiner only. Ends the current question. Optional `"client_ts"` (ISO 8601) for accurate recording offsets.
 ```json
+// Request (body is optional)
+{ "client_ts": "2024-01-05T14:08:00.000Z" }
 // Response 200 — SessionQuestion object
 // Broadcasts WS event: question.ended
 ```
