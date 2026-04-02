@@ -7,6 +7,7 @@ from django.utils import timezone
 import logging
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import JSONParser, MultiPartParser
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -23,6 +24,8 @@ from .models import (
     SessionQuestion,
     SessionRecording,
     SessionResult,
+    SessionShare,
+    SessionStatus,
     SpeakingCriterion,
 )
 from .serializers import (
@@ -39,6 +42,7 @@ from .serializers import (
     SessionResultSerializer,
     SessionResultWriteSerializer,
     SessionSerializer,
+    SharedSessionSerializer,
 )
 from .services.hms import create_room, generate_app_token
 
@@ -126,7 +130,7 @@ class SessionListCreateView(APIView):
         if not _is_examiner(request.user):
             return Response({"detail": "Only examiners can create sessions."}, status=403)
 
-        session_count = IELTSMockSession.objects.filter(examiner=request.user).count()
+        session_count = IELTSMockSession.objects.filter(examiner=request.user).exclude(status=SessionStatus.CANCELLED).count()
         if session_count >= request.user.max_sessions:
             return Response(
                 {"detail": f"Session limit reached. You can have at most {request.user.max_sessions} sessions."},
@@ -1046,3 +1050,94 @@ class SessionRecordingView(APIView):
         return Response(
             SessionRecordingSerializer(recording, context={"request": request}).data
         )
+
+
+# ─── Share ────────────────────────────────────────────────────────────────────
+
+class CreateShareView(APIView):
+    """
+    POST /api/sessions/<pk>/share/
+    Examiner or candidate creates (or retrieves) a shareable link for a released session.
+    """
+
+    def post(self, request, pk):
+        try:
+            session = _session_qs().get(pk=pk)
+        except IELTSMockSession.DoesNotExist:
+            return Response({"detail": "Not found."}, status=404)
+
+        if request.user != session.examiner and request.user != session.candidate:
+            return Response({"detail": "You are not a participant of this session."}, status=403)
+
+        # Session must have a released result
+        try:
+            result = session.result
+        except SessionResult.DoesNotExist:
+            return Response({"detail": "Session has no result yet."}, status=400)
+
+        if not result.is_released:
+            return Response({"detail": "Session result has not been released yet."}, status=400)
+
+        share, created = SessionShare.objects.get_or_create(
+            session=session,
+            defaults={"created_by": request.user},
+        )
+        status_code = 201 if created else 200
+        return Response(
+            {
+                "share_token": share.share_token,
+                "share_url": f"/api/sessions/shared/{share.share_token}/",
+            },
+            status=status_code,
+        )
+
+
+class SharedSessionDetailView(APIView):
+    """
+    GET /api/sessions/shared/<share_token>/
+    Public endpoint — no authentication required.
+    Returns recording + timeline + band scores + profiles (no feedback, no notes).
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request, share_token):
+        try:
+            share = SessionShare.objects.select_related(
+                "session__examiner",
+                "session__candidate",
+                "session__result",
+                "session__recording",
+            ).get(share_token=share_token)
+        except SessionShare.DoesNotExist:
+            return Response({"detail": "Not found."}, status=404)
+
+        session = share.session
+        data = SharedSessionSerializer(session, context={"request": request}).data
+        return Response(data)
+
+
+# ─── Cancel ───────────────────────────────────────────────────────────────────
+
+class CancelSessionView(APIView):
+    """
+    POST /api/sessions/<pk>/cancel/
+    Examiner cancels a SCHEDULED session with no candidate.
+    Broadcasts: session.cancelled
+    """
+
+    def post(self, request, pk):
+        try:
+            session = _session_qs().get(pk=pk)
+        except IELTSMockSession.DoesNotExist:
+            return Response({"detail": "Not found."}, status=404)
+
+        if request.user != session.examiner:
+            return Response({"detail": "Only the session examiner can cancel the session."}, status=403)
+
+        session.cancel()  # raises ValidationError if not cancellable
+        session.save(update_fields=["status", "invite_expires_at", "updated_at"])
+
+        _broadcast(session.pk, "session.cancelled", {"session_id": session.pk})
+
+        return Response({"detail": "Session cancelled."})

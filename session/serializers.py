@@ -3,8 +3,8 @@ from datetime import timedelta
 from django.utils import timezone
 from rest_framework import serializers
 
-from main.models import User
-from main.serializers import UserMinimalSerializer
+from main.models import CandidateProfile, ExaminerProfile, User
+from main.serializers import CandidateProfilePublicSerializer, ExaminerProfilePublicSerializer, UserMinimalSerializer
 from questions.models import IELTSSpeakingPart, Topic
 from questions.serializers import QuestionDetailSerializer
 from .models import (
@@ -373,3 +373,64 @@ class SessionRecordingSerializer(serializers.ModelSerializer):
             })
 
         return result
+
+
+# ─── Shared (public) view ─────────────────────────────────────────────────────
+
+class SharedCriterionScoreSerializer(serializers.ModelSerializer):
+    """Band scores only — no feedback text (public shared view)."""
+    criterion_label = serializers.CharField(source="get_criterion_display", read_only=True)
+
+    class Meta:
+        model = CriterionScore
+        fields = ("criterion", "criterion_label", "band")  # NO feedback field
+
+
+class SharedSessionSerializer(serializers.Serializer):
+    """Public view of a shared session — recording + scores + profiles (no feedback, no notes)."""
+    recording = serializers.SerializerMethodField()
+    scores = serializers.SerializerMethodField()
+    overall_band = serializers.SerializerMethodField()
+    examiner = serializers.SerializerMethodField()
+    candidate = serializers.SerializerMethodField()
+
+    def get_recording(self, session):
+        try:
+            rec = session.recording
+        except SessionRecording.DoesNotExist:
+            return None
+        data = SessionRecordingSerializer(rec, context=self.context).data
+        # Remove notes from each question in each part
+        for part in data.get("parts", []):
+            for q in part.get("questions", []):
+                q.pop("notes", None)
+        return data
+
+    def get_scores(self, session):
+        try:
+            result = session.result
+        except SessionResult.DoesNotExist:
+            return []
+        return SharedCriterionScoreSerializer(result.scores.all(), many=True).data
+
+    def get_overall_band(self, session):
+        try:
+            return session.result.overall_band
+        except SessionResult.DoesNotExist:
+            return None
+
+    def get_examiner(self, session):
+        try:
+            profile = session.examiner.examiner_profile
+            return ExaminerProfilePublicSerializer(profile).data
+        except ExaminerProfile.DoesNotExist:
+            return {"name": session.examiner.get_full_name()}
+
+    def get_candidate(self, session):
+        if not session.candidate:
+            return None
+        try:
+            profile = session.candidate.candidate_profile
+            return CandidateProfilePublicSerializer(profile).data
+        except CandidateProfile.DoesNotExist:
+            return {"name": session.candidate.get_full_name()}

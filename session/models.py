@@ -162,6 +162,17 @@ class IELTSMockSession(TimestampedModel):
                 f"Session is not in progress. Current status: {self.get_status_display()}."
             )
 
+    def can_cancel(self):
+        return self.status == SessionStatus.SCHEDULED and self.candidate is None
+
+    def cancel(self):
+        if not self.can_cancel():
+            raise ValidationError(
+                "Only scheduled sessions with no candidate can be cancelled."
+            )
+        self.status = SessionStatus.CANCELLED
+        self.invite_expires_at = timezone.now()  # expire invite immediately
+
 
 class SessionPart(TimestampedModel):
     session = models.ForeignKey(IELTSMockSession, on_delete=models.CASCADE, related_name="parts")
@@ -284,4 +295,15 @@ class SessionRecording(TimestampedModel):
 
     def __str__(self):
         return f"{self.session.examiner} | {self.session.candidate}"
+
+
+class SessionShare(models.Model):
+    """Shareable public link for a completed, released session."""
+    session = models.OneToOneField(IELTSMockSession, on_delete=models.CASCADE, related_name="share")
+    share_token = models.CharField(max_length=9, default=_generate_invite_token, unique=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Share({self.share_token}) for session {self.session_id}"
 

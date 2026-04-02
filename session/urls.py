@@ -6,6 +6,8 @@ from .views import (
     AskFollowUpView,
     AskQuestionView,
     AvailableQuestionsView,
+    CancelSessionView,
+    CreateShareView,
     EndFollowUpView,
     EndQuestionView,
     EndSessionPartView,
@@ -21,6 +23,7 @@ from .views import (
     SessionQuestionListView,
     SessionRecordingView,
     SessionResultView,
+    SharedSessionDetailView,
     StartSessionView,
 )
 
@@ -32,6 +35,7 @@ urlpatterns = [
     path("sessions/", SessionListCreateView.as_view(), name="session-list-create"),
     # Note: literal paths must precede <int:pk>/ to avoid routing conflicts
     path("sessions/accept-invite/", AcceptInviteView.as_view(), name="session-accept-invite"),
+    path("sessions/shared/<str:share_token>/", SharedSessionDetailView.as_view(), name="session-shared-detail"),
     path("sessions/<int:pk>/", SessionDetailView.as_view(), name="session-detail"),
     path("sessions/<int:pk>/start/", StartSessionView.as_view(), name="session-start"),
     path("sessions/<int:pk>/join/", JoinSessionView.as_view(), name="session-join"),
@@ -64,4 +68,10 @@ urlpatterns = [
 
     # ── Recording ─────────────────────────────────────────────────────────────
     path("sessions/<int:pk>/recording/", SessionRecordingView.as_view(), name="session-recording"),
+
+    # ── Share ─────────────────────────────────────────────────────────────────
+    path("sessions/<int:pk>/share/", CreateShareView.as_view(), name="session-share"),
+
+    # ── Cancel ────────────────────────────────────────────────────────────────
+    path("sessions/<int:pk>/cancel/", CancelSessionView.as_view(), name="session-cancel"),
 ]
