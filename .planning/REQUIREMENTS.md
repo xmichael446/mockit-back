@@ -24,9 +24,9 @@ Requirements for AI Feedback & Assessment milestone. Each maps to roadmap phases
 
 ### Background Processing
 
-- [ ] **BGPR-01**: AI feedback job runs asynchronously via django-q2 (ORM broker)
+- [x] **BGPR-01**: AI feedback job runs asynchronously via django-q2 (ORM broker)
 - [x] **BGPR-02**: AIFeedbackJob model tracks job status (PENDING/PROCESSING/DONE/FAILED)
-- [ ] **BGPR-03**: Transcription and AI generation run as one sequential background job
+- [x] **BGPR-03**: Transcription and AI generation run as one sequential background job
 
 ### Usage Control
 
@@ -83,9 +83,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AIAS-03 | Phase 12 | Pending |
 | AIAS-04 | Phase 12 | Pending |
 | AIAS-05 | Phase 10 | Complete |
-| BGPR-01 | Phase 10 | Pending |
+| BGPR-01 | Phase 10 | Complete |
 | BGPR-02 | Phase 10 | Complete |
-| BGPR-03 | Phase 10 | Pending |
+| BGPR-03 | Phase 10 | Complete |
 | UCTL-01 | Phase 13 | Pending |
 | UCTL-02 | Phase 13 | Pending |
 | UCTL-03 | Phase 13 | Pending |
