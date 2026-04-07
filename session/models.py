@@ -37,6 +37,11 @@ class SpeakingCriterion(models.IntegerChoices):
     PR = 4, "Pronunciation"
 
 
+class ScoreSource(models.IntegerChoices):
+    EXAMINER = 1, "Examiner"
+    AI = 2, "AI"
+
+
 class MockPreset(TimestampedModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="presets", null=True)
     name = models.CharField(max_length=255)
@@ -109,7 +114,7 @@ class IELTSMockSession(TimestampedModel):
         return (
             self.status == SessionStatus.SCHEDULED
             and self.candidate is not None
-            and timezone.now() >= self.scheduled_at
+            and (self.scheduled_at is None or timezone.now() >= self.scheduled_at)
         )
 
     def can_end(self):
@@ -264,7 +269,9 @@ class SessionResult(TimestampedModel):
     released_at = models.DateTimeField(null=True, blank=True)
 
     def compute_overall_band(self):
-        bands = list(self.scores.values_list("band", flat=True))
+        bands = list(
+            self.scores.filter(source=ScoreSource.EXAMINER).values_list("band", flat=True)
+        )
         if len(bands) < 4:
             return None
         return (sum(bands) // 2) / 2
@@ -276,11 +283,15 @@ class SessionResult(TimestampedModel):
 class CriterionScore(TimestampedModel):
     session_result = models.ForeignKey(SessionResult, on_delete=models.CASCADE, related_name="scores")
     criterion = models.PositiveSmallIntegerField(choices=SpeakingCriterion.choices)
+    source = models.PositiveSmallIntegerField(
+        choices=ScoreSource.choices,
+        default=ScoreSource.EXAMINER,
+    )
     band = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(9)])
     feedback = models.TextField(null=True, blank=True)
 
     class Meta:
-        unique_together = [("session_result", "criterion")]
+        unique_together = [("session_result", "criterion", "source")]
 
     def __str__(self):
         return f"{self.get_criterion_display()}: {self.band}"
@@ -306,4 +317,27 @@ class SessionShare(models.Model):
 
     def __str__(self):
         return f"Share({self.share_token}) for session {self.session_id}"
+
+
+class AIFeedbackJob(TimestampedModel):
+    class Status(models.IntegerChoices):
+        PENDING = 1, "Pending"
+        PROCESSING = 2, "Processing"
+        DONE = 3, "Done"
+        FAILED = 4, "Failed"
+
+    session = models.ForeignKey(
+        IELTSMockSession,
+        on_delete=models.CASCADE,
+        related_name="ai_feedback_jobs",
+    )
+    status = models.PositiveSmallIntegerField(
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+    error_message = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"AIFeedbackJob({self.pk}) session={self.session_id} status={self.get_status_display()}"
 

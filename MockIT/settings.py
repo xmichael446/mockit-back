@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'questions.apps.QuestionsConfig',
     'session.apps.SessionConfig',
     'scheduling.apps.SchedulingConfig',
+    'django_q',
 ]
 
 ASGI_APPLICATION = 'MockIT.asgi.application'
@@ -60,6 +61,15 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
+}
+
+Q_CLUSTER = {
+    'name': 'MockIT',
+    'workers': 2,
+    'timeout': 300,
+    'retry': 360,
+    'orm': 'default',
+    'poll': 0.5,
 }
 
 REST_FRAMEWORK = {

@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from django.test import TestCase
+from session.tasks import run_ai_feedback  # noqa: E402 — imported for task tests
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
@@ -11,9 +12,11 @@ from rest_framework.test import APIClient
 from main.models import CandidateProfile, User
 from questions.models import Topic
 from session.models import (
+    AIFeedbackJob,
     CriterionScore,
     IELTSMockSession,
     MockPreset,
+    ScoreSource,
     SessionRecording,
     SessionResult,
     SessionShare,
@@ -724,3 +727,280 @@ class TestMaxSessionsExcludesCancelled(TestCase):
             "scheduled_at": future3.isoformat(),
         }, format="json")
         self.assertEqual(response.status_code, 403)
+
+
+# ─── CriterionScoreSourceTests ───────────────────────────────────────────────
+
+class CriterionScoreSourceTests(TestCase):
+    """Tests for ScoreSource enum, CriterionScore.source field, and compute_overall_band filtering."""
+
+    def setUp(self):
+        self.examiner = User.objects.create_user(
+            username="examiner_scoresource",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        self.candidate = User.objects.create_user(
+            username="candidate_scoresource",
+            password="testpass123",
+            role=User.Role.CANDIDATE,
+        )
+        self.preset = MockPreset.objects.create(name="ScoreSource Test Preset", owner=self.examiner)
+        self.session = IELTSMockSession.objects.create(
+            examiner=self.examiner,
+            candidate=self.candidate,
+            preset=self.preset,
+            status=SessionStatus.COMPLETED,
+        )
+        self.result = SessionResult.objects.create(
+            session=self.session,
+            overall_band=None,
+            is_released=False,
+        )
+
+    # ── ScoreSource enum values ──
+
+    def test_score_source_examiner_equals_1(self):
+        self.assertEqual(ScoreSource.EXAMINER, 1)
+
+    def test_score_source_ai_equals_2(self):
+        self.assertEqual(ScoreSource.AI, 2)
+
+    # ── CriterionScore default source ──
+
+    def test_criterion_score_default_source_is_examiner(self):
+        score = CriterionScore.objects.create(
+            session_result=self.result,
+            criterion=SpeakingCriterion.FC,
+            band=7,
+        )
+        self.assertEqual(score.source, ScoreSource.EXAMINER)
+
+    def test_criterion_score_can_be_created_with_ai_source(self):
+        score = CriterionScore.objects.create(
+            session_result=self.result,
+            criterion=SpeakingCriterion.FC,
+            band=6,
+            source=ScoreSource.AI,
+        )
+        self.assertEqual(score.source, ScoreSource.AI)
+
+    # ── unique_together with source ──
+
+    def test_examiner_and_ai_scores_for_same_criterion_can_coexist(self):
+        """EXAMINER and AI scores for same result+criterion should not conflict."""
+        from django.db import IntegrityError
+        CriterionScore.objects.create(
+            session_result=self.result,
+            criterion=SpeakingCriterion.FC,
+            band=7,
+            source=ScoreSource.EXAMINER,
+        )
+        # This should NOT raise
+        CriterionScore.objects.create(
+            session_result=self.result,
+            criterion=SpeakingCriterion.FC,
+            band=6,
+            source=ScoreSource.AI,
+        )
+        self.assertEqual(
+            CriterionScore.objects.filter(session_result=self.result, criterion=SpeakingCriterion.FC).count(),
+            2,
+        )
+
+    def test_duplicate_source_for_same_result_criterion_raises_integrity_error(self):
+        """Two scores with same result+criterion+source must raise IntegrityError."""
+        from django.db import IntegrityError
+        CriterionScore.objects.create(
+            session_result=self.result,
+            criterion=SpeakingCriterion.FC,
+            band=7,
+            source=ScoreSource.EXAMINER,
+        )
+        with self.assertRaises(IntegrityError):
+            CriterionScore.objects.create(
+                session_result=self.result,
+                criterion=SpeakingCriterion.FC,
+                band=8,
+                source=ScoreSource.EXAMINER,
+            )
+
+    # ── compute_overall_band filtering ──
+
+    def test_compute_overall_band_with_only_examiner_scores(self):
+        """Correct band computed from 4 EXAMINER scores."""
+        for criterion, band in zip(SpeakingCriterion, [7, 7, 7, 7]):
+            CriterionScore.objects.create(
+                session_result=self.result,
+                criterion=criterion,
+                band=band,
+                source=ScoreSource.EXAMINER,
+            )
+        band = self.result.compute_overall_band()
+        # sum=28, 28//2=14, 14/2=7.0
+        self.assertEqual(band, 7.0)
+
+    def test_compute_overall_band_ignores_ai_scores(self):
+        """4 EXAMINER + 4 AI scores — only EXAMINER scores used in calculation."""
+        for criterion, band in zip(SpeakingCriterion, [8, 8, 8, 8]):
+            CriterionScore.objects.create(
+                session_result=self.result,
+                criterion=criterion,
+                band=band,
+                source=ScoreSource.EXAMINER,
+            )
+        # Add AI scores with different bands that would change the result if included
+        for criterion, band in zip(SpeakingCriterion, [4, 4, 4, 4]):
+            CriterionScore.objects.create(
+                session_result=self.result,
+                criterion=criterion,
+                band=band,
+                source=ScoreSource.AI,
+            )
+        band = self.result.compute_overall_band()
+        # Only EXAMINER: sum=32, 32//2=16, 16/2=8.0
+        self.assertEqual(band, 8.0)
+
+    def test_compute_overall_band_returns_none_when_fewer_than_4_examiner_scores(self):
+        """Returns None if fewer than 4 EXAMINER scores even if AI scores exist."""
+        # Add 3 EXAMINER scores (not enough)
+        for criterion, band in zip(list(SpeakingCriterion)[:3], [7, 7, 7]):
+            CriterionScore.objects.create(
+                session_result=self.result,
+                criterion=criterion,
+                band=band,
+                source=ScoreSource.EXAMINER,
+            )
+        # Add 4 AI scores (should not count)
+        for criterion, band in zip(SpeakingCriterion, [6, 6, 6, 6]):
+            CriterionScore.objects.create(
+                session_result=self.result,
+                criterion=criterion,
+                band=band,
+                source=ScoreSource.AI,
+            )
+        band = self.result.compute_overall_band()
+        self.assertIsNone(band)
+
+
+# ─── AIFeedbackJobTests ──────────────────────────────────────────────────────
+
+class AIFeedbackJobTests(TestCase):
+    """Tests for AIFeedbackJob model creation and status transitions."""
+
+    def setUp(self):
+        self.examiner = User.objects.create_user(
+            username="examiner_aijob",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        self.candidate = User.objects.create_user(
+            username="candidate_aijob",
+            password="testpass123",
+            role=User.Role.CANDIDATE,
+        )
+        self.preset = MockPreset.objects.create(name="AIJob Test Preset", owner=self.examiner)
+        self.session = IELTSMockSession.objects.create(
+            examiner=self.examiner,
+            candidate=self.candidate,
+            preset=self.preset,
+            status=SessionStatus.COMPLETED,
+        )
+
+    def test_aifeedbackjob_created_with_default_pending_status(self):
+        job = AIFeedbackJob.objects.create(session=self.session)
+        self.assertEqual(job.status, AIFeedbackJob.Status.PENDING)
+
+    def test_aifeedbackjob_default_pending_equals_1(self):
+        job = AIFeedbackJob.objects.create(session=self.session)
+        self.assertEqual(job.status, 1)
+
+    def test_aifeedbackjob_status_transition_to_processing(self):
+        job = AIFeedbackJob.objects.create(session=self.session)
+        job.status = AIFeedbackJob.Status.PROCESSING
+        job.save()
+        job.refresh_from_db()
+        self.assertEqual(job.status, AIFeedbackJob.Status.PROCESSING)
+        self.assertEqual(job.status, 2)
+
+    def test_aifeedbackjob_status_transition_to_done(self):
+        job = AIFeedbackJob.objects.create(session=self.session)
+        job.status = AIFeedbackJob.Status.DONE
+        job.save()
+        job.refresh_from_db()
+        self.assertEqual(job.status, AIFeedbackJob.Status.DONE)
+        self.assertEqual(job.status, 3)
+
+    def test_aifeedbackjob_status_transition_to_failed(self):
+        job = AIFeedbackJob.objects.create(session=self.session)
+        job.status = AIFeedbackJob.Status.FAILED
+        job.save()
+        job.refresh_from_db()
+        self.assertEqual(job.status, AIFeedbackJob.Status.FAILED)
+        self.assertEqual(job.status, 4)
+
+    def test_aifeedbackjob_error_message_stored_when_failed(self):
+        job = AIFeedbackJob.objects.create(session=self.session)
+        job.status = AIFeedbackJob.Status.FAILED
+        job.error_message = "Transcription service unavailable"
+        job.save()
+        job.refresh_from_db()
+        self.assertEqual(job.error_message, "Transcription service unavailable")
+        self.assertEqual(job.status, AIFeedbackJob.Status.FAILED)
+
+    def test_aifeedbackjob_error_message_is_null_by_default(self):
+        job = AIFeedbackJob.objects.create(session=self.session)
+        self.assertIsNone(job.error_message)
+
+    def test_aifeedbackjob_fk_to_session(self):
+        job = AIFeedbackJob.objects.create(session=self.session)
+        self.assertEqual(job.session_id, self.session.pk)
+
+    def test_aifeedbackjob_related_name(self):
+        job = AIFeedbackJob.objects.create(session=self.session)
+        self.assertIn(job, self.session.ai_feedback_jobs.all())
+
+
+class RunAIFeedbackTaskTests(TestCase):
+    """Integration tests for the run_ai_feedback background task."""
+
+    def setUp(self):
+        from session.tasks import run_ai_feedback  # noqa: F401 (imported here to fail RED if missing)
+        self.examiner = User.objects.create_user(
+            username="task_examiner",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        preset = MockPreset.objects.create(name="Task Test Preset", owner=self.examiner)
+        self.session = IELTSMockSession.objects.create(
+            examiner=self.examiner,
+            preset=preset,
+            status=SessionStatus.COMPLETED,
+        )
+        self.job = AIFeedbackJob.objects.create(session=self.session)
+
+    def test_task_transitions_to_done(self):
+        """run_ai_feedback transitions job from PENDING to DONE."""
+        from session.tasks import run_ai_feedback
+        self.assertEqual(self.job.status, AIFeedbackJob.Status.PENDING)
+        run_ai_feedback(self.job.pk)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
+
+    def test_task_handles_missing_job(self):
+        """run_ai_feedback with non-existent job_id does not raise."""
+        from session.tasks import run_ai_feedback
+        try:
+            run_ai_feedback(99999)
+        except Exception as exc:
+            self.fail(f"run_ai_feedback raised unexpectedly: {exc}")
+
+    def test_async_task_enqueue(self):
+        """async_task can enqueue run_ai_feedback and it executes in sync mode."""
+        from django_q.tasks import async_task
+        async_task('session.tasks.run_ai_feedback', self.job.pk)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
