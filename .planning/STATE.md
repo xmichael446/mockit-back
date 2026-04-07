@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: AI Feedback & Assessment
 status: verifying
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-04-07T19:31:44.250Z"
+stopped_at: Completed 11-02-PLAN.md
+last_updated: "2026-04-07T19:45:21.826Z"
 last_activity: 2026-04-07
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -62,6 +62,7 @@ For v1.3:
 - [Phase 11-01]: Plain text transcript format (no speaker labels) — diarization not available; Phase 12 Claude API can interpret context
 - [Phase 11-01]: Lazy WhisperModel instantiation inside transcribe_session() — avoids import-time cost and startup delay
 - [Phase 11-01]: initial_prompt built from all SessionQuestion texts with select_related to avoid N+1 queries
+- [Phase 11-transcription-service]: Patch target for integration tests is session.services.transcription.transcribe_session not session.tasks.transcribe_session because deferred import resolves at call time from the services module
 
 ### Research Flags (needs codebase check during planning)
 
@@ -79,7 +80,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T19:31:44.244Z
-Stopped at: Completed 11-01-PLAN.md
+Last session: 2026-04-07T19:45:21.820Z
+Stopped at: Completed 11-02-PLAN.md
 Resume file: None
 Next action: /gsd:plan-phase 10
