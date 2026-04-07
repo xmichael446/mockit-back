@@ -114,7 +114,7 @@ class IELTSMockSession(TimestampedModel):
         return (
             self.status == SessionStatus.SCHEDULED
             and self.candidate is not None
-            and timezone.now() >= self.scheduled_at
+            and (self.scheduled_at is None or timezone.now() >= self.scheduled_at)
         )
 
     def can_end(self):
