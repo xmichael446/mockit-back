@@ -168,7 +168,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 11-01-PLAN.md -- Install faster-whisper, transcript field migration, settings, transcription service module
+- [x] 11-01-PLAN.md -- Install faster-whisper, transcript field migration, settings, transcription service module
 - [ ] 11-02-PLAN.md -- Task integration with transcribe_session and comprehensive tests
 
 #### Phase 12: AI Assessment Service
@@ -228,7 +228,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14
 | 8. Email Notifications | v1.2 | 1/1 | Complete | 2026-03-30 |
 | 9. API Documentation | v1.2 | 1/1 | Complete | 2026-03-30 |
 | 10. Data Models & Task Infrastructure | v1.3 | 2/2 | Complete    | 2026-04-07 |
-| 11. Transcription Service | v1.3 | 0/2 | Planning complete | - |
+| 11. Transcription Service | v1.3 | 1/2 | In Progress|  |
 | 12. AI Assessment Service | v1.3 | 0/? | Not started | - |
 | 13. Usage Control | v1.3 | 0/? | Not started | - |
 | 14. API Endpoints & Delivery | v1.3 | 0/? | Not started | - |

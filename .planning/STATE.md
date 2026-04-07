@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: AI Feedback & Assessment
 status: verifying
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-04-07T17:39:19.806Z"
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-04-07T19:31:44.250Z"
 last_activity: 2026-04-07
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 0
 ---
 
@@ -59,6 +59,9 @@ For v1.3:
 - [Phase 10]: ScoreSource enum separates examiner from AI bands; unique_together includes source; compute_overall_band filters EXAMINER only
 - [Phase 10]: Deferred import of AIFeedbackJob inside task function prevents circular imports at module load time
 - [Phase 10]: Q_CLUSTER sync=True in test settings enables synchronous task execution in tests without a worker process
+- [Phase 11-01]: Plain text transcript format (no speaker labels) — diarization not available; Phase 12 Claude API can interpret context
+- [Phase 11-01]: Lazy WhisperModel instantiation inside transcribe_session() — avoids import-time cost and startup delay
+- [Phase 11-01]: initial_prompt built from all SessionQuestion texts with select_related to avoid N+1 queries
 
 ### Research Flags (needs codebase check during planning)
 
@@ -76,7 +79,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T17:39:19.800Z
-Stopped at: Completed 10-02-PLAN.md
+Last session: 2026-04-07T19:31:44.244Z
+Stopped at: Completed 11-01-PLAN.md
 Resume file: None
 Next action: /gsd:plan-phase 10
