@@ -9,7 +9,7 @@ Requirements for AI Feedback & Assessment milestone. Each maps to roadmap phases
 
 ### Transcription
 
-- [ ] **TRNS-01**: Examiner can trigger transcription of a session recording after the session ends
+- [x] **TRNS-01**: Examiner can trigger transcription of a session recording after the session ends
 - [x] **TRNS-02**: System transcribes audio to text using faster-whisper (CPU, configurable model size)
 - [x] **TRNS-03**: Transcript is stored and associated with the session for later retrieval
 - [x] **TRNS-04**: Transcription incorporates SessionQuestion context for improved accuracy
@@ -74,7 +74,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TRNS-01 | Phase 11 | Pending |
+| TRNS-01 | Phase 11 | Complete |
 | TRNS-02 | Phase 11 | Complete |
 | TRNS-03 | Phase 11 | Complete |
 | TRNS-04 | Phase 11 | Complete |

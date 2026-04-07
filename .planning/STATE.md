@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: AI Feedback & Assessment
-status: executing
-stopped_at: Completed quick task 260407-wqc
-last_updated: "2026-04-07T19:12:01.767Z"
-last_activity: 2026-04-07 -- Phase 11 execution started
+status: verifying
+stopped_at: Completed 11-02-PLAN.md
+last_updated: "2026-04-07T19:45:21.826Z"
+last_activity: 2026-04-07
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 4
   percent: 0
 ---
 
@@ -18,10 +18,10 @@ progress:
 
 ## Current Position
 
-Phase: 11 (Transcription Service) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 11
-Last activity: 2026-04-07 -- Phase 11 execution started
+Phase: 10 (Data Models & Task Infrastructure) — EXECUTING
+Plan: 2 of 2
+Status: Phase complete — ready for verification
+Last activity: 2026-04-07
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -30,7 +30,7 @@ Progress: [░░░░░░░░░░] 0%
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** Phase 11 — Transcription Service
+**Current focus:** Phase 10 — Data Models & Task Infrastructure
 **Current milestone:** v1.3 AI Feedback & Assessment
 
 ## Accumulated Context
@@ -59,6 +59,10 @@ For v1.3:
 - [Phase 10]: ScoreSource enum separates examiner from AI bands; unique_together includes source; compute_overall_band filters EXAMINER only
 - [Phase 10]: Deferred import of AIFeedbackJob inside task function prevents circular imports at module load time
 - [Phase 10]: Q_CLUSTER sync=True in test settings enables synchronous task execution in tests without a worker process
+- [Phase 11-01]: Plain text transcript format (no speaker labels) — diarization not available; Phase 12 Claude API can interpret context
+- [Phase 11-01]: Lazy WhisperModel instantiation inside transcribe_session() — avoids import-time cost and startup delay
+- [Phase 11-01]: initial_prompt built from all SessionQuestion texts with select_related to avoid N+1 queries
+- [Phase 11-transcription-service]: Patch target for integration tests is session.services.transcription.transcribe_session not session.tasks.transcribe_session because deferred import resolves at call time from the services module
 
 ### Research Flags (needs codebase check during planning)
 
@@ -74,15 +78,9 @@ None yet.
 
 None yet.
 
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260407-wqc | Fix None scheduled_at in can_start() guard | 2026-04-07 | (see git log) | [260407-wqc-fix-the-test-failures](./quick/260407-wqc-fix-the-test-failures/) |
-
 ## Session Continuity
 
-Last session: 2026-04-07
-Stopped at: Completed quick task 260407-wqc
+Last session: 2026-04-07T19:45:21.820Z
+Stopped at: Completed 11-02-PLAN.md
 Resume file: None
 Next action: /gsd:plan-phase 10

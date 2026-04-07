@@ -15,9 +15,13 @@ def run_ai_feedback(job_id: int) -> None:
         job.status = AIFeedbackJob.Status.PROCESSING
         job.save(update_fields=["status", "updated_at"])
 
-        # Phase 11 will add: transcription via faster-whisper
+        # Phase 11: transcription via faster-whisper
+        from session.services.transcription import transcribe_session
+        transcript = transcribe_session(job)
+        job.transcript = transcript
+        job.save(update_fields=["transcript", "updated_at"])
+
         # Phase 12 will add: AI scoring via Claude API
-        logger.info("run_ai_feedback job_id=%s - skeleton placeholder", job_id)
 
         job.status = AIFeedbackJob.Status.DONE
         job.save(update_fields=["status", "updated_at"])
