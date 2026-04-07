@@ -1,31 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Profiles & Scheduling
-status: unknown
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-03-30T09:46:12.810Z"
+milestone: v1.3
+milestone_name: AI Feedback & Assessment
+status: executing
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-04-07T17:29:41.450Z"
+last_activity: 2026-04-07
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 9
-  completed_plans: 9
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 0
 ---
 
 # State
 
 ## Current Position
 
-Phase: 09
-Plan: Not started
+Phase: 10 (Data Models & Task Infrastructure) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-04-07
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-30)
+See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** Phase 09 — api-documentation
-**Current milestone:** v1.2 Profiles & Scheduling
+**Current focus:** Phase 10 — Data Models & Task Infrastructure
+**Current milestone:** v1.3 AI Feedback & Assessment
 
 ## Accumulated Context
 
@@ -37,36 +43,26 @@ From v1.1 (carry-forward constraints):
 - [Phase 02]: Broadcast calls placed after transaction.atomic block to prevent stale events on rollback
 - [Phase 03-01]: Email send returns bool rather than raising -- callers decide how to surface failure
 
-For v1.2 (pre-implementation):
+From v1.2 (carry-forward constraints):
 
-- Profile models (ExaminerProfile, CandidateProfile) go in main/models.py as OneToOne on User (avoid circular imports)
-- scheduling/ app owns AvailabilitySlot, SessionRequest, views, permissions, email service stubs
 - Email sends must be called after transaction exits (same discipline as _broadcast)
-- select_for_update() + transaction.atomic() required on SessionRequest accept path (double-booking prevention)
-- Phone field: ExaminerProfilePublicSerializer hides phone; ExaminerProfileDetailSerializer shows it to owner
-- [Phase 04-01]: Tests run via DJANGO_SETTINGS_MODULE=MockIT.settings_test (SQLite in-memory) because PG 13 installed but Django 5.2 requires PG 14
-- [Phase 04-01]: Updated .env DB_PORT to 5433 to match actual PostgreSQL cluster port
-- [Phase 04-02]: Role mismatch on /me/ endpoints returns 404 (not 403) to avoid disclosing role information
-- [Phase 04-02]: ScoreHistory uses get_or_create() to be idempotent — double-release safe
-- [Phase 04-02]: CandidateProfile.DoesNotExist silently skipped for guest candidates without profiles
-- [Phase 05-availability-scheduling]: DayOfWeek IntegerChoices uses MON=0..SUN=6 matching Python date.weekday() — no end_time stored (always start+1h)
-- [Phase 05-availability-scheduling]: compute_available_slots filters scheduled_at__isnull=False to safely handle nullable IELTSMockSession.scheduled_at
-- [Phase 05-02]: IntegrityError on unique_together caught in view POST and returned as 400 (DRF serializer cannot validate without examiner FK at validation time)
-- [Phase 05-02]: Examiner test users need is_verified=True due to global IsEmailVerified permission class
-- [Phase 06-01]: SessionRequest.Status uses IntegerChoices matching SessionStatus pattern; DRF ValidationError raised from model methods; accepted_booked keyed by (slot_id, date) not datetime
-- [Phase 06]: select_for_update + transaction.atomic on accept path prevents double-booking under concurrency
-- [Phase 06]: _broadcast called after transaction.atomic block to prevent stale WebSocket events on rollback
-- [Phase 07-candidate-score-auto-update]: current_speaking_score update placed inside existing try/except CandidateProfile.DoesNotExist block — re-uses candidate_profile variable, guest candidates silently skipped
-- [Phase 08-email-notifications]: Email sends are fire-and-forget (bool return, log on failure) consistent with v1.1 decision — callers ignore return value
-- [Phase 08-email-notifications]: notify_request_accepted placed after transaction.atomic block, mirroring _broadcast() discipline
-- [Phase 09-api-documentation]: Documented phone field visibility difference: detail serializer shows phone, public serializer hides it
-- [Phase 09-api-documentation]: SessionRequest status documented as integers matching IntegerChoices (0=PENDING, 1=ACCEPTED, 2=REJECTED, 3=CANCELLED)
+- select_for_update() + transaction.atomic() required for race-condition-sensitive writes
+- Tests run via DJANGO_SETTINGS_MODULE=MockIT.settings_test (SQLite in-memory)
+
+For v1.3:
+
+- django-q2 with ORM broker chosen (no Redis/Celery infra needed)
+- faster-whisper for CPU transcription (configurable model size)
+- Source enum on CriterionScore; unique_together must include source field
+- compute_overall_band must filter by EXAMINER source only (no regression)
+- Monthly usage limit enforced with select_for_update + atomic increment
+- [Phase 10]: ScoreSource enum separates examiner from AI bands; unique_together includes source; compute_overall_band filters EXAMINER only
 
 ### Research Flags (needs codebase check during planning)
 
-- Phase 6: Confirm _broadcast() discipline holds for accept flow before writing view
-- Phase 7: Identify exact line in session/views.py:release_result where update_speaking_score() should be called
-- Phase 4: Confirm MEDIA_ROOT/MEDIA_URL not duplicated (media/ directory may already exist for SessionRecording)
+- Confirm SessionRecording.audio_file format and storage path before Phase 11
+- Verify unique_together constraint on CriterionScore before Phase 10 migration
+- Confirm _broadcast() discipline applies to ai_feedback_ready WebSocket event (Phase 14)
 
 ### Pending Todos
 
@@ -76,16 +72,9 @@ None yet.
 
 None yet.
 
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260331-c2c | Add examiner directory listing endpoint with filtering and sorting | 2026-03-31 | 009f8d0 | [260331-c2c-add-examiner-directory-listing-endpoint-](./quick/260331-c2c-add-examiner-directory-listing-endpoint-/) |
-| 260402-f0h | Add shareable session recordings and cancellable sessions | 2026-04-02 | 9f7cae5 | [260402-f0h-shareable-recordings-and-cancellable-ses](./quick/260402-f0h-shareable-recordings-and-cancellable-ses/) |
-
 ## Session Continuity
 
-Last session: 2026-04-02
-Stopped at: Completed quick task 260402-f0h
+Last session: 2026-04-07T17:29:41.444Z
+Stopped at: Completed 10-01-PLAN.md
 Resume file: None
-Next action: Run `/gsd:plan-phase 4` to plan Phase 4: Profiles
+Next action: /gsd:plan-phase 10

@@ -153,7 +153,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 10-01-PLAN.md -- ScoreSource enum, CriterionScore.source field, compute_overall_band filter, AIFeedbackJob model
+- [x] 10-01-PLAN.md -- ScoreSource enum, CriterionScore.source field, compute_overall_band filter, AIFeedbackJob model
 - [ ] 10-02-PLAN.md -- django-q2 installation, ORM broker config, run_ai_feedback task skeleton
 
 #### Phase 11: Transcription Service
@@ -225,7 +225,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14
 | 7. Candidate Score Auto-Update | v1.2 | 1/1 | Complete | 2026-03-30 |
 | 8. Email Notifications | v1.2 | 1/1 | Complete | 2026-03-30 |
 | 9. API Documentation | v1.2 | 1/1 | Complete | 2026-03-30 |
-| 10. Data Models & Task Infrastructure | v1.3 | 0/2 | Not started | - |
+| 10. Data Models & Task Infrastructure | v1.3 | 1/2 | In Progress|  |
 | 11. Transcription Service | v1.3 | 0/? | Not started | - |
 | 12. AI Assessment Service | v1.3 | 0/? | Not started | - |
 | 13. Usage Control | v1.3 | 0/? | Not started | - |

@@ -1,85 +1,72 @@
 # Requirements: MockIT
 
-**Defined:** 2026-03-30
-**Core Value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate — from invite through scoring — with minimal friction.
+**Defined:** 2026-04-07
+**Core Value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
 
-## v1.2 Requirements
+## v1.3 Requirements
 
-Requirements for Profiles & Scheduling milestone. Each maps to roadmap phases.
+Requirements for AI Feedback & Assessment milestone. Each maps to roadmap phases.
 
-### Examiner Profile
+### Transcription
 
-- [x] **EXAM-01**: User (examiner) can create/update their profile with bio, full legal name, and profile picture URL
-- [x] **EXAM-02**: Examiner profile displays IELTS credentials (band scores and certificate URL)
-- [x] **EXAM-03**: Examiner profile shows is_verified badge status (admin-managed boolean)
-- [x] **EXAM-04**: Examiner profile includes phone number field supporting Uzbekistan format
-- [x] **EXAM-05**: Examiner profile displays completed session count
-- [x] **EXAM-06**: User (candidate) can view an examiner's public profile
+- [ ] **TRNS-01**: Examiner can trigger transcription of a session recording after the session ends
+- [ ] **TRNS-02**: System transcribes audio to text using faster-whisper (CPU, configurable model size)
+- [ ] **TRNS-03**: Transcript is stored and associated with the session for later retrieval
+- [ ] **TRNS-04**: Transcription incorporates SessionQuestion context for improved accuracy
 
-### Student Profile
+### AI Assessment
 
-- [x] **STUD-01**: User (candidate) can create/update their profile with profile picture URL and target speaking score
-- [x] **STUD-02**: Student profile stores current_speaking_score (initially set manually)
-- [x] **STUD-03**: current_speaking_score auto-updates to latest session result score when a session is completed
-- [x] **STUD-04**: Student profile exposes band score history data from all completed sessions
+- [x] **AIAS-01**: Source enum added to CriterionScore distinguishing examiner vs AI scores
+- [ ] **AIAS-02**: AI generates band scores (1-9) for each IELTS criterion (FC, GRA, LR, PR)
+- [ ] **AIAS-03**: AI generates 3-4 sentence actionable feedback per criterion
+- [ ] **AIAS-04**: AI prompt includes actual session questions for context-aware assessment
+- [x] **AIAS-05**: Existing compute_overall_band filters by examiner source only (no regression)
 
-### Availability Scheduling
+### Background Processing
 
-- [x] **AVAIL-01**: Examiner can define weekly recurring availability as 1-hour windows (08:00-22:00) per day of week
-- [x] **AVAIL-02**: Examiner can update/delete their recurring availability slots
-- [x] **AVAIL-03**: API returns computed available slots for an examiner (recurring schedule minus booked sessions)
-- [x] **AVAIL-04**: API returns is_currently_available boolean for an examiner at request time
-- [x] **AVAIL-05**: Examiner can block specific dates as exceptions to their recurring schedule
+- [ ] **BGPR-01**: AI feedback job runs asynchronously via django-q2 (ORM broker)
+- [x] **BGPR-02**: AIFeedbackJob model tracks job status (PENDING/PROCESSING/DONE/FAILED)
+- [ ] **BGPR-03**: Transcription and AI generation run as one sequential background job
 
-### Session Request
+### Usage Control
 
-- [x] **REQ-01**: Candidate can submit a session request for a specific valid time slot with optional comment
-- [x] **REQ-02**: Requested time is strictly validated against examiner's actual availability (schedule minus bookings minus exceptions)
-- [x] **REQ-03**: Examiner can accept a pending request (auto-creates linked IELTSMockSession)
-- [x] **REQ-04**: Examiner can reject a pending request with required rejection comment
-- [x] **REQ-05**: Session request uses state machine pattern (PENDING -> ACCEPTED/REJECTED/CANCELLED)
-- [x] **REQ-06**: Accept flow uses select_for_update to prevent double-booking race conditions
-- [x] **REQ-07**: Candidate or examiner can cancel an accepted session request
+- [ ] **UCTL-01**: Monthly usage limit per examiner (default: 10 AI feedback generations/month)
+- [ ] **UCTL-02**: Usage check uses select_for_update + atomic increment to prevent race conditions
+- [ ] **UCTL-03**: Examiner receives clear error when monthly limit is reached
 
-### Email Notifications
+### API & Delivery
 
-- [x] **EMAIL-01**: Examiner receives email when a new session request is created (stubbed via Resend pattern)
-- [x] **EMAIL-02**: Candidate receives email when their request is accepted (stubbed)
-- [x] **EMAIL-03**: Candidate receives email when their request is rejected (stubbed)
-
-### API Documentation
-
-- [x] **DOCS-01**: All new endpoints documented in docs/api/ with request/response schemas and error scenarios
+- [ ] **APID-01**: POST endpoint triggers AI feedback generation, returns 202 Accepted
+- [ ] **APID-02**: GET endpoint returns AI feedback job status (polling)
+- [ ] **APID-03**: GET endpoint retrieves AI-generated scores and feedback
+- [ ] **APID-04**: WebSocket push event (ai_feedback_ready) sent on job completion
+- [ ] **APID-05**: API docs updated for all new endpoints
 
 ## Future Requirements
 
-Deferred to future release. Tracked but not in current roadmap.
+### Enhanced AI Features
 
-### Session Request
+- **EAIF-01**: Candidate can view AI feedback comparison across multiple sessions
+- **EAIF-02**: AI generates improvement plan based on score trends
+- **EAIF-03**: Configurable monthly limits per examiner tier
 
-- **REQ-08**: Candidate can reschedule a pending or accepted session request to a new valid slot — deferred to keep v1.2 lean; cancel + rebook achieves same result
+### From v1.2 (carried forward)
 
-### Email Notifications
-
-- **EMAIL-05**: Session reminder email wired to async task runner — requires Redis + Celery infrastructure milestone
-
-### Examiner Discovery
-
+- **REQ-08**: Candidate can reschedule a pending or accepted session request to a new valid slot
+- **EMAIL-05**: Session reminder email wired to async task runner
 - **DISC-01**: Examiner specialization tags with filtering
 - **DISC-02**: Full search/filter on examiner directory
 
 ## Out of Scope
 
-Explicitly excluded. Documented to prevent scope creep.
-
 | Feature | Reason |
 |---------|--------|
-| Session reminder email (async) | No async task runner in current stack; requires Celery/Redis infra milestone |
-| Profile photo upload (file storage) | Accept URL string only; S3/media storage complexity deferred |
-| Rating/review system | Band scores serve as objective assessment; review system premature before user base |
-| Calendar sync (Google/Outlook) | OAuth complexity; recurring weekly schedule is sufficient for v1.2 |
-| Payment/billing integration | Separate milestone with PCI compliance scope |
-| SMS verification for phone | Database field only; SMS verification logic deferred |
+| Real-time transcription during session | High complexity, latency incompatible with CPU Whisper |
+| AI feedback without examiner trigger | Wastes credits, removes examiner agency |
+| GPU-based transcription | Deployment is CPU-only; faster-whisper handles this |
+| Automatic re-scoring of examiner bands | AI is supplementary, not authoritative |
+| Celery/Redis task queue | django-q2 with ORM broker covers needs without new infrastructure |
+| Overall AI band score | Not requested; per-criterion scores sufficient |
 
 ## Traceability
 
@@ -87,38 +74,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EXAM-01 | Phase 4 | Complete |
-| EXAM-02 | Phase 4 | Complete |
-| EXAM-03 | Phase 4 | Complete |
-| EXAM-04 | Phase 4 | Complete |
-| EXAM-05 | Phase 4 | Complete |
-| EXAM-06 | Phase 4 | Complete |
-| STUD-01 | Phase 4 | Complete |
-| STUD-02 | Phase 4 | Complete |
-| STUD-03 | Phase 7 | Complete |
-| STUD-04 | Phase 4 | Complete |
-| AVAIL-01 | Phase 5 | Complete |
-| AVAIL-02 | Phase 5 | Complete |
-| AVAIL-03 | Phase 5 | Complete |
-| AVAIL-04 | Phase 5 | Complete |
-| AVAIL-05 | Phase 5 | Complete |
-| REQ-01 | Phase 6 | Complete |
-| REQ-02 | Phase 6 | Complete |
-| REQ-03 | Phase 6 | Complete |
-| REQ-04 | Phase 6 | Complete |
-| REQ-05 | Phase 6 | Complete |
-| REQ-06 | Phase 6 | Complete |
-| REQ-07 | Phase 6 | Complete |
-| EMAIL-01 | Phase 8 | Complete |
-| EMAIL-02 | Phase 8 | Complete |
-| EMAIL-03 | Phase 8 | Complete |
-| DOCS-01 | Phase 9 | Complete |
+| TRNS-01 | Phase 11 | Pending |
+| TRNS-02 | Phase 11 | Pending |
+| TRNS-03 | Phase 11 | Pending |
+| TRNS-04 | Phase 11 | Pending |
+| AIAS-01 | Phase 10 | Complete |
+| AIAS-02 | Phase 12 | Pending |
+| AIAS-03 | Phase 12 | Pending |
+| AIAS-04 | Phase 12 | Pending |
+| AIAS-05 | Phase 10 | Complete |
+| BGPR-01 | Phase 10 | Pending |
+| BGPR-02 | Phase 10 | Complete |
+| BGPR-03 | Phase 10 | Pending |
+| UCTL-01 | Phase 13 | Pending |
+| UCTL-02 | Phase 13 | Pending |
+| UCTL-03 | Phase 13 | Pending |
+| APID-01 | Phase 14 | Pending |
+| APID-02 | Phase 14 | Pending |
+| APID-03 | Phase 14 | Pending |
+| APID-04 | Phase 14 | Pending |
+| APID-05 | Phase 14 | Pending |
 
 **Coverage:**
-- v1.2 requirements: 26 total
-- Mapped to phases: 26
-- Unmapped: 0 ✓
+- v1.3 requirements: 20 total
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
-*Requirements defined: 2026-03-30*
-*Last updated: 2026-03-30 after roadmap creation (all 26 requirements mapped)*
+*Requirements defined: 2026-04-07*
+*Last updated: 2026-04-07 after roadmap creation*
