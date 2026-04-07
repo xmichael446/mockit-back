@@ -987,7 +987,8 @@ class RunAIFeedbackTaskTests(TestCase):
         """run_ai_feedback transitions job from PENDING to DONE."""
         from session.tasks import run_ai_feedback
         self.assertEqual(self.job.status, AIFeedbackJob.Status.PENDING)
-        run_ai_feedback(self.job.pk)
+        with patch("session.services.transcription.transcribe_session", return_value="transcript"):
+            run_ai_feedback(self.job.pk)
         self.job.refresh_from_db()
         self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
 
