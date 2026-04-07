@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from django.test import TestCase
+from session.tasks import run_ai_feedback  # noqa: E402 — imported for task tests
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
@@ -960,3 +961,46 @@ class AIFeedbackJobTests(TestCase):
     def test_aifeedbackjob_related_name(self):
         job = AIFeedbackJob.objects.create(session=self.session)
         self.assertIn(job, self.session.ai_feedback_jobs.all())
+
+
+class RunAIFeedbackTaskTests(TestCase):
+    """Integration tests for the run_ai_feedback background task."""
+
+    def setUp(self):
+        from session.tasks import run_ai_feedback  # noqa: F401 (imported here to fail RED if missing)
+        self.examiner = User.objects.create_user(
+            username="task_examiner",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        preset = MockPreset.objects.create(name="Task Test Preset", owner=self.examiner)
+        self.session = IELTSMockSession.objects.create(
+            examiner=self.examiner,
+            preset=preset,
+            status=SessionStatus.COMPLETED,
+        )
+        self.job = AIFeedbackJob.objects.create(session=self.session)
+
+    def test_task_transitions_to_done(self):
+        """run_ai_feedback transitions job from PENDING to DONE."""
+        from session.tasks import run_ai_feedback
+        self.assertEqual(self.job.status, AIFeedbackJob.Status.PENDING)
+        run_ai_feedback(self.job.pk)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
+
+    def test_task_handles_missing_job(self):
+        """run_ai_feedback with non-existent job_id does not raise."""
+        from session.tasks import run_ai_feedback
+        try:
+            run_ai_feedback(99999)
+        except Exception as exc:
+            self.fail(f"run_ai_feedback raised unexpectedly: {exc}")
+
+    def test_async_task_enqueue(self):
+        """async_task can enqueue run_ai_feedback and it executes in sync mode."""
+        from django_q.tasks import async_task
+        async_task('session.tasks.run_ai_feedback', self.job.pk)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
