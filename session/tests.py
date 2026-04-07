@@ -1,7 +1,8 @@
 import re
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from session.tasks import run_ai_feedback  # noqa: E402 — imported for task tests
 from django.utils import timezone
@@ -10,7 +11,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
 from main.models import CandidateProfile, User
-from questions.models import Topic
+from questions.models import IELTSSpeakingPart, Question, Topic
 from session.models import (
     AIFeedbackJob,
     CriterionScore,
@@ -1001,6 +1002,152 @@ class RunAIFeedbackTaskTests(TestCase):
     def test_async_task_enqueue(self):
         """async_task can enqueue run_ai_feedback and it executes in sync mode."""
         from django_q.tasks import async_task
-        async_task('session.tasks.run_ai_feedback', self.job.pk)
+        with patch("session.services.transcription.transcribe_session", return_value="enqueue transcript"):
+            async_task('session.tasks.run_ai_feedback', self.job.pk)
         self.job.refresh_from_db()
         self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
+
+    def test_task_transcribes_and_stores(self):
+        """run_ai_feedback calls transcribe_session and stores result in job.transcript."""
+        from session.tasks import run_ai_feedback
+        with patch("session.services.transcription.transcribe_session", return_value="Fake transcript content") as mock_transcribe:
+            run_ai_feedback(self.job.pk)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.transcript, "Fake transcript content")
+        self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
+
+    def test_task_fails_on_transcription_error(self):
+        """run_ai_feedback sets FAILED status when transcribe_session raises RuntimeError."""
+        from session.tasks import run_ai_feedback
+        with patch("session.services.transcription.transcribe_session", side_effect=RuntimeError("Audio file not found")):
+            run_ai_feedback(self.job.pk)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, AIFeedbackJob.Status.FAILED)
+        self.assertIn("Audio file not found", self.job.error_message)
+
+
+# ─── TranscriptionServiceTests ───────────────────────────────────────────────
+
+class TranscriptionServiceTests(TestCase):
+    """Unit tests for session.services.transcription.transcribe_session."""
+
+    def setUp(self):
+        from session.models import SessionPart, SessionQuestion, SessionRecording
+
+        self.examiner = User.objects.create_user(
+            username="examiner_transcription",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        preset = MockPreset.objects.create(name="Transcription Test Preset", owner=self.examiner)
+        self.session = IELTSMockSession.objects.create(
+            examiner=self.examiner,
+            preset=preset,
+            status=SessionStatus.COMPLETED,
+        )
+        self.job = AIFeedbackJob.objects.create(session=self.session)
+
+        # Create a recording with a dummy audio file
+        self.recording = SessionRecording.objects.create(
+            session=self.session,
+            audio_file=SimpleUploadedFile("test.webm", b"fake audio data", content_type="audio/webm"),
+        )
+
+        # Create SessionPart and SessionQuestions for initial_prompt tests
+        self.topic = Topic.objects.create(
+            name="Transcription Test Topic",
+            part=IELTSSpeakingPart.PART_1,
+            slug="transcription-test-topic",
+        )
+        self.question1 = Question.objects.create(
+            topic=self.topic,
+            text="Tell me about your hometown",
+        )
+        self.question2 = Question.objects.create(
+            topic=self.topic,
+            text="What do you like to do in your free time",
+        )
+        self.part = SessionPart.objects.create(
+            session=self.session,
+            part=IELTSSpeakingPart.PART_1,
+        )
+        self.sq1 = SessionQuestion.objects.create(
+            session_part=self.part,
+            question=self.question1,
+            order=1,
+        )
+        self.sq2 = SessionQuestion.objects.create(
+            session_part=self.part,
+            question=self.question2,
+            order=2,
+        )
+
+    def _make_mock_model(self, segment_text=" Hello this is a test. "):
+        mock_segment = MagicMock()
+        mock_segment.text = segment_text
+        mock_model_instance = MagicMock()
+        mock_model_instance.transcribe.return_value = (iter([mock_segment]), MagicMock())
+        return mock_model_instance
+
+    def test_calls_whisper_with_correct_params(self):
+        """WhisperModel constructed with WHISPER_MODEL_SIZE, device='cpu', compute_type='int8'."""
+        from session.services.transcription import transcribe_session
+        mock_model_instance = self._make_mock_model()
+
+        with patch("faster_whisper.WhisperModel", return_value=mock_model_instance) as MockModel:
+            transcribe_session(self.job)
+            MockModel.assert_called_once_with("base", device="cpu", compute_type="int8")
+
+    def test_transcribe_returns_text(self):
+        """transcribe_session returns a non-empty string containing segment text."""
+        from session.services.transcription import transcribe_session
+        mock_model_instance = self._make_mock_model(" Hello this is a test. ")
+
+        with patch("faster_whisper.WhisperModel", return_value=mock_model_instance):
+            result = transcribe_session(self.job)
+
+        self.assertIn("Hello this is a test.", result)
+
+    def test_initial_prompt_built_from_questions(self):
+        """transcribe() called with initial_prompt containing question texts joined by '. '."""
+        from session.services.transcription import transcribe_session
+        mock_model_instance = self._make_mock_model()
+
+        with patch("faster_whisper.WhisperModel", return_value=mock_model_instance):
+            transcribe_session(self.job)
+
+        call_kwargs = mock_model_instance.transcribe.call_args[1]
+        initial_prompt = call_kwargs.get("initial_prompt", "")
+        self.assertIn("Tell me about your hometown", initial_prompt)
+        self.assertIn("What do you like to do in your free time", initial_prompt)
+        # Verify joined by ". "
+        self.assertIn(". ", initial_prompt)
+
+    def test_missing_recording_raises(self):
+        """Session without a recording raises RuntimeError with 'no associated recording'."""
+        from session.models import SessionRecording
+        from session.services.transcription import transcribe_session
+
+        # Create a session with NO recording
+        session_no_recording = IELTSMockSession.objects.create(
+            examiner=self.examiner,
+            preset=MockPreset.objects.create(name="No Recording Preset", owner=self.examiner),
+            status=SessionStatus.COMPLETED,
+        )
+        job_no_recording = AIFeedbackJob.objects.create(session=session_no_recording)
+
+        with self.assertRaises(RuntimeError) as ctx:
+            transcribe_session(job_no_recording)
+        self.assertIn("no associated recording", str(ctx.exception).lower())
+
+    def test_missing_audio_file_raises(self):
+        """Recording with empty audio_file.path raises RuntimeError."""
+        from session.services.transcription import transcribe_session
+
+        # Create a recording with no actual file on disk
+        # We patch os.path.isfile to simulate missing file
+        with patch("os.path.isfile", return_value=False):
+            with self.assertRaises(RuntimeError) as ctx:
+                transcribe_session(self.job)
+        self.assertIn("Audio file not found", str(ctx.exception))
