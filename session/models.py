@@ -337,6 +337,7 @@ class AIFeedbackJob(TimestampedModel):
         db_index=True,
     )
     error_message = models.TextField(null=True, blank=True)
+    transcript = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"AIFeedbackJob({self.pk}) session={self.session_id} status={self.get_status_display()}"
