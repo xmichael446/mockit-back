@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: AI Feedback & Assessment
-status: verifying
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-04-07T19:31:44.250Z"
-last_activity: 2026-04-07
+status: executing
+stopped_at: Completed quick task 260407-wqc
+last_updated: "2026-04-07T19:12:01.767Z"
+last_activity: 2026-04-07 -- Phase 11 execution started
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 2
   percent: 0
 ---
 
@@ -18,10 +18,10 @@ progress:
 
 ## Current Position
 
-Phase: 10 (Data Models & Task Infrastructure) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-04-07
+Phase: 11 (Transcription Service) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 11
+Last activity: 2026-04-07 -- Phase 11 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -30,7 +30,7 @@ Progress: [░░░░░░░░░░] 0%
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate -- from invite through scoring -- with minimal friction.
-**Current focus:** Phase 10 — Data Models & Task Infrastructure
+**Current focus:** Phase 11 — Transcription Service
 **Current milestone:** v1.3 AI Feedback & Assessment
 
 ## Accumulated Context
@@ -59,9 +59,6 @@ For v1.3:
 - [Phase 10]: ScoreSource enum separates examiner from AI bands; unique_together includes source; compute_overall_band filters EXAMINER only
 - [Phase 10]: Deferred import of AIFeedbackJob inside task function prevents circular imports at module load time
 - [Phase 10]: Q_CLUSTER sync=True in test settings enables synchronous task execution in tests without a worker process
-- [Phase 11-01]: Plain text transcript format (no speaker labels) — diarization not available; Phase 12 Claude API can interpret context
-- [Phase 11-01]: Lazy WhisperModel instantiation inside transcribe_session() — avoids import-time cost and startup delay
-- [Phase 11-01]: initial_prompt built from all SessionQuestion texts with select_related to avoid N+1 queries
 
 ### Research Flags (needs codebase check during planning)
 
@@ -77,9 +74,15 @@ None yet.
 
 None yet.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260407-wqc | Fix None scheduled_at in can_start() guard | 2026-04-07 | (see git log) | [260407-wqc-fix-the-test-failures](./quick/260407-wqc-fix-the-test-failures/) |
+
 ## Session Continuity
 
-Last session: 2026-04-07T19:31:44.244Z
-Stopped at: Completed 11-01-PLAN.md
+Last session: 2026-04-07
+Stopped at: Completed quick task 260407-wqc
 Resume file: None
 Next action: /gsd:plan-phase 10

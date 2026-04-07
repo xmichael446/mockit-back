@@ -40,10 +40,23 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 - select_for_update double-booking prevention on accept — v1.2
 - Email notifications at booking trigger points via Resend — v1.2
 - Full API docs for profiles, availability, and requests — v1.2
+- ScoreSource enum (EXAMINER/AI) on CriterionScore with EXAMINER-only band calculation — v1.3 Phase 10
+- AIFeedbackJob model with PENDING/PROCESSING/DONE/FAILED status tracking — v1.3 Phase 10
+- django-q2 background task infrastructure with ORM broker — v1.3 Phase 10
 
 ### Active
 
-<!-- No active milestone. Run /gsd:new-milestone to start v1.3. -->
+## Current Milestone: v1.3 AI Feedback & Assessment
+
+**Goal:** Add AI-powered IELTS Speaking feedback that transcribes session recordings and generates per-criterion scores and actionable feedback via Claude API.
+
+**Target features:**
+- Audio transcription using Whisper (open-source, local)
+- AI feedback generation via Claude API (3-4 sentences per criterion + band scores)
+- Source enum on scoring model (examiner vs claude)
+- Async processing via ASGI background tasks with status polling
+- Monthly usage limit per examiner (default: 10/month)
+- REST endpoints: trigger, check status, retrieve AI feedback
 
 ### Out of Scope
 
@@ -114,4 +127,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-30 after v1.2 milestone start*
+*Last updated: 2026-04-07 after Phase 10 complete*
