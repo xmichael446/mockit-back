@@ -17,9 +17,12 @@ from main.models import CandidateProfile, ExaminerProfile, ScoreHistory, User
 from questions.models import Question, FollowUpQuestion
 from questions.serializers import QuestionDetailSerializer
 from .models import (
+    AIFeedbackJob,
+    CriterionScore,
     IELTSMockSession,
     MockPreset,
     Note,
+    ScoreSource,
     SessionFollowUp,
     SessionPart,
     SessionQuestion,
@@ -46,6 +49,7 @@ from .serializers import (
     SharedSessionSerializer,
 )
 from .services.hms import create_room, generate_app_token
+from django_q.tasks import async_task
 
 audit = logging.getLogger("mockit.audit")
 
@@ -1183,3 +1187,102 @@ class CancelSessionView(APIView):
         _broadcast(session.pk, "session.cancelled", {"session_id": session.pk})
 
         return Response({"detail": "Session cancelled."})
+
+
+# ─── AI Feedback ──────────────────────────────────────────────────────────────
+
+class AIFeedbackTriggerView(APIView):
+    """
+    POST /api/sessions/<id>/ai-feedback/
+    Examiner triggers AI feedback transcription on a completed session.
+    Returns 202 Accepted with job id and initial status.
+
+    GET /api/sessions/<id>/ai-feedback/
+    Examiner or candidate retrieves the latest AI feedback job status and transcript.
+    """
+
+    def post(self, request, pk):
+        try:
+            session = _session_qs().get(pk=pk)
+        except IELTSMockSession.DoesNotExist:
+            return Response({"detail": "Not found."}, status=404)
+
+        if request.user != session.examiner:
+            return Response({"detail": "Only the session examiner can trigger AI feedback."}, status=403)
+
+        if session.status != SessionStatus.COMPLETED:
+            return Response({"detail": "Session must be completed before triggering AI feedback."}, status=400)
+
+        with transaction.atomic():
+            # Lock all jobs for this examiner's sessions to prevent race conditions
+            existing_jobs = list(
+                AIFeedbackJob.objects.select_for_update()
+                .filter(session__examiner=request.user)
+                .values_list("status", "created_at")
+            )
+
+            # Check for in-progress job on THIS session
+            if AIFeedbackJob.objects.filter(
+                session=session,
+                status__in=[AIFeedbackJob.Status.PENDING, AIFeedbackJob.Status.PROCESSING],
+            ).exists():
+                return Response(
+                    {"detail": "An AI feedback job is already in progress for this session."},
+                    status=409,
+                )
+
+            # Monthly usage limit check
+            now = timezone.now()
+            month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            monthly_count = sum(
+                1 for status, created_at in existing_jobs
+                if created_at >= month_start and status != AIFeedbackJob.Status.FAILED
+            )
+            limit = settings.AI_FEEDBACK_MONTHLY_LIMIT
+            if monthly_count >= limit:
+                return Response(
+                    {"detail": f"Monthly AI feedback limit reached ({limit}/{limit}). Resets next month."},
+                    status=429,
+                )
+
+            job = AIFeedbackJob.objects.create(session=session)
+
+        async_task('session.tasks.run_ai_feedback', job.pk)
+        return Response({"job_id": job.pk, "status": "Pending"}, status=202)
+
+    def get(self, request, pk):
+        try:
+            session = _session_qs().get(pk=pk)
+        except IELTSMockSession.DoesNotExist:
+            return Response({"detail": "Not found."}, status=404)
+
+        if request.user != session.examiner and request.user != session.candidate:
+            return Response({"detail": "You are not a participant of this session."}, status=403)
+
+        job = AIFeedbackJob.objects.filter(session=session).order_by("-created_at").first()
+        if job is None:
+            return Response({"detail": "No AI feedback job found for this session."}, status=404)
+
+        response_data = {
+            "job_id": job.pk,
+            "status": job.get_status_display(),
+            "transcript": job.transcript,
+            "error_message": job.error_message,
+            "scores": None,
+        }
+
+        if job.status == AIFeedbackJob.Status.DONE:
+            ai_scores = CriterionScore.objects.filter(
+                session_result__session=session,
+                source=ScoreSource.AI,
+            )
+            response_data["scores"] = [
+                {
+                    "criterion": score.get_criterion_display(),
+                    "band": score.band,
+                    "feedback": score.feedback,
+                }
+                for score in ai_scores
+            ]
+
+        return Response(response_data)

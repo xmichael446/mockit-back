@@ -41,3 +41,6 @@ urllib3==2.6.3
 python-dotenv==1.1.0
 zope.interface==8.2
 Pillow
+django-q2
+faster-whisper==1.2.1
+anthropic==0.91.0

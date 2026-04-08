@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'questions.apps.QuestionsConfig',
     'session.apps.SessionConfig',
     'scheduling.apps.SchedulingConfig',
+    'django_q',
 ]
 
 ASGI_APPLICATION = 'MockIT.asgi.application'
@@ -60,6 +61,15 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
+}
+
+Q_CLUSTER = {
+    'name': 'MockIT',
+    'workers': 2,
+    'timeout': 300,
+    'retry': 360,
+    'orm': 'default',
+    'poll': 0.5,
 }
 
 REST_FRAMEWORK = {
@@ -121,6 +131,15 @@ HMS_TEMPLATE_ID = os.environ["HMS_TEMPLATE_ID"]
 # Role names must match your 100ms template configuration
 HMS_EXAMINER_ROLE = "examiner"
 HMS_CANDIDATE_ROLE = "candidate"
+
+# Whisper transcription
+WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "base")
+
+# Claude AI assessment
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+
+# AI feedback usage limits
+AI_FEEDBACK_MONTHLY_LIMIT = int(os.environ.get("AI_FEEDBACK_MONTHLY_LIMIT", "10"))
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

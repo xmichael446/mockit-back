@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     AcceptInviteView,
+    AIFeedbackTriggerView,
     AnswerStartView,
     AskFollowUpView,
     AskQuestionView,
@@ -70,6 +71,9 @@ urlpatterns = [
 
     # ── Recording ─────────────────────────────────────────────────────────────
     path("sessions/<int:pk>/recording/", SessionRecordingView.as_view(), name="session-recording"),
+
+    # ── AI Feedback ───────────────────────────────────────────────────────────
+    path("sessions/<int:pk>/ai-feedback/", AIFeedbackTriggerView.as_view(), name="session-ai-feedback"),
 
     # ── Share ─────────────────────────────────────────────────────────────────
     path("sessions/<int:pk>/share/", CreateShareView.as_view(), name="session-share"),

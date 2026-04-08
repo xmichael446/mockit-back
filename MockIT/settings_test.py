@@ -8,3 +8,8 @@ DATABASES = {
         "NAME": ":memory:",
     }
 }
+
+Q_CLUSTER = {
+    'sync': True,
+    'orm': 'default',
+}
