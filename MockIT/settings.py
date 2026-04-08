@@ -135,6 +135,9 @@ HMS_CANDIDATE_ROLE = "candidate"
 # Whisper transcription
 WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "base")
 
+# Claude AI assessment
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 

@@ -43,3 +43,4 @@ zope.interface==8.2
 Pillow
 django-q2
 faster-whisper==1.2.1
+anthropic==0.91.0
