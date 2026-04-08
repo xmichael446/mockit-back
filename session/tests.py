@@ -983,12 +983,20 @@ class RunAIFeedbackTaskTests(TestCase):
         )
         self.job = AIFeedbackJob.objects.create(session=self.session)
 
-    def test_task_transitions_to_done(self):
+    MOCK_ASSESSMENT_RESULT = [
+        {"criterion": 1, "band": 7, "feedback": "Good fluency and coherence throughout."},
+        {"criterion": 2, "band": 6, "feedback": "Some grammatical errors noted."},
+        {"criterion": 3, "band": 7, "feedback": "Good range of vocabulary used."},
+        {"criterion": 4, "band": 6, "feedback": "Generally clear pronunciation."},
+    ]
+
+    @patch("session.services.assessment.assess_session", return_value=MOCK_ASSESSMENT_RESULT)
+    @patch("session.services.transcription.transcribe_session", return_value="transcript")
+    def test_task_transitions_to_done(self, mock_transcribe, mock_assess):
         """run_ai_feedback transitions job from PENDING to DONE."""
         from session.tasks import run_ai_feedback
         self.assertEqual(self.job.status, AIFeedbackJob.Status.PENDING)
-        with patch("session.services.transcription.transcribe_session", return_value="transcript"):
-            run_ai_feedback(self.job.pk)
+        run_ai_feedback(self.job.pk)
         self.job.refresh_from_db()
         self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
 
@@ -1000,19 +1008,21 @@ class RunAIFeedbackTaskTests(TestCase):
         except Exception as exc:
             self.fail(f"run_ai_feedback raised unexpectedly: {exc}")
 
-    def test_async_task_enqueue(self):
+    @patch("session.services.assessment.assess_session", return_value=MOCK_ASSESSMENT_RESULT)
+    @patch("session.services.transcription.transcribe_session", return_value="enqueue transcript")
+    def test_async_task_enqueue(self, mock_transcribe, mock_assess):
         """async_task can enqueue run_ai_feedback and it executes in sync mode."""
         from django_q.tasks import async_task
-        with patch("session.services.transcription.transcribe_session", return_value="enqueue transcript"):
-            async_task('session.tasks.run_ai_feedback', self.job.pk)
+        async_task('session.tasks.run_ai_feedback', self.job.pk)
         self.job.refresh_from_db()
         self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
 
-    def test_task_transcribes_and_stores(self):
+    @patch("session.services.assessment.assess_session", return_value=MOCK_ASSESSMENT_RESULT)
+    @patch("session.services.transcription.transcribe_session", return_value="Fake transcript content")
+    def test_task_transcribes_and_stores(self, mock_transcribe, mock_assess):
         """run_ai_feedback calls transcribe_session and stores result in job.transcript."""
         from session.tasks import run_ai_feedback
-        with patch("session.services.transcription.transcribe_session", return_value="Fake transcript content") as mock_transcribe:
-            run_ai_feedback(self.job.pk)
+        run_ai_feedback(self.job.pk)
         self.job.refresh_from_db()
         self.assertEqual(self.job.transcript, "Fake transcript content")
         self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
@@ -1025,6 +1035,67 @@ class RunAIFeedbackTaskTests(TestCase):
         self.job.refresh_from_db()
         self.assertEqual(self.job.status, AIFeedbackJob.Status.FAILED)
         self.assertIn("Audio file not found", self.job.error_message)
+
+    @patch("session.services.assessment.assess_session", return_value=MOCK_ASSESSMENT_RESULT)
+    @patch("session.services.transcription.transcribe_session", return_value="test transcript")
+    def test_task_creates_ai_scores(self, mock_transcribe, mock_assess):
+        """run_ai_feedback creates 4 CriterionScore records with source=AI (AIAS-02)."""
+        from session.tasks import run_ai_feedback
+        run_ai_feedback(self.job.pk)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
+        self.assertEqual(CriterionScore.objects.filter(source=ScoreSource.AI).count(), 4)
+        # Verify each criterion has the expected band from MOCK_ASSESSMENT_RESULT
+        for entry in self.MOCK_ASSESSMENT_RESULT:
+            self.assertTrue(
+                CriterionScore.objects.filter(
+                    source=ScoreSource.AI,
+                    criterion=entry["criterion"],
+                    band=entry["band"],
+                ).exists(),
+                f"Expected CriterionScore with criterion={entry['criterion']}, band={entry['band']}",
+            )
+
+    @patch("session.services.assessment.assess_session", return_value=MOCK_ASSESSMENT_RESULT)
+    @patch("session.services.transcription.transcribe_session", return_value="test transcript")
+    def test_task_stores_feedback(self, mock_transcribe, mock_assess):
+        """run_ai_feedback stores non-empty feedback text on each AI score (AIAS-03)."""
+        from session.tasks import run_ai_feedback
+        run_ai_feedback(self.job.pk)
+        ai_scores = CriterionScore.objects.filter(source=ScoreSource.AI)
+        self.assertEqual(ai_scores.count(), 4)
+        for score in ai_scores:
+            self.assertIsNotNone(score.feedback)
+            self.assertNotEqual(score.feedback, "")
+        # Verify specific feedback text from MOCK_ASSESSMENT_RESULT is stored
+        self.assertTrue(
+            CriterionScore.objects.filter(
+                source=ScoreSource.AI,
+                criterion=1,
+                feedback="Good fluency and coherence throughout.",
+            ).exists()
+        )
+
+    @patch("session.services.assessment.assess_session", side_effect=RuntimeError("Claude API error"))
+    @patch("session.services.transcription.transcribe_session", return_value="test transcript")
+    def test_task_fails_on_claude_error(self, mock_transcribe, mock_assess):
+        """run_ai_feedback sets FAILED when assess_session raises RuntimeError (AIAS-02 error path)."""
+        from session.tasks import run_ai_feedback
+        run_ai_feedback(self.job.pk)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, AIFeedbackJob.Status.FAILED)
+        self.assertIn("Claude API error", self.job.error_message)
+        self.assertEqual(CriterionScore.objects.filter(source=ScoreSource.AI).count(), 0)
+
+    @patch("session.services.assessment.assess_session", side_effect=RuntimeError("Claude response missing criteria"))
+    @patch("session.services.transcription.transcribe_session", return_value="test transcript")
+    def test_task_fails_on_missing_criterion(self, mock_transcribe, mock_assess):
+        """run_ai_feedback sets FAILED when assess_session raises 'missing criteria' error (AIAS-02)."""
+        from session.tasks import run_ai_feedback
+        run_ai_feedback(self.job.pk)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, AIFeedbackJob.Status.FAILED)
+        self.assertIn("missing criteria", self.job.error_message)
 
 
 # ─── TranscriptionServiceTests ───────────────────────────────────────────────
@@ -1261,3 +1332,137 @@ class AIFeedbackTriggerTests(TestCase):
         client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
         response = client.get(f"/api/sessions/{self.session.pk}/ai-feedback/")
         self.assertEqual(response.status_code, 404)
+
+
+# ─── AssessmentServiceTests ───────────────────────────────────────────────────
+
+class AssessmentServiceTests(TestCase):
+    """Unit tests for session.services.assessment.assess_session."""
+
+    def setUp(self):
+        from session.models import SessionPart, SessionQuestion
+
+        self.examiner = User.objects.create_user(
+            username="examiner_assessment",
+            password="testpass123",
+            role=User.Role.EXAMINER,
+            is_verified=True,
+        )
+        preset = MockPreset.objects.create(name="Assessment Test Preset", owner=self.examiner)
+        self.session = IELTSMockSession.objects.create(
+            examiner=self.examiner,
+            preset=preset,
+            status=SessionStatus.COMPLETED,
+        )
+        self.job = AIFeedbackJob.objects.create(session=self.session, transcript="test transcript")
+
+        # Create SessionPart and SessionQuestions for question context tests
+        self.topic = Topic.objects.create(
+            name="Assessment Test Topic",
+            part=IELTSSpeakingPart.PART_1,
+            slug="assessment-test-topic",
+        )
+        self.question1 = Question.objects.create(
+            topic=self.topic,
+            text="Tell me about your childhood",
+        )
+        self.question2 = Question.objects.create(
+            topic=self.topic,
+            text="What is your favourite hobby",
+        )
+        self.part = SessionPart.objects.create(
+            session=self.session,
+            part=IELTSSpeakingPart.PART_1,
+        )
+        SessionQuestion.objects.create(session_part=self.part, question=self.question1, order=1)
+        SessionQuestion.objects.create(session_part=self.part, question=self.question2, order=2)
+
+    def _mock_anthropic_response(self, assessment_data):
+        """Build a mock anthropic module and client returning the given assessment_data."""
+        mock_block = MagicMock()
+        mock_block.type = "tool_use"
+        mock_block.input = assessment_data
+        mock_response = MagicMock()
+        mock_response.content = [mock_block]
+        mock_response.stop_reason = "tool_use"
+        mock_client = MagicMock()
+        mock_client.messages.create.return_value = mock_response
+        mock_module = MagicMock()
+        mock_module.Anthropic.return_value = mock_client
+        return mock_module, mock_client
+
+    def _valid_assessment_data(self):
+        return {
+            "fluency_and_coherence": {"band": 7, "feedback": "Good fluency and coherence throughout."},
+            "grammatical_range_and_accuracy": {"band": 6, "feedback": "Some grammatical errors noted."},
+            "lexical_resource": {"band": 7, "feedback": "Good range of vocabulary used."},
+            "pronunciation": {"band": 6, "feedback": "Generally clear pronunciation."},
+        }
+
+    def test_builds_question_context(self):
+        """assess_session builds user message containing session questions and transcript (AIAS-04)."""
+        import sys
+        from session.services.assessment import assess_session
+
+        mock_module, mock_client = self._mock_anthropic_response(self._valid_assessment_data())
+        with patch.dict(sys.modules, {"anthropic": mock_module}):
+            assess_session(self.job)
+
+        call_kwargs = mock_client.messages.create.call_args[1]
+        user_message = call_kwargs["messages"][0]["content"]
+        self.assertIn("Tell me about your childhood", user_message)
+        self.assertIn("What is your favourite hobby", user_message)
+        self.assertIn("[Part 1]", user_message)
+        self.assertIn("test transcript", user_message)
+
+    def test_returns_four_criteria(self):
+        """assess_session returns a list of 4 dicts with criterion, band, feedback (AIAS-02)."""
+        import sys
+        from session.services.assessment import assess_session
+
+        mock_module, mock_client = self._mock_anthropic_response(self._valid_assessment_data())
+        with patch.dict(sys.modules, {"anthropic": mock_module}):
+            result = assess_session(self.job)
+
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 4)
+        criterion_values = {entry["criterion"] for entry in result}
+        self.assertEqual(criterion_values, {1, 2, 3, 4})
+        for entry in result:
+            self.assertIn("criterion", entry)
+            self.assertIn("band", entry)
+            self.assertIn("feedback", entry)
+
+    def test_raises_on_missing_tool_use_block(self):
+        """assess_session raises RuntimeError containing 'tool_use' when no tool_use block in response."""
+        import sys
+        from session.services.assessment import assess_session
+
+        mock_block = MagicMock()
+        mock_block.type = "text"
+        mock_response = MagicMock()
+        mock_response.content = [mock_block]
+        mock_response.stop_reason = "end_turn"
+        mock_client = MagicMock()
+        mock_client.messages.create.return_value = mock_response
+        mock_module = MagicMock()
+        mock_module.Anthropic.return_value = mock_client
+
+        with patch.dict(sys.modules, {"anthropic": mock_module}):
+            with self.assertRaises(RuntimeError) as ctx:
+                assess_session(self.job)
+        self.assertIn("tool_use", str(ctx.exception))
+
+    def test_raises_on_invalid_band(self):
+        """assess_session raises RuntimeError containing 'Invalid band' when band is out of range."""
+        import sys
+        from session.services.assessment import assess_session
+
+        bad_data = self._valid_assessment_data()
+        bad_data["fluency_and_coherence"]["band"] = 0  # invalid: must be 1-9
+
+        mock_module, _ = self._mock_anthropic_response(bad_data)
+        with patch.dict(sys.modules, {"anthropic": mock_module}):
+            with self.assertRaises(RuntimeError) as ctx:
+                assess_session(self.job)
+        self.assertIn("Invalid band", str(ctx.exception))
