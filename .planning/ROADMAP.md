@@ -181,9 +181,11 @@ Plans:
   2. Four CriterionScore records (FC, GRA, LR, PR) are created with source=AI and band scores in the 1-9 range
   3. Each AI criterion score has 3-4 sentences of actionable feedback stored on the score record
   4. AIFeedbackJob status transitions from PROCESSING to DONE on success, or to FAILED with an error message on Claude API error
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
+- [ ] 12-01-PLAN.md -- Install anthropic SDK, settings, and assessment service module
+- [ ] 12-02-PLAN.md -- Wire assess_session into task and add comprehensive tests
 
 #### Phase 13: Usage Control
 **Goal**: Examiners are subject to a monthly AI feedback limit and receive a clear error when that limit is reached
@@ -215,7 +217,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 10 → 11 → 12 → 13 → 14
+Phases execute in numeric order: 10 -> 11 -> 12 -> 13 -> 14
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -229,7 +231,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14
 | 8. Email Notifications | v1.2 | 1/1 | Complete | 2026-03-30 |
 | 9. API Documentation | v1.2 | 1/1 | Complete | 2026-03-30 |
 | 10. Data Models & Task Infrastructure | v1.3 | 2/2 | Complete    | 2026-04-07 |
-| 11. Transcription Service | v1.3 | 3/3 | Complete   | 2026-04-08 |
-| 12. AI Assessment Service | v1.3 | 0/? | Not started | - |
+| 11. Transcription Service | v1.3 | 3/3 | Complete    | 2026-04-08 |
+| 12. AI Assessment Service | v1.3 | 0/2 | Not started | - |
 | 13. Usage Control | v1.3 | 0/? | Not started | - |
 | 14. API Endpoints & Delivery | v1.3 | 0/? | Not started | - |
