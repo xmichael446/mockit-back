@@ -17,6 +17,7 @@ from main.models import CandidateProfile, ExaminerProfile, ScoreHistory, User
 from questions.models import Question, FollowUpQuestion
 from questions.serializers import QuestionDetailSerializer
 from .models import (
+    AIFeedbackJob,
     IELTSMockSession,
     MockPreset,
     Note,
@@ -46,6 +47,7 @@ from .serializers import (
     SharedSessionSerializer,
 )
 from .services.hms import create_room, generate_app_token
+from django_q.tasks import async_task
 
 audit = logging.getLogger("mockit.audit")
 
@@ -1183,3 +1185,59 @@ class CancelSessionView(APIView):
         _broadcast(session.pk, "session.cancelled", {"session_id": session.pk})
 
         return Response({"detail": "Session cancelled."})
+
+
+# ─── AI Feedback ──────────────────────────────────────────────────────────────
+
+class AIFeedbackTriggerView(APIView):
+    """
+    POST /api/sessions/<id>/ai-feedback/
+    Examiner triggers AI feedback transcription on a completed session.
+    Returns 202 Accepted with job id and initial status.
+
+    GET /api/sessions/<id>/ai-feedback/
+    Examiner or candidate retrieves the latest AI feedback job status and transcript.
+    """
+
+    def post(self, request, pk):
+        try:
+            session = _session_qs().get(pk=pk)
+        except IELTSMockSession.DoesNotExist:
+            return Response({"detail": "Not found."}, status=404)
+
+        if request.user != session.examiner:
+            return Response({"detail": "Only the session examiner can trigger AI feedback."}, status=403)
+
+        if session.status != SessionStatus.COMPLETED:
+            return Response({"detail": "Session must be completed before triggering AI feedback."}, status=400)
+
+        if AIFeedbackJob.objects.filter(
+            session=session,
+            status__in=[AIFeedbackJob.Status.PENDING, AIFeedbackJob.Status.PROCESSING],
+        ).exists():
+            return Response({"detail": "An AI feedback job is already in progress for this session."}, status=409)
+
+        job = AIFeedbackJob.objects.create(session=session)
+        async_task('session.tasks.run_ai_feedback', job.pk)
+
+        return Response({"job_id": job.pk, "status": "Pending"}, status=202)
+
+    def get(self, request, pk):
+        try:
+            session = _session_qs().get(pk=pk)
+        except IELTSMockSession.DoesNotExist:
+            return Response({"detail": "Not found."}, status=404)
+
+        if request.user != session.examiner and request.user != session.candidate:
+            return Response({"detail": "You are not a participant of this session."}, status=403)
+
+        job = AIFeedbackJob.objects.filter(session=session).order_by("-created_at").first()
+        if job is None:
+            return Response({"detail": "No AI feedback job found for this session."}, status=404)
+
+        return Response({
+            "job_id": job.pk,
+            "status": job.get_status_display(),
+            "transcript": job.transcript,
+            "error_message": job.error_message,
+        })
