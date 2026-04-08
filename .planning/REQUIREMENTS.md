@@ -30,9 +30,9 @@ Requirements for AI Feedback & Assessment milestone. Each maps to roadmap phases
 
 ### Usage Control
 
-- [ ] **UCTL-01**: Monthly usage limit per examiner (default: 10 AI feedback generations/month)
-- [ ] **UCTL-02**: Usage check uses select_for_update + atomic increment to prevent race conditions
-- [ ] **UCTL-03**: Examiner receives clear error when monthly limit is reached
+- [x] **UCTL-01**: Monthly usage limit per examiner (default: 10 AI feedback generations/month)
+- [x] **UCTL-02**: Usage check uses select_for_update + atomic increment to prevent race conditions
+- [x] **UCTL-03**: Examiner receives clear error when monthly limit is reached
 
 ### API & Delivery
 
@@ -86,9 +86,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BGPR-01 | Phase 10 | Complete |
 | BGPR-02 | Phase 10 | Complete |
 | BGPR-03 | Phase 10 | Complete |
-| UCTL-01 | Phase 13 | Pending |
-| UCTL-02 | Phase 13 | Pending |
-| UCTL-03 | Phase 13 | Pending |
+| UCTL-01 | Phase 13 | Complete |
+| UCTL-02 | Phase 13 | Complete |
+| UCTL-03 | Phase 13 | Complete |
 | APID-01 | Phase 14 | Pending |
 | APID-02 | Phase 14 | Pending |
 | APID-03 | Phase 14 | Pending |

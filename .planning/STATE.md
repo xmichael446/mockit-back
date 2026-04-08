@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: AI Feedback & Assessment
 status: verifying
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-04-08T05:42:56.608Z"
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-04-08T06:03:37.857Z"
 last_activity: 2026-04-08
 progress:
   total_phases: 5
@@ -69,6 +69,8 @@ For v1.3:
 - [Phase 12-ai-assessment-service]: assess_session propagates anthropic exceptions to task caller — task sets FAILED status and records error_message
 - [Phase 12-02]: Patch target for assess_session is session.services.assessment.assess_session (deferred import resolves from services module)
 - [Phase 12-02]: patch.dict(sys.modules) used in AssessmentServiceTests to inject mock anthropic because assess_session imports anthropic inside function body at call time
+- [Phase 13-usage-control]: select_for_update on all examiner jobs prevents concurrent requests bypassing monthly AI feedback limit
+- [Phase 13-usage-control]: FAILED AIFeedbackJob excluded from monthly count; async_task called after transaction.atomic exits
 
 ### Research Flags (needs codebase check during planning)
 
@@ -86,7 +88,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T05:42:56.601Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-04-08T06:03:37.851Z
+Stopped at: Completed 13-01-PLAN.md
 Resume file: None
 Next action: /gsd:plan-phase 10
