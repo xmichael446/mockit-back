@@ -138,6 +138,9 @@ WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "base")
 # Claude AI assessment
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
+# AI feedback usage limits
+AI_FEEDBACK_MONTHLY_LIMIT = int(os.environ.get("AI_FEEDBACK_MONTHLY_LIMIT", "10"))
+
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 

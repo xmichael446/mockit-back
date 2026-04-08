@@ -1211,15 +1211,41 @@ class AIFeedbackTriggerView(APIView):
         if session.status != SessionStatus.COMPLETED:
             return Response({"detail": "Session must be completed before triggering AI feedback."}, status=400)
 
-        if AIFeedbackJob.objects.filter(
-            session=session,
-            status__in=[AIFeedbackJob.Status.PENDING, AIFeedbackJob.Status.PROCESSING],
-        ).exists():
-            return Response({"detail": "An AI feedback job is already in progress for this session."}, status=409)
+        with transaction.atomic():
+            # Lock all jobs for this examiner's sessions to prevent race conditions
+            existing_jobs = list(
+                AIFeedbackJob.objects.select_for_update()
+                .filter(session__examiner=request.user)
+                .values_list("status", "created_at")
+            )
 
-        job = AIFeedbackJob.objects.create(session=session)
+            # Check for in-progress job on THIS session
+            if AIFeedbackJob.objects.filter(
+                session=session,
+                status__in=[AIFeedbackJob.Status.PENDING, AIFeedbackJob.Status.PROCESSING],
+            ).exists():
+                return Response(
+                    {"detail": "An AI feedback job is already in progress for this session."},
+                    status=409,
+                )
+
+            # Monthly usage limit check
+            now = timezone.now()
+            month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            monthly_count = sum(
+                1 for status, created_at in existing_jobs
+                if created_at >= month_start and status != AIFeedbackJob.Status.FAILED
+            )
+            limit = settings.AI_FEEDBACK_MONTHLY_LIMIT
+            if monthly_count >= limit:
+                return Response(
+                    {"detail": f"Monthly AI feedback limit reached ({limit}/{limit}). Resets next month."},
+                    status=429,
+                )
+
+            job = AIFeedbackJob.objects.create(session=session)
+
         async_task('session.tasks.run_ai_feedback', job.pk)
-
         return Response({"job_id": job.pk, "status": "Pending"}, status=202)
 
     def get(self, request, pk):
