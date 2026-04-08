@@ -17,9 +17,9 @@ Requirements for AI Feedback & Assessment milestone. Each maps to roadmap phases
 ### AI Assessment
 
 - [x] **AIAS-01**: Source enum added to CriterionScore distinguishing examiner vs AI scores
-- [ ] **AIAS-02**: AI generates band scores (1-9) for each IELTS criterion (FC, GRA, LR, PR)
-- [ ] **AIAS-03**: AI generates 3-4 sentence actionable feedback per criterion
-- [ ] **AIAS-04**: AI prompt includes actual session questions for context-aware assessment
+- [x] **AIAS-02**: AI generates band scores (1-9) for each IELTS criterion (FC, GRA, LR, PR)
+- [x] **AIAS-03**: AI generates 3-4 sentence actionable feedback per criterion
+- [x] **AIAS-04**: AI prompt includes actual session questions for context-aware assessment
 - [x] **AIAS-05**: Existing compute_overall_band filters by examiner source only (no regression)
 
 ### Background Processing
@@ -79,9 +79,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TRNS-03 | Phase 11 | Complete |
 | TRNS-04 | Phase 11 | Complete |
 | AIAS-01 | Phase 10 | Complete |
-| AIAS-02 | Phase 12 | Pending |
-| AIAS-03 | Phase 12 | Pending |
-| AIAS-04 | Phase 12 | Pending |
+| AIAS-02 | Phase 12 | Complete |
+| AIAS-03 | Phase 12 | Complete |
+| AIAS-04 | Phase 12 | Complete |
 | AIAS-05 | Phase 10 | Complete |
 | BGPR-01 | Phase 10 | Complete |
 | BGPR-02 | Phase 10 | Complete |
