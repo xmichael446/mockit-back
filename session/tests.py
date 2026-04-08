@@ -1152,3 +1152,112 @@ class TranscriptionServiceTests(TestCase):
             with self.assertRaises(RuntimeError) as ctx:
                 transcribe_session(self.job)
         self.assertIn("Audio file not found", str(ctx.exception))
+
+
+# ─── AIFeedbackTriggerTests ───────────────────────────────────────────────────
+
+class AIFeedbackTriggerTests(TestCase):
+    """Tests for POST/GET /api/sessions/<id>/ai-feedback/ endpoints."""
+
+    def setUp(self):
+        self.examiner = User.objects.create_user(
+            username="trigger_examiner", password="pass", email="trigger_ex@example.com",
+            role=1, is_verified=True,
+        )
+        self.candidate = User.objects.create_user(
+            username="trigger_candidate", password="pass", email="trigger_cand@example.com", role=2
+        )
+        self.other_examiner = User.objects.create_user(
+            username="trigger_other_ex", password="pass", email="trigger_other@example.com",
+            role=1, is_verified=True,
+        )
+        self.preset = MockPreset.objects.create(name="Trigger Test Preset", owner=self.examiner)
+        self.session = IELTSMockSession.objects.create(
+            examiner=self.examiner,
+            candidate=self.candidate,
+            preset=self.preset,
+            status=SessionStatus.COMPLETED,
+        )
+        # Create a recording so the task has something to work with
+        self.recording = SessionRecording.objects.create(
+            session=self.session,
+            audio_file="recordings/test.webm",
+        )
+        self.examiner_token = Token.objects.create(user=self.examiner)
+        self.candidate_token = Token.objects.create(user=self.candidate)
+        self.other_token = Token.objects.create(user=self.other_examiner)
+
+    @patch("session.views.async_task")
+    def test_trigger_creates_job_and_returns_202(self, mock_async_task):
+        """POST as examiner creates an AIFeedbackJob and returns 202 with job_id and Pending status."""
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        response = client.post(f"/api/sessions/{self.session.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 202)
+        self.assertIn("job_id", response.data)
+        self.assertEqual(response.data["status"], "Pending")
+        self.assertEqual(AIFeedbackJob.objects.filter(session=self.session).count(), 1)
+        mock_async_task.assert_called_once()
+
+    @patch("session.views.async_task")
+    def test_trigger_non_owner_returns_403(self, mock_async_task):
+        """POST as a different examiner (not session owner) returns 403."""
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.other_token.key}")
+        response = client.post(f"/api/sessions/{self.session.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 403)
+        mock_async_task.assert_not_called()
+
+    @patch("session.views.async_task")
+    def test_trigger_non_completed_session_returns_400(self, mock_async_task):
+        """POST on a non-COMPLETED session returns 400."""
+        self.session.status = SessionStatus.SCHEDULED
+        self.session.save(update_fields=["status"])
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        response = client.post(f"/api/sessions/{self.session.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 400)
+        mock_async_task.assert_not_called()
+
+    @patch("session.views.async_task")
+    def test_trigger_duplicate_returns_409(self, mock_async_task):
+        """POST when a PENDING job exists returns 409."""
+        AIFeedbackJob.objects.create(session=self.session, status=AIFeedbackJob.Status.PENDING)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        response = client.post(f"/api/sessions/{self.session.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 409)
+        mock_async_task.assert_not_called()
+
+    @patch("session.views.async_task")
+    def test_trigger_allows_retry_after_failed(self, mock_async_task):
+        """POST when the only existing job has FAILED status allows creating a new job (202)."""
+        AIFeedbackJob.objects.create(session=self.session, status=AIFeedbackJob.Status.FAILED)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        response = client.post(f"/api/sessions/{self.session.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(AIFeedbackJob.objects.filter(session=self.session).count(), 2)
+        mock_async_task.assert_called_once()
+
+    def test_get_returns_latest_job_status(self):
+        """GET as examiner returns the latest job status and transcript."""
+        job = AIFeedbackJob.objects.create(
+            session=self.session,
+            status=AIFeedbackJob.Status.DONE,
+            transcript="Test transcript",
+        )
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        response = client.get(f"/api/sessions/{self.session.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["job_id"], job.pk)
+        self.assertEqual(response.data["status"], "Done")
+        self.assertEqual(response.data["transcript"], "Test transcript")
+
+    def test_get_no_job_returns_404(self):
+        """GET when no AI feedback job exists for the session returns 404."""
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        response = client.get(f"/api/sessions/{self.session.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 404)
