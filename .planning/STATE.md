@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: AI Feedback & Assessment
 status: verifying
-stopped_at: Completed 11-02-PLAN.md
-last_updated: "2026-04-07T19:45:21.826Z"
-last_activity: 2026-04-07
+stopped_at: Completed 11-03-PLAN.md
+last_updated: "2026-04-08T05:04:29.332Z"
+last_activity: 2026-04-08
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 5
+  completed_plans: 5
   percent: 0
 ---
 
@@ -21,7 +21,7 @@ progress:
 Phase: 10 (Data Models & Task Infrastructure) — EXECUTING
 Plan: 2 of 2
 Status: Phase complete — ready for verification
-Last activity: 2026-04-07
+Last activity: 2026-04-08
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -63,6 +63,8 @@ For v1.3:
 - [Phase 11-01]: Lazy WhisperModel instantiation inside transcribe_session() — avoids import-time cost and startup delay
 - [Phase 11-01]: initial_prompt built from all SessionQuestion texts with select_related to avoid N+1 queries
 - [Phase 11-transcription-service]: Patch target for integration tests is session.services.transcription.transcribe_session not session.tasks.transcribe_session because deferred import resolves at call time from the services module
+- [Phase 11-03]: GET ai-feedback endpoint accessible to both examiner and candidate so candidates can poll transcript
+- [Phase 11-03]: 409 for PENDING/PROCESSING duplicate job; FAILED status allows retry — preserves audit trail of attempts
 
 ### Research Flags (needs codebase check during planning)
 
@@ -80,7 +82,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T19:45:21.820Z
-Stopped at: Completed 11-02-PLAN.md
+Last session: 2026-04-08T05:04:29.323Z
+Stopped at: Completed 11-03-PLAN.md
 Resume file: None
 Next action: /gsd:plan-phase 10
