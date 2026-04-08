@@ -18,9 +18,11 @@ from questions.models import Question, FollowUpQuestion
 from questions.serializers import QuestionDetailSerializer
 from .models import (
     AIFeedbackJob,
+    CriterionScore,
     IELTSMockSession,
     MockPreset,
     Note,
+    ScoreSource,
     SessionFollowUp,
     SessionPart,
     SessionQuestion,
@@ -1261,9 +1263,26 @@ class AIFeedbackTriggerView(APIView):
         if job is None:
             return Response({"detail": "No AI feedback job found for this session."}, status=404)
 
-        return Response({
+        response_data = {
             "job_id": job.pk,
             "status": job.get_status_display(),
             "transcript": job.transcript,
             "error_message": job.error_message,
-        })
+            "scores": None,
+        }
+
+        if job.status == AIFeedbackJob.Status.DONE:
+            ai_scores = CriterionScore.objects.filter(
+                session_result__session=session,
+                source=ScoreSource.AI,
+            )
+            response_data["scores"] = [
+                {
+                    "criterion": score.get_criterion_display(),
+                    "band": score.band,
+                    "feedback": score.feedback,
+                }
+                for score in ai_scores
+            ]
+
+        return Response(response_data)

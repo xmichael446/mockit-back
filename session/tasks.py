@@ -41,6 +41,13 @@ def run_ai_feedback(job_id: int) -> None:
         job.status = AIFeedbackJob.Status.DONE
         job.save(update_fields=["status", "updated_at"])
 
+        # Phase 14: notify connected clients via WebSocket
+        from session.views import _broadcast
+        _broadcast(job.session_id, "ai_feedback_ready", {
+            "job_id": job.pk,
+            "session_id": job.session_id,
+        })
+
     except AIFeedbackJob.DoesNotExist:
         logger.error("run_ai_feedback: job_id=%s not found", job_id)
     except Exception as exc:
