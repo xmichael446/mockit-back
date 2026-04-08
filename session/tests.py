@@ -1311,6 +1311,90 @@ class AIFeedbackTriggerTests(TestCase):
         self.assertEqual(AIFeedbackJob.objects.filter(session=self.session).count(), 2)
         mock_async_task.assert_called_once()
 
+    @patch("session.views.async_task")
+    def test_trigger_returns_429_when_monthly_limit_reached(self, mock_async_task):
+        """POST when examiner has reached the monthly limit returns 429."""
+        # Create 10 DONE jobs for this examiner this month
+        for _ in range(10):
+            AIFeedbackJob.objects.create(session=self.session, status=AIFeedbackJob.Status.DONE)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        response = client.post(f"/api/sessions/{self.session.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 429)
+        self.assertIn("Monthly AI feedback limit reached", response.data["detail"])
+        mock_async_task.assert_not_called()
+
+    @patch("session.views.async_task")
+    def test_trigger_allows_when_under_limit(self, mock_async_task):
+        """POST when examiner has 9 jobs this month allows creating a new one (202)."""
+        for _ in range(9):
+            AIFeedbackJob.objects.create(session=self.session, status=AIFeedbackJob.Status.DONE)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        response = client.post(f"/api/sessions/{self.session.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 202)
+        mock_async_task.assert_called_once()
+
+    @patch("session.views.async_task")
+    def test_trigger_excludes_failed_from_count(self, mock_async_task):
+        """POST when examiner has 10 FAILED jobs this month still allows a new job (202)."""
+        for _ in range(10):
+            AIFeedbackJob.objects.create(session=self.session, status=AIFeedbackJob.Status.FAILED)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        response = client.post(f"/api/sessions/{self.session.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 202)
+        mock_async_task.assert_called_once()
+
+    @patch("session.views.async_task")
+    def test_trigger_resets_count_each_month(self, mock_async_task):
+        """POST when examiner has 10 DONE jobs from LAST month allows a new job (202)."""
+        # Compute previous month start
+        now = timezone.now()
+        # Go back to last month by subtracting enough days then floor to 1st
+        last_month_end = now.replace(day=1) - timezone.timedelta(days=1)
+        last_month_start = last_month_end.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        for _ in range(10):
+            job = AIFeedbackJob.objects.create(session=self.session, status=AIFeedbackJob.Status.DONE)
+            AIFeedbackJob.objects.filter(pk=job.pk).update(created_at=last_month_start)
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        response = client.post(f"/api/sessions/{self.session.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 202)
+        mock_async_task.assert_called_once()
+
+    @patch("session.views.async_task")
+    def test_trigger_counts_across_sessions(self, mock_async_task):
+        """Jobs across different sessions for same examiner all count toward the monthly limit."""
+        # Create a second completed session for the same examiner
+        session2 = IELTSMockSession.objects.create(
+            examiner=self.examiner,
+            candidate=self.candidate,
+            preset=self.preset,
+            status=SessionStatus.COMPLETED,
+        )
+        # Create a third completed session to trigger on
+        session3 = IELTSMockSession.objects.create(
+            examiner=self.examiner,
+            candidate=self.candidate,
+            preset=self.preset,
+            status=SessionStatus.COMPLETED,
+        )
+        # 5 DONE jobs on session1, 5 DONE jobs on session2 = 10 total
+        for _ in range(5):
+            AIFeedbackJob.objects.create(session=self.session, status=AIFeedbackJob.Status.DONE)
+        for _ in range(5):
+            AIFeedbackJob.objects.create(session=session2, status=AIFeedbackJob.Status.DONE)
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        response = client.post(f"/api/sessions/{session3.pk}/ai-feedback/")
+        self.assertEqual(response.status_code, 429)
+        self.assertIn("Monthly AI feedback limit reached", response.data["detail"])
+        mock_async_task.assert_not_called()
+
     def test_get_returns_latest_job_status(self):
         """GET as examiner returns the latest job status and transcript."""
         job = AIFeedbackJob.objects.create(
