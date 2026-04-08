@@ -110,6 +110,16 @@ Fired when the examiner cancels a scheduled session (before any candidate accept
 { "type": "session.cancelled", "session_id": 5 }
 ```
 
+#### `ai_feedback_ready`
+Fired when an AI feedback background job completes successfully. Clients should fetch full results via `GET /api/sessions/<id>/ai-feedback/`. The event payload is intentionally minimal.
+```json
+{
+  "type": "ai_feedback_ready",
+  "job_id": 1,
+  "session_id": 42
+}
+```
+
 #### `result.released`
 Fired when the examiner releases the result. The candidate should wait for this event — do **not** poll the result endpoint. The event carries the full result so the candidate can display it immediately without an extra GET request.
 ```json
