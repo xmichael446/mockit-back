@@ -1550,3 +1550,101 @@ class AssessmentServiceTests(TestCase):
             with self.assertRaises(RuntimeError) as ctx:
                 assess_session(self.job)
         self.assertIn("Invalid band", str(ctx.exception))
+
+
+class AIFeedbackDeliveryTests(TestCase):
+    """Tests for AI scores in GET response and WebSocket broadcast."""
+
+    def setUp(self):
+        self.examiner = User.objects.create_user(
+            username="delivery_examiner", password="pass", email="del_ex@example.com",
+            role=1, is_verified=True,
+        )
+        self.candidate = User.objects.create_user(
+            username="delivery_candidate", password="pass", email="del_cand@example.com", role=2,
+        )
+        self.preset = MockPreset.objects.create(name="Delivery Preset", owner=self.examiner)
+        self.session = IELTSMockSession.objects.create(
+            examiner=self.examiner, candidate=self.candidate,
+            preset=self.preset, status=SessionStatus.COMPLETED,
+        )
+        self.recording = SessionRecording.objects.create(
+            session=self.session, audio_file="recordings/test.webm",
+        )
+        self.examiner_token = Token.objects.create(user=self.examiner)
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.examiner_token.key}")
+        self.url = f"/api/sessions/{self.session.pk}/ai-feedback/"
+
+    def test_get_done_includes_ai_scores(self):
+        """GET when job is DONE returns scores array with 4 AI criteria."""
+        job = AIFeedbackJob.objects.create(session=self.session, status=AIFeedbackJob.Status.DONE)
+        result = SessionResult.objects.create(session=self.session)
+        for criterion, band in [(1, 7), (2, 6), (3, 7), (4, 7)]:
+            CriterionScore.objects.create(
+                session_result=result, criterion=criterion,
+                source=ScoreSource.AI, band=band, feedback=f"Feedback for {criterion}",
+            )
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["scores"]), 4)
+        criteria = [s["criterion"] for s in response.data["scores"]]
+        self.assertIn("Fluency and Coherence", criteria)
+        for score in response.data["scores"]:
+            self.assertIn("criterion", score)
+            self.assertIn("band", score)
+            self.assertIn("feedback", score)
+
+    def test_get_pending_has_no_scores(self):
+        """GET when job is PENDING returns scores=None."""
+        AIFeedbackJob.objects.create(session=self.session, status=AIFeedbackJob.Status.PENDING)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.data["scores"])
+
+    def test_get_done_no_scores_returns_empty(self):
+        """GET when job is DONE but no AI scores exist returns empty list."""
+        AIFeedbackJob.objects.create(session=self.session, status=AIFeedbackJob.Status.DONE)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["scores"], [])
+
+    def test_get_scores_excludes_examiner_source(self):
+        """GET only returns AI source scores, not EXAMINER source."""
+        job = AIFeedbackJob.objects.create(session=self.session, status=AIFeedbackJob.Status.DONE)
+        result = SessionResult.objects.create(session=self.session)
+        for criterion in [1, 2, 3, 4]:
+            CriterionScore.objects.create(
+                session_result=result, criterion=criterion,
+                source=ScoreSource.AI, band=7, feedback="AI feedback",
+            )
+            CriterionScore.objects.create(
+                session_result=result, criterion=criterion,
+                source=ScoreSource.EXAMINER, band=6, feedback="Examiner feedback",
+            )
+        response = self.client.get(self.url)
+        self.assertEqual(len(response.data["scores"]), 4)
+
+    @patch("session.views._broadcast")
+    @patch("session.services.assessment.assess_session")
+    @patch("session.services.transcription.transcribe_session")
+    def test_broadcast_called_on_done(self, mock_transcribe, mock_assess, mock_broadcast):
+        """run_ai_feedback calls _broadcast with ai_feedback_ready after success."""
+        mock_transcribe.return_value = "Test transcript"
+        mock_assess.return_value = [
+            {"criterion": i, "band": 7, "feedback": f"Feedback {i}"} for i in [1, 2, 3, 4]
+        ]
+        job = AIFeedbackJob.objects.create(session=self.session)
+        run_ai_feedback(job.pk)
+        mock_broadcast.assert_called_once_with(
+            self.session.pk, "ai_feedback_ready",
+            {"job_id": job.pk, "session_id": self.session.pk},
+        )
+
+    @patch("session.views._broadcast")
+    @patch("session.services.transcription.transcribe_session", side_effect=Exception("Transcription failed"))
+    def test_broadcast_not_called_on_failure(self, mock_transcribe, mock_broadcast):
+        """run_ai_feedback does NOT call _broadcast when the job fails."""
+        job = AIFeedbackJob.objects.create(session=self.session)
+        run_ai_feedback(job.pk)
+        mock_broadcast.assert_not_called()
