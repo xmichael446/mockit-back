@@ -210,9 +210,11 @@ Plans:
   4. When a job completes, a WebSocket event (ai_feedback_ready) is pushed to the session group so connected clients are notified without polling
   5. docs/api/ is updated with request/response schemas and error scenarios for all three new endpoints
 **UI hint**: yes
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
+- [ ] 14-01-PLAN.md -- Enhance GET with AI scores, add WebSocket broadcast, tests
+- [ ] 14-02-PLAN.md -- Complete API documentation for ai-feedback and WebSocket event
 
 ## Progress
 
@@ -233,5 +235,5 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13 -> 14
 | 10. Data Models & Task Infrastructure | v1.3 | 2/2 | Complete    | 2026-04-07 |
 | 11. Transcription Service | v1.3 | 3/3 | Complete    | 2026-04-08 |
 | 12. AI Assessment Service | v1.3 | 2/2 | Complete   | 2026-04-08 |
-| 13. Usage Control | v1.3 | 0/? | Not started | - |
+| 13. Usage Control | v1.3 | 0/? | Complete    | 2026-04-08 |
 | 14. API Endpoints & Delivery | v1.3 | 0/? | Not started | - |
