@@ -21,7 +21,22 @@ def run_ai_feedback(job_id: int) -> None:
         job.transcript = transcript
         job.save(update_fields=["transcript", "updated_at"])
 
-        # Phase 12 will add: AI scoring via Claude API
+        # Phase 12: AI scoring via Claude API
+        from session.services.assessment import assess_session
+        from session.models import SessionResult, CriterionScore, ScoreSource
+
+        scores_data = assess_session(job)
+        result, _ = SessionResult.objects.get_or_create(session=job.session)
+        CriterionScore.objects.bulk_create([
+            CriterionScore(
+                session_result=result,
+                criterion=entry["criterion"],
+                source=ScoreSource.AI,
+                band=entry["band"],
+                feedback=entry["feedback"],
+            )
+            for entry in scores_data
+        ])
 
         job.status = AIFeedbackJob.Status.DONE
         job.save(update_fields=["status", "updated_at"])
