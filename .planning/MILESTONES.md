@@ -1,5 +1,22 @@
 # Milestones
 
+## v1.3 AI Feedback & Assessment (Shipped: 2026-04-08)
+
+**Phases completed:** 5 phases, 10 plans, 11 tasks
+
+**Key accomplishments:**
+
+- ScoreSource enum and source field added to CriterionScore, compute_overall_band updated to filter EXAMINER-only, and AIFeedbackJob model created for async job lifecycle tracking
+- One-liner:
+- faster-whisper CPU transcription service with lazy WhisperModel loading, initial_prompt from SessionQuestion context, and AIFeedbackJob.transcript storage
+- transcribe_session() wired into run_ai_feedback background task with 7 mocked tests verifying TRNS-01 through TRNS-04
+- HTTP trigger surface for examiner-initiated AI feedback: POST returns 202+job_id, GET returns transcript/status, with ownership, status, and duplicate-job guards
+- Claude API assessment service using forced tool_use to produce IELTS band scores (1-9) and 3-4 sentence feedback for all four speaking criteria (FC, GRA, LR, PR)
+- run_ai_feedback task wired to Claude API assessment service via bulk_create of 4 AI CriterionScore records, with 13 new tests covering score creation, feedback storage, error paths, and question context building
+- One-liner:
+
+---
+
 ## v1.2 Profiles & Scheduling (Shipped: 2026-03-30)
 
 **Phases completed:** 6 phases, 9 plans, 17 tasks

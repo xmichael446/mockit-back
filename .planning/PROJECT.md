@@ -43,20 +43,18 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 - ScoreSource enum (EXAMINER/AI) on CriterionScore with EXAMINER-only band calculation — v1.3 Phase 10
 - AIFeedbackJob model with PENDING/PROCESSING/DONE/FAILED status tracking — v1.3 Phase 10
 - django-q2 background task infrastructure with ORM broker — v1.3 Phase 10
+- Audio transcription via faster-whisper with SessionQuestion context — v1.3 Phase 11
+- AI feedback trigger endpoint (POST 202 + GET status/transcript) — v1.3 Phase 11
+- Claude API assessment with tool_use for 4-criterion IELTS scoring — v1.3 Phase 12
+- AI CriterionScore bulk creation (FC, GRA, LR, PR) with actionable feedback — v1.3 Phase 12
+- Monthly AI feedback limit (default 10) with select_for_update race prevention — v1.3 Phase 13
+- AI feedback GET returns scores array with per-criterion band and feedback — v1.3 Phase 14
+- WebSocket ai_feedback_ready event on job completion — v1.3 Phase 14
+- Complete API docs for AI feedback endpoints with schemas and error scenarios — v1.3 Phase 14
 
 ### Active
 
-## Current Milestone: v1.3 AI Feedback & Assessment
-
-**Goal:** Add AI-powered IELTS Speaking feedback that transcribes session recordings and generates per-criterion scores and actionable feedback via Claude API.
-
-**Target features:**
-- Audio transcription using Whisper (open-source, local)
-- AI feedback generation via Claude API (3-4 sentences per criterion + band scores)
-- Source enum on scoring model (examiner vs claude)
-- Async processing via ASGI background tasks with status polling
-- Monthly usage limit per examiner (default: 10/month)
-- REST endpoints: trigger, check status, retrieve AI feedback
+(Next milestone TBD)
 
 ### Out of Scope
 
@@ -82,12 +80,16 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 - 89+ tests across main/ and scheduling/ apps (23 profile, 62 scheduling, 4 score update)
 - session/views.py refactored — status checks centralized into model state machine
 - Audit logging active via `mockit.audit` logger to console + `logs/audit.log`
+- v1.3 shipped: 5 phases, 10 plans, AI feedback pipeline complete
+- 103+ session tests (transcription, assessment, trigger, delivery)
+- django-q2 for background tasks, faster-whisper for transcription, anthropic SDK for Claude API
+- AI feedback: examiner triggers → transcription → assessment → scores + WebSocket push
 
 ## Constraints
 
 - **Stack**: Django 5.2 + DRF + Channels 4.x — no framework changes
 - **Backward compat**: REST API and WebSocket event contracts must not break
-- **Growing tests**: 89+ tests from v1.2; no dedicated testing milestone yet
+- **Growing tests**: 103+ tests from v1.3; no dedicated testing milestone yet
 - **Frontend dependency**: Any API contract changes need frontend coordination
 
 ## Key Decisions
@@ -108,6 +110,11 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 | AvailabilitySlot FK to User (not ExaminerProfile) | Simpler FK chain, ExaminerProfile accessed separately | ✓ Good — consistent pattern |
 | select_for_update on accept path | Prevent double-booking race conditions | ✓ Good — database-level safety |
 | Email sends after transaction exits | Same discipline as _broadcast, prevents stale emails | ✓ Good — consistent pattern |
+| django-q2 with ORM broker (no Redis) | Minimal infrastructure, sufficient for v1.3 volume | ✓ Good — no new deps needed |
+| faster-whisper CPU with configurable model size | Local transcription without GPU dependency | ✓ Good — works on deploy target |
+| Claude tool_use for structured scoring output | Reliable JSON parsing without regex | ✓ Good — one-shot structured response |
+| Monthly usage limit via job count query | No separate counter model needed | ✓ Good — simple, accurate |
+| AI feedback as single unified endpoint | POST trigger + GET status/scores on same URL | ✓ Good — clean API surface |
 
 ## Evolution
 
@@ -127,4 +134,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-07 after Phase 10 complete*
+*Last updated: 2026-04-08 after v1.3 milestone complete*
