@@ -5,7 +5,8 @@
 - ✅ **v1.0 Initial Platform** - Pre-GSD (shipped before 2026-03-27)
 - ✅ **v1.1 Clean-up, Security & Edge Cases** - Phases 1-3 (shipped 2026-03-27)
 - ✅ **v1.2 Profiles & Scheduling** - Phases 4-9 (shipped 2026-03-30)
-- 🚧 **v1.3 AI Feedback & Assessment** - Phases 10-14 (in progress)
+- ✅ **v1.3 AI Feedback & Assessment** - Phases 10-14 (shipped 2026-04-08)
+- 🚧 **v1.4 AI Assessment Rebuild (Gemini Audio)** - Phases 15-17 (in progress)
 
 ## Phases
 
@@ -137,11 +138,10 @@ Plans:
 
 </details>
 
-### 🚧 v1.3 AI Feedback & Assessment (In Progress)
+<details>
+<summary>✅ v1.3 AI Feedback & Assessment (Phases 10-14) - SHIPPED 2026-04-08</summary>
 
-**Milestone Goal:** Transcribe session recordings using Whisper and generate per-criterion IELTS scores and actionable feedback via Claude API, delivered asynchronously with monthly usage limits.
-
-#### Phase 10: Data Models & Task Infrastructure
+### Phase 10: Data Models & Task Infrastructure
 **Goal**: The data layer and background task infrastructure are in place so that all subsequent phases have a stable foundation to build on
 **Depends on**: Phase 9 (v1.2 complete, CriterionScore model stable)
 **Requirements**: AIAS-01, AIAS-05, BGPR-01, BGPR-02, BGPR-03
@@ -156,7 +156,7 @@ Plans:
 - [x] 10-01-PLAN.md -- ScoreSource enum, CriterionScore.source field, compute_overall_band filter, AIFeedbackJob model
 - [x] 10-02-PLAN.md -- django-q2 installation, ORM broker config, run_ai_feedback task skeleton
 
-#### Phase 11: Transcription Service
+### Phase 11: Transcription Service
 **Goal**: Examiners can trigger transcription of a completed session's recording and retrieve the resulting transcript
 **Depends on**: Phase 10 (AIFeedbackJob model and task infrastructure exist)
 **Requirements**: TRNS-01, TRNS-02, TRNS-03, TRNS-04
@@ -172,7 +172,7 @@ Plans:
 - [x] 11-02-PLAN.md -- Task integration with transcribe_session and comprehensive tests
 - [x] 11-03-PLAN.md -- Gap closure: HTTP trigger and status endpoint for AI feedback
 
-#### Phase 12: AI Assessment Service
+### Phase 12: AI Assessment Service
 **Goal**: The background job generates IELTS band scores and actionable feedback for all four criteria using Claude API
 **Depends on**: Phase 11 (transcript and session question context are produced by the background job)
 **Requirements**: AIAS-02, AIAS-03, AIAS-04
@@ -187,7 +187,7 @@ Plans:
 - [x] 12-01-PLAN.md -- Install anthropic SDK, settings, and assessment service module
 - [x] 12-02-PLAN.md -- Wire assess_session into task and add comprehensive tests
 
-#### Phase 13: Usage Control
+### Phase 13: Usage Control
 **Goal**: Examiners are subject to a monthly AI feedback limit and receive a clear error when that limit is reached
 **Depends on**: Phase 10 (AIFeedbackJob model exists for counting), Phase 11 (trigger point identified)
 **Requirements**: UCTL-01, UCTL-02, UCTL-03
@@ -195,11 +195,12 @@ Plans:
   1. Each examiner has a monthly AI feedback generation limit (default: 10); the count resets each calendar month
   2. An examiner who has reached their limit receives a 429 response with a clear error message when attempting to trigger AI feedback
   3. Two concurrent trigger requests from the same examiner cannot both succeed past the limit check (select_for_update prevents race)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
+- [x] 13-01-PLAN.md -- Monthly limit check with select_for_update wired into trigger endpoint
 
-#### Phase 14: API Endpoints & Delivery
+### Phase 14: API Endpoints & Delivery
 **Goal**: Examiners and candidates can trigger, monitor, and retrieve AI feedback through REST endpoints and receive real-time notification on completion
 **Depends on**: Phase 12 (AI scores written), Phase 13 (usage enforcement at trigger point)
 **Requirements**: APID-01, APID-02, APID-03, APID-04, APID-05
@@ -213,13 +214,63 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 14-01-PLAN.md -- Enhance GET with AI scores, add WebSocket broadcast, tests
-- [ ] 14-02-PLAN.md -- Complete API documentation for ai-feedback and WebSocket event
+- [x] 14-01-PLAN.md -- Enhance GET with AI scores, add WebSocket broadcast, tests
+- [x] 14-02-PLAN.md -- Complete API documentation for ai-feedback and WebSocket event
+
+</details>
+
+### 🚧 v1.4 AI Assessment Rebuild (Gemini Audio) (In Progress)
+
+**Milestone Goal:** Replace the faster-whisper + Claude two-step pipeline with a single direct audio assessment call to Gemini Pro, enabling proper pronunciation evaluation while preserving the existing API contract.
+
+- [ ] **Phase 15: Infrastructure & Smoke Test** - Install Gemini SDK, configure API key, verify webm audio upload succeeds
+- [ ] **Phase 16: Gemini Assessment Service** - Rewrite assessment pipeline: audio → Gemini → scores + transcript in one call
+- [ ] **Phase 17: Compatibility, Cleanup & Test Update** - Wire task to new service, delete transcription.py, update tests
+
+## Phase Details
+
+### Phase 15: Infrastructure & Smoke Test
+**Goal**: The google-genai SDK is installed, the API key is configured, and a real webm audio file can be uploaded and processed by Gemini without error
+**Depends on**: Phase 14 (v1.3 complete)
+**Requirements**: INFRA-01, INFRA-02, INFRA-03
+**Success Criteria** (what must be TRUE):
+  1. Running the application with a valid GEMINI_API_KEY loads without error; missing key causes a fail-fast startup error identical in style to other required keys
+  2. faster-whisper and anthropic packages are absent from requirements.txt; google-genai is present
+  3. A webm audio file can be uploaded to the Gemini Files API and a model call against it returns a non-error response (smoke test script passes)
+**Plans**: 1 plan
+
+Plans:
+- [ ] 15-01-PLAN.md — Swap packages, configure GEMINI_API_KEY, create and verify webm smoke test
+
+### Phase 16: Gemini Assessment Service
+**Goal**: The AI feedback pipeline produces IELTS band scores and a transcript by sending session audio directly to Gemini Pro in a single call
+**Depends on**: Phase 15 (google-genai installed and smoke-tested)
+**Requirements**: ASMT-01, ASMT-02, ASMT-03, ASMT-04, PRMT-01
+**Success Criteria** (what must be TRUE):
+  1. Triggering AI feedback runs a single Gemini call (audio in, structured JSON out) with no intermediate transcription step
+  2. The response is parsed via a Pydantic schema; band scores are integers validated in the 1-9 range for all four criteria (FC, GRA, LR, PR)
+  3. A transcript is extracted from the Gemini response and stored on AIFeedbackJob.transcript as a byproduct of the same call
+  4. A Gemini safety filter rejection marks the job FAILED with a clear error message rather than crashing the worker
+  5. The system prompt includes full IELTS Speaking band descriptors for all four criteria with explicit audio-aware instructions covering pronunciation, intonation, and rhythm
+**Plans**: TBD
+**UI hint**: no
+
+### Phase 17: Compatibility, Cleanup & Test Update
+**Goal**: The existing API contract is fully preserved, dead code is removed, and tests mock the Gemini SDK instead of the old anthropic/faster-whisper dependencies
+**Depends on**: Phase 16 (Gemini assessment service complete and producing correct output)
+**Requirements**: CMPT-01, CMPT-02, CMPT-03, CLNP-01, CLNP-02, CLNP-03
+**Success Criteria** (what must be TRUE):
+  1. POST trigger and GET status/scores endpoints return identical shapes to v1.3 — no frontend changes required
+  2. WebSocket ai_feedback_ready event fires on job completion with the same payload structure as v1.3
+  3. Monthly AI feedback limit and select_for_update race prevention remain functional with the new pipeline
+  4. session/services/transcription.py no longer exists in the codebase
+  5. All existing AI feedback tests pass after updating mocks from anthropic/faster-whisper to google-genai
+**Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 10 -> 11 -> 12 -> 13 -> 14
+Phases execute in numeric order: 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> 17
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -232,8 +283,11 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13 -> 14
 | 7. Candidate Score Auto-Update | v1.2 | 1/1 | Complete | 2026-03-30 |
 | 8. Email Notifications | v1.2 | 1/1 | Complete | 2026-03-30 |
 | 9. API Documentation | v1.2 | 1/1 | Complete | 2026-03-30 |
-| 10. Data Models & Task Infrastructure | v1.3 | 2/2 | Complete    | 2026-04-07 |
-| 11. Transcription Service | v1.3 | 3/3 | Complete    | 2026-04-08 |
-| 12. AI Assessment Service | v1.3 | 2/2 | Complete   | 2026-04-08 |
-| 13. Usage Control | v1.3 | 0/? | Complete    | 2026-04-08 |
-| 14. API Endpoints & Delivery | v1.3 | 0/? | Complete    | 2026-04-08 |
+| 10. Data Models & Task Infrastructure | v1.3 | 2/2 | Complete | 2026-04-07 |
+| 11. Transcription Service | v1.3 | 3/3 | Complete | 2026-04-08 |
+| 12. AI Assessment Service | v1.3 | 2/2 | Complete | 2026-04-08 |
+| 13. Usage Control | v1.3 | 1/1 | Complete | 2026-04-08 |
+| 14. API Endpoints & Delivery | v1.3 | 2/2 | Complete | 2026-04-08 |
+| 15. Infrastructure & Smoke Test | v1.4 | 0/1 | Planned | - |
+| 16. Gemini Assessment Service | v1.4 | 0/? | Not started | - |
+| 17. Compatibility, Cleanup & Test Update | v1.4 | 0/? | Not started | - |
