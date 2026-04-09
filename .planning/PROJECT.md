@@ -2,11 +2,15 @@
 
 ## What This Is
 
-An IELTS Speaking mock exam platform where examiners conduct live sessions with candidates over video. Examiners maintain profiles with credentials, set weekly availability, and accept booking requests from candidates. Sessions are conducted with questions from a curated bank, scored across four IELTS criteria (FC, GRA, LR, PR), with results and score history tracked per candidate.
+An IELTS Speaking mock exam platform where examiners conduct live sessions with candidates over video. Examiners maintain profiles with credentials, set weekly availability, and accept booking requests from candidates. Sessions are conducted with questions from a curated bank, scored across four IELTS criteria (FC, GRA, LR, PR), with results and score history tracked per candidate. AI-powered assessment via Gemini Pro provides automated band scores and pronunciation feedback from session audio.
 
 ## Core Value
 
 Examiners can conduct a complete, real-time IELTS Speaking mock exam with a candidate — from invite through scoring — with minimal friction.
+
+## Current State
+
+v1.4 shipped. No active milestone — ready for next milestone planning.
 
 ## Requirements
 
@@ -51,10 +55,14 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 - AI feedback GET returns scores array with per-criterion band and feedback — v1.3 Phase 14
 - WebSocket ai_feedback_ready event on job completion — v1.3 Phase 14
 - Complete API docs for AI feedback endpoints with schemas and error scenarios — v1.3 Phase 14
+- Gemini Pro direct audio assessment replacing faster-whisper + Claude pipeline — v1.4
+- Audio-aware IELTS examiner system prompt (pronunciation, intonation, rhythm) — v1.4
+- API contract preserved through AI pipeline rebuild (endpoints, WebSocket, monthly limits) — v1.4
+- google-genai SDK replacing faster-whisper + anthropic dependencies — v1.4
 
 ### Active
 
-(Next milestone TBD)
+<!-- No active milestone — ready for /gsd:new-milestone -->
 
 ### Out of Scope
 
@@ -80,10 +88,13 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 - 89+ tests across main/ and scheduling/ apps (23 profile, 62 scheduling, 4 score update)
 - session/views.py refactored — status checks centralized into model state machine
 - Audit logging active via `mockit.audit` logger to console + `logs/audit.log`
-- v1.3 shipped: 5 phases, 10 plans, AI feedback pipeline complete
-- 103+ session tests (transcription, assessment, trigger, delivery)
-- django-q2 for background tasks, faster-whisper for transcription, anthropic SDK for Claude API
-- AI feedback: examiner triggers → transcription → assessment → scores + WebSocket push
+- v1.3 shipped: 5 phases, 10 plans, AI feedback pipeline (faster-whisper + Claude)
+- v1.4 shipped: 3 phases, 3 plans, rebuilt pipeline on Gemini Pro (8 files, 431 insertions)
+- 96+ session tests (assessment, trigger, delivery — transcription tests removed with pipeline)
+- django-q2 for background tasks, google-genai==1.71.0 for Gemini Pro audio assessment
+- AI feedback: examiner triggers → single Gemini call (audio → scores + transcript) → WebSocket push
+- Pydantic-validated structured output with Field(ge=1, le=9) band validation
+- No faster-whisper or anthropic dependencies remain in codebase
 
 ## Constraints
 
@@ -111,8 +122,10 @@ Examiners can conduct a complete, real-time IELTS Speaking mock exam with a cand
 | select_for_update on accept path | Prevent double-booking race conditions | ✓ Good — database-level safety |
 | Email sends after transaction exits | Same discipline as _broadcast, prevents stale emails | ✓ Good — consistent pattern |
 | django-q2 with ORM broker (no Redis) | Minimal infrastructure, sufficient for v1.3 volume | ✓ Good — no new deps needed |
-| faster-whisper CPU with configurable model size | Local transcription without GPU dependency | ✓ Good — works on deploy target |
-| Claude tool_use for structured scoring output | Reliable JSON parsing without regex | ✓ Good — one-shot structured response |
+| ~~faster-whisper CPU~~ → Gemini Pro audio | Direct audio assessment eliminates transcription step; enables pronunciation scoring | ✓ Good — single API call, better PR assessment |
+| ~~Claude tool_use~~ → Gemini response_schema + Pydantic | Structured JSON output with schema-level validation; incompatible with function calling for audio | ✓ Good — cleaner validation, works with audio input |
+| google-genai (not google-generativeai) | Official SDK, `from google import genai` import pattern | ✓ Good — correct package |
+| Tuple return from assess_session | Service returns (scores, transcript); caller stores both | ✓ Good — clean separation of concerns |
 | Monthly usage limit via job count query | No separate counter model needed | ✓ Good — simple, accurate |
 | AI feedback as single unified endpoint | POST trigger + GET status/scores on same URL | ✓ Good — clean API surface |
 
@@ -134,4 +147,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-08 after v1.3 milestone complete*
+*Last updated: 2026-04-09 after v1.4 milestone shipped*

@@ -1,5 +1,17 @@
 # Milestones
 
+## v1.4 AI Assessment Rebuild (Gemini Audio) (Shipped: 2026-04-09)
+
+**Phases completed:** 3 phases, 3 plans, 6 tasks
+
+**Key accomplishments:**
+
+- google-genai SDK installed, faster-whisper/anthropic removed, GEMINI_API_KEY fail-fast configured, and end-to-end webm smoke test script created for Gemini Files API verification
+- One-liner:
+- Single Gemini pipeline wired in tasks.py (tuple unpack), all test mocks updated from anthropic/faster-whisper to Gemini patterns, and transcription.py deleted to complete the v1.4 migration.
+
+---
+
 ## v1.3 AI Feedback & Assessment (Shipped: 2026-04-08)
 
 **Phases completed:** 5 phases, 10 plans, 11 tasks

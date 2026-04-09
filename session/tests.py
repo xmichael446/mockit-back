@@ -983,16 +983,18 @@ class RunAIFeedbackTaskTests(TestCase):
         )
         self.job = AIFeedbackJob.objects.create(session=self.session)
 
-    MOCK_ASSESSMENT_RESULT = [
-        {"criterion": 1, "band": 7, "feedback": "Good fluency and coherence throughout."},
-        {"criterion": 2, "band": 6, "feedback": "Some grammatical errors noted."},
-        {"criterion": 3, "band": 7, "feedback": "Good range of vocabulary used."},
-        {"criterion": 4, "band": 6, "feedback": "Generally clear pronunciation."},
-    ]
+    MOCK_ASSESSMENT_RESULT = (
+        [
+            {"criterion": 1, "band": 7, "feedback": "Good fluency and coherence throughout."},
+            {"criterion": 2, "band": 6, "feedback": "Some grammatical errors noted."},
+            {"criterion": 3, "band": 7, "feedback": "Good range of vocabulary used."},
+            {"criterion": 4, "band": 6, "feedback": "Generally clear pronunciation."},
+        ],
+        "Mock transcript content",
+    )
 
     @patch("session.services.assessment.assess_session", return_value=MOCK_ASSESSMENT_RESULT)
-    @patch("session.services.transcription.transcribe_session", return_value="transcript")
-    def test_task_transitions_to_done(self, mock_transcribe, mock_assess):
+    def test_task_transitions_to_done(self, mock_assess):
         """run_ai_feedback transitions job from PENDING to DONE."""
         from session.tasks import run_ai_feedback
         self.assertEqual(self.job.status, AIFeedbackJob.Status.PENDING)
@@ -1009,8 +1011,7 @@ class RunAIFeedbackTaskTests(TestCase):
             self.fail(f"run_ai_feedback raised unexpectedly: {exc}")
 
     @patch("session.services.assessment.assess_session", return_value=MOCK_ASSESSMENT_RESULT)
-    @patch("session.services.transcription.transcribe_session", return_value="enqueue transcript")
-    def test_async_task_enqueue(self, mock_transcribe, mock_assess):
+    def test_async_task_enqueue(self, mock_assess):
         """async_task can enqueue run_ai_feedback and it executes in sync mode."""
         from django_q.tasks import async_task
         async_task('session.tasks.run_ai_feedback', self.job.pk)
@@ -1018,27 +1019,25 @@ class RunAIFeedbackTaskTests(TestCase):
         self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
 
     @patch("session.services.assessment.assess_session", return_value=MOCK_ASSESSMENT_RESULT)
-    @patch("session.services.transcription.transcribe_session", return_value="Fake transcript content")
-    def test_task_transcribes_and_stores(self, mock_transcribe, mock_assess):
-        """run_ai_feedback calls transcribe_session and stores result in job.transcript."""
+    def test_task_assess_and_stores_transcript(self, mock_assess):
+        """run_ai_feedback stores transcript from assess_session tuple in job.transcript."""
         from session.tasks import run_ai_feedback
         run_ai_feedback(self.job.pk)
         self.job.refresh_from_db()
-        self.assertEqual(self.job.transcript, "Fake transcript content")
+        self.assertEqual(self.job.transcript, "Mock transcript content")
         self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
 
-    def test_task_fails_on_transcription_error(self):
-        """run_ai_feedback sets FAILED status when transcribe_session raises RuntimeError."""
+    @patch("session.services.assessment.assess_session", side_effect=RuntimeError("Audio file not found"))
+    def test_task_fails_on_assess_error(self, mock_assess):
+        """run_ai_feedback sets FAILED status when assess_session raises RuntimeError."""
         from session.tasks import run_ai_feedback
-        with patch("session.services.transcription.transcribe_session", side_effect=RuntimeError("Audio file not found")):
-            run_ai_feedback(self.job.pk)
+        run_ai_feedback(self.job.pk)
         self.job.refresh_from_db()
         self.assertEqual(self.job.status, AIFeedbackJob.Status.FAILED)
         self.assertIn("Audio file not found", self.job.error_message)
 
     @patch("session.services.assessment.assess_session", return_value=MOCK_ASSESSMENT_RESULT)
-    @patch("session.services.transcription.transcribe_session", return_value="test transcript")
-    def test_task_creates_ai_scores(self, mock_transcribe, mock_assess):
+    def test_task_creates_ai_scores(self, mock_assess):
         """run_ai_feedback creates 4 CriterionScore records with source=AI (AIAS-02)."""
         from session.tasks import run_ai_feedback
         run_ai_feedback(self.job.pk)
@@ -1046,7 +1045,7 @@ class RunAIFeedbackTaskTests(TestCase):
         self.assertEqual(self.job.status, AIFeedbackJob.Status.DONE)
         self.assertEqual(CriterionScore.objects.filter(source=ScoreSource.AI).count(), 4)
         # Verify each criterion has the expected band from MOCK_ASSESSMENT_RESULT
-        for entry in self.MOCK_ASSESSMENT_RESULT:
+        for entry in self.MOCK_ASSESSMENT_RESULT[0]:
             self.assertTrue(
                 CriterionScore.objects.filter(
                     source=ScoreSource.AI,
@@ -1057,8 +1056,7 @@ class RunAIFeedbackTaskTests(TestCase):
             )
 
     @patch("session.services.assessment.assess_session", return_value=MOCK_ASSESSMENT_RESULT)
-    @patch("session.services.transcription.transcribe_session", return_value="test transcript")
-    def test_task_stores_feedback(self, mock_transcribe, mock_assess):
+    def test_task_stores_feedback(self, mock_assess):
         """run_ai_feedback stores non-empty feedback text on each AI score (AIAS-03)."""
         from session.tasks import run_ai_feedback
         run_ai_feedback(self.job.pk)
@@ -1076,153 +1074,24 @@ class RunAIFeedbackTaskTests(TestCase):
             ).exists()
         )
 
-    @patch("session.services.assessment.assess_session", side_effect=RuntimeError("Claude API error"))
-    @patch("session.services.transcription.transcribe_session", return_value="test transcript")
-    def test_task_fails_on_claude_error(self, mock_transcribe, mock_assess):
-        """run_ai_feedback sets FAILED when assess_session raises RuntimeError (AIAS-02 error path)."""
+    @patch("session.services.assessment.assess_session", side_effect=RuntimeError("Gemini API error"))
+    def test_task_fails_on_gemini_error(self, mock_assess):
+        """run_ai_feedback sets FAILED when assess_session raises RuntimeError."""
         from session.tasks import run_ai_feedback
         run_ai_feedback(self.job.pk)
         self.job.refresh_from_db()
         self.assertEqual(self.job.status, AIFeedbackJob.Status.FAILED)
-        self.assertIn("Claude API error", self.job.error_message)
+        self.assertIn("Gemini API error", self.job.error_message)
         self.assertEqual(CriterionScore.objects.filter(source=ScoreSource.AI).count(), 0)
 
-    @patch("session.services.assessment.assess_session", side_effect=RuntimeError("Claude response missing criteria"))
-    @patch("session.services.transcription.transcribe_session", return_value="test transcript")
-    def test_task_fails_on_missing_criterion(self, mock_transcribe, mock_assess):
+    @patch("session.services.assessment.assess_session", side_effect=RuntimeError("Gemini response missing criteria"))
+    def test_task_fails_on_missing_criterion(self, mock_assess):
         """run_ai_feedback sets FAILED when assess_session raises 'missing criteria' error (AIAS-02)."""
         from session.tasks import run_ai_feedback
         run_ai_feedback(self.job.pk)
         self.job.refresh_from_db()
         self.assertEqual(self.job.status, AIFeedbackJob.Status.FAILED)
         self.assertIn("missing criteria", self.job.error_message)
-
-
-# ─── TranscriptionServiceTests ───────────────────────────────────────────────
-
-class TranscriptionServiceTests(TestCase):
-    """Unit tests for session.services.transcription.transcribe_session."""
-
-    def setUp(self):
-        from session.models import SessionPart, SessionQuestion, SessionRecording
-
-        self.examiner = User.objects.create_user(
-            username="examiner_transcription",
-            password="testpass123",
-            role=User.Role.EXAMINER,
-            is_verified=True,
-        )
-        preset = MockPreset.objects.create(name="Transcription Test Preset", owner=self.examiner)
-        self.session = IELTSMockSession.objects.create(
-            examiner=self.examiner,
-            preset=preset,
-            status=SessionStatus.COMPLETED,
-        )
-        self.job = AIFeedbackJob.objects.create(session=self.session)
-
-        # Create a recording with a dummy audio file
-        self.recording = SessionRecording.objects.create(
-            session=self.session,
-            audio_file=SimpleUploadedFile("test.webm", b"fake audio data", content_type="audio/webm"),
-        )
-
-        # Create SessionPart and SessionQuestions for initial_prompt tests
-        self.topic = Topic.objects.create(
-            name="Transcription Test Topic",
-            part=IELTSSpeakingPart.PART_1,
-            slug="transcription-test-topic",
-        )
-        self.question1 = Question.objects.create(
-            topic=self.topic,
-            text="Tell me about your hometown",
-        )
-        self.question2 = Question.objects.create(
-            topic=self.topic,
-            text="What do you like to do in your free time",
-        )
-        self.part = SessionPart.objects.create(
-            session=self.session,
-            part=IELTSSpeakingPart.PART_1,
-        )
-        self.sq1 = SessionQuestion.objects.create(
-            session_part=self.part,
-            question=self.question1,
-            order=1,
-        )
-        self.sq2 = SessionQuestion.objects.create(
-            session_part=self.part,
-            question=self.question2,
-            order=2,
-        )
-
-    def _make_mock_model(self, segment_text=" Hello this is a test. "):
-        mock_segment = MagicMock()
-        mock_segment.text = segment_text
-        mock_model_instance = MagicMock()
-        mock_model_instance.transcribe.return_value = (iter([mock_segment]), MagicMock())
-        return mock_model_instance
-
-    def test_calls_whisper_with_correct_params(self):
-        """WhisperModel constructed with WHISPER_MODEL_SIZE, device='cpu', compute_type='int8'."""
-        from session.services.transcription import transcribe_session
-        mock_model_instance = self._make_mock_model()
-
-        with patch("faster_whisper.WhisperModel", return_value=mock_model_instance) as MockModel:
-            transcribe_session(self.job)
-            MockModel.assert_called_once_with("base", device="cpu", compute_type="int8")
-
-    def test_transcribe_returns_text(self):
-        """transcribe_session returns a non-empty string containing segment text."""
-        from session.services.transcription import transcribe_session
-        mock_model_instance = self._make_mock_model(" Hello this is a test. ")
-
-        with patch("faster_whisper.WhisperModel", return_value=mock_model_instance):
-            result = transcribe_session(self.job)
-
-        self.assertIn("Hello this is a test.", result)
-
-    def test_initial_prompt_built_from_questions(self):
-        """transcribe() called with initial_prompt containing question texts joined by '. '."""
-        from session.services.transcription import transcribe_session
-        mock_model_instance = self._make_mock_model()
-
-        with patch("faster_whisper.WhisperModel", return_value=mock_model_instance):
-            transcribe_session(self.job)
-
-        call_kwargs = mock_model_instance.transcribe.call_args[1]
-        initial_prompt = call_kwargs.get("initial_prompt", "")
-        self.assertIn("Tell me about your hometown", initial_prompt)
-        self.assertIn("What do you like to do in your free time", initial_prompt)
-        # Verify joined by ". "
-        self.assertIn(". ", initial_prompt)
-
-    def test_missing_recording_raises(self):
-        """Session without a recording raises RuntimeError with 'no associated recording'."""
-        from session.models import SessionRecording
-        from session.services.transcription import transcribe_session
-
-        # Create a session with NO recording
-        session_no_recording = IELTSMockSession.objects.create(
-            examiner=self.examiner,
-            preset=MockPreset.objects.create(name="No Recording Preset", owner=self.examiner),
-            status=SessionStatus.COMPLETED,
-        )
-        job_no_recording = AIFeedbackJob.objects.create(session=session_no_recording)
-
-        with self.assertRaises(RuntimeError) as ctx:
-            transcribe_session(job_no_recording)
-        self.assertIn("no associated recording", str(ctx.exception).lower())
-
-    def test_missing_audio_file_raises(self):
-        """Recording with empty audio_file.path raises RuntimeError."""
-        from session.services.transcription import transcribe_session
-
-        # Create a recording with no actual file on disk
-        # We patch os.path.isfile to simulate missing file
-        with patch("os.path.isfile", return_value=False):
-            with self.assertRaises(RuntimeError) as ctx:
-                transcribe_session(self.job)
-        self.assertIn("Audio file not found", str(ctx.exception))
 
 
 # ─── AIFeedbackTriggerTests ───────────────────────────────────────────────────
@@ -1421,9 +1290,12 @@ class AIFeedbackTriggerTests(TestCase):
 # ─── AssessmentServiceTests ───────────────────────────────────────────────────
 
 class AssessmentServiceTests(TestCase):
-    """Unit tests for session.services.assessment.assess_session."""
+    """Unit tests for session.services.assessment.assess_session (Gemini-based)."""
 
     def setUp(self):
+        import os
+        import tempfile
+        from django.conf import settings
         from session.models import SessionPart, SessionQuestion
 
         self.examiner = User.objects.create_user(
@@ -1438,7 +1310,25 @@ class AssessmentServiceTests(TestCase):
             preset=preset,
             status=SessionStatus.COMPLETED,
         )
-        self.job = AIFeedbackJob.objects.create(session=self.session, transcript="test transcript")
+        self.job = AIFeedbackJob.objects.create(session=self.session)
+
+        # Create a temporary audio file within MEDIA_ROOT so Django's safe_join is satisfied.
+        # Store the relative name (relative to MEDIA_ROOT) in audio_file.name.
+        os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+        self.audio_file = tempfile.NamedTemporaryFile(
+            suffix=".webm",
+            dir=settings.MEDIA_ROOT,
+            delete=False,
+        )
+        self.audio_file.write(b"fake audio content")
+        self.audio_file.close()
+        self.audio_path = self.audio_file.name
+        # Relative path within MEDIA_ROOT for FileField.name
+        self._audio_relative = os.path.relpath(self.audio_path, settings.MEDIA_ROOT)
+
+        self.recording = SessionRecording.objects.create(session=self.session)
+        self.recording.audio_file.name = self._audio_relative
+        self.recording.save()
 
         # Create SessionPart and SessionQuestions for question context tests
         self.topic = Topic.objects.create(
@@ -1461,95 +1351,172 @@ class AssessmentServiceTests(TestCase):
         SessionQuestion.objects.create(session_part=self.part, question=self.question1, order=1)
         SessionQuestion.objects.create(session_part=self.part, question=self.question2, order=2)
 
-    def _mock_anthropic_response(self, assessment_data):
-        """Build a mock anthropic module and client returning the given assessment_data."""
-        mock_block = MagicMock()
-        mock_block.type = "tool_use"
-        mock_block.input = assessment_data
+    def tearDown(self):
+        import os
+        try:
+            os.unlink(self.audio_path)
+        except FileNotFoundError:
+            pass
+
+    def _mock_gemini_client(self, assessment_json):
+        """Build a mock google-genai client returning the given JSON string."""
+        from google.genai import types
+        mock_candidate = MagicMock()
+        mock_candidate.finish_reason = types.FinishReason.STOP
         mock_response = MagicMock()
-        mock_response.content = [mock_block]
-        mock_response.stop_reason = "tool_use"
+        mock_response.candidates = [mock_candidate]
+        mock_response.text = assessment_json
         mock_client = MagicMock()
-        mock_client.messages.create.return_value = mock_response
-        mock_module = MagicMock()
-        mock_module.Anthropic.return_value = mock_client
-        return mock_module, mock_client
+        mock_client.models.generate_content.return_value = mock_response
+        mock_client.files.upload.return_value = MagicMock(
+            uri="https://fake.uri/file1",
+            state=types.FileState.ACTIVE,
+        )
+        return mock_client
 
-    def _valid_assessment_data(self):
-        return {
-            "fluency_and_coherence": {"band": 7, "feedback": "Good fluency and coherence throughout."},
-            "grammatical_range_and_accuracy": {"band": 6, "feedback": "Some grammatical errors noted."},
-            "lexical_resource": {"band": 7, "feedback": "Good range of vocabulary used."},
+    def _valid_assessment_json(self):
+        import json
+        return json.dumps({
+            "fluency_and_coherence": {"band": 7, "feedback": "Good fluency throughout."},
+            "grammatical_range_and_accuracy": {"band": 6, "feedback": "Some grammatical errors."},
+            "lexical_resource": {"band": 7, "feedback": "Good vocabulary range."},
             "pronunciation": {"band": 6, "feedback": "Generally clear pronunciation."},
-        }
+            "transcript": "This is the candidate transcript.",
+        })
 
-    def test_builds_question_context(self):
-        """assess_session builds user message containing session questions and transcript (AIAS-04)."""
-        import sys
+    @patch("google.genai.Client")
+    @patch("os.path.isfile", return_value=True)
+    @patch("time.sleep")
+    def test_calls_gemini_with_audio(self, mock_sleep, mock_isfile, MockClient):
+        """assess_session calls files.upload with audio path and generate_content with uploaded file."""
         from session.services.assessment import assess_session
 
-        mock_module, mock_client = self._mock_anthropic_response(self._valid_assessment_data())
-        with patch.dict(sys.modules, {"anthropic": mock_module}):
-            assess_session(self.job)
+        mock_client = self._mock_gemini_client(self._valid_assessment_json())
+        MockClient.return_value = mock_client
 
-        call_kwargs = mock_client.messages.create.call_args[1]
-        user_message = call_kwargs["messages"][0]["content"]
-        self.assertIn("Tell me about your childhood", user_message)
-        self.assertIn("What is your favourite hobby", user_message)
-        self.assertIn("[Part 1]", user_message)
-        self.assertIn("test transcript", user_message)
+        assess_session(self.job)
 
-    def test_returns_four_criteria(self):
-        """assess_session returns a list of 4 dicts with criterion, band, feedback (AIAS-02)."""
-        import sys
+        self.assertTrue(mock_client.files.upload.called)
+        self.assertTrue(mock_client.models.generate_content.called)
+        # The uploaded file object should appear in the contents argument
+        uploaded_file = mock_client.files.upload.return_value
+        call_args = mock_client.models.generate_content.call_args
+        contents = call_args[1].get("contents") or call_args[0][1] if call_args[0] else call_args[1]["contents"]
+        self.assertIn(uploaded_file, contents)
+
+    @patch("google.genai.Client")
+    @patch("os.path.isfile", return_value=True)
+    @patch("time.sleep")
+    def test_returns_four_criteria_and_transcript(self, mock_sleep, mock_isfile, MockClient):
+        """assess_session returns tuple of (list of 4 criterion dicts, transcript string)."""
         from session.services.assessment import assess_session
 
-        mock_module, mock_client = self._mock_anthropic_response(self._valid_assessment_data())
-        with patch.dict(sys.modules, {"anthropic": mock_module}):
-            result = assess_session(self.job)
+        mock_client = self._mock_gemini_client(self._valid_assessment_json())
+        MockClient.return_value = mock_client
 
-        self.assertIsInstance(result, list)
-        self.assertEqual(len(result), 4)
-        criterion_values = {entry["criterion"] for entry in result}
+        result = assess_session(self.job)
+
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
+        scores, transcript = result
+        self.assertIsInstance(scores, list)
+        self.assertEqual(len(scores), 4)
+        self.assertIsInstance(transcript, str)
+        criterion_values = {entry["criterion"] for entry in scores}
         self.assertEqual(criterion_values, {1, 2, 3, 4})
-        for entry in result:
+        for entry in scores:
             self.assertIn("criterion", entry)
             self.assertIn("band", entry)
             self.assertIn("feedback", entry)
 
-    def test_raises_on_missing_tool_use_block(self):
-        """assess_session raises RuntimeError containing 'tool_use' when no tool_use block in response."""
-        import sys
+    @patch("google.genai.Client")
+    @patch("os.path.isfile", return_value=True)
+    @patch("time.sleep")
+    def test_raises_on_safety_block(self, mock_sleep, mock_isfile, MockClient):
+        """assess_session raises RuntimeError with 'finish_reason' when safety filter blocks content."""
+        from google.genai import types
         from session.services.assessment import assess_session
 
-        mock_block = MagicMock()
-        mock_block.type = "text"
+        mock_candidate = MagicMock()
+        mock_candidate.finish_reason = types.FinishReason.SAFETY
         mock_response = MagicMock()
-        mock_response.content = [mock_block]
-        mock_response.stop_reason = "end_turn"
+        mock_response.candidates = [mock_candidate]
         mock_client = MagicMock()
-        mock_client.messages.create.return_value = mock_response
-        mock_module = MagicMock()
-        mock_module.Anthropic.return_value = mock_client
+        mock_client.models.generate_content.return_value = mock_response
+        mock_client.files.upload.return_value = MagicMock(uri="https://fake.uri/file1")
+        MockClient.return_value = mock_client
 
-        with patch.dict(sys.modules, {"anthropic": mock_module}):
-            with self.assertRaises(RuntimeError) as ctx:
-                assess_session(self.job)
-        self.assertIn("tool_use", str(ctx.exception))
+        with self.assertRaises(RuntimeError) as ctx:
+            assess_session(self.job)
+        self.assertIn("finish_reason", str(ctx.exception))
 
-    def test_raises_on_invalid_band(self):
-        """assess_session raises RuntimeError containing 'Invalid band' when band is out of range."""
-        import sys
+    def test_raises_on_missing_audio_file(self):
+        """assess_session raises RuntimeError before upload when audio file does not exist."""
+        import os
         from session.services.assessment import assess_session
 
-        bad_data = self._valid_assessment_data()
-        bad_data["fluency_and_coherence"]["band"] = 0  # invalid: must be 1-9
+        # Remove the actual temp file so os.path.isfile returns False
+        os.unlink(self.audio_path)
 
-        mock_module, _ = self._mock_anthropic_response(bad_data)
-        with patch.dict(sys.modules, {"anthropic": mock_module}):
-            with self.assertRaises(RuntimeError) as ctx:
-                assess_session(self.job)
-        self.assertIn("Invalid band", str(ctx.exception))
+        with self.assertRaises(RuntimeError) as ctx:
+            assess_session(self.job)
+        self.assertIn("not found", str(ctx.exception))
+
+    @patch("google.genai.Client")
+    @patch("os.path.isfile", return_value=True)
+    @patch("time.sleep")
+    def test_raises_on_pydantic_validation_error(self, mock_sleep, mock_isfile, MockClient):
+        """assess_session raises RuntimeError when Gemini response contains invalid band (0 or 10)."""
+        import json
+        from session.services.assessment import assess_session
+
+        bad_json = json.dumps({
+            "fluency_and_coherence": {"band": 0, "feedback": "Good fluency."},
+            "grammatical_range_and_accuracy": {"band": 6, "feedback": "Some errors."},
+            "lexical_resource": {"band": 7, "feedback": "Good vocabulary."},
+            "pronunciation": {"band": 6, "feedback": "Clear pronunciation."},
+            "transcript": "Candidate speech here.",
+        })
+        mock_client = self._mock_gemini_client(bad_json)
+        MockClient.return_value = mock_client
+
+        with self.assertRaises(RuntimeError) as ctx:
+            assess_session(self.job)
+        self.assertIn("parse", str(ctx.exception).lower())
+
+    def test_system_prompt_completeness(self):
+        """SYSTEM_PROMPT contains all 4 IELTS criteria descriptors and audio-specific keywords."""
+        from session.services.assessment import SYSTEM_PROMPT
+
+        self.assertIn("Fluency and Coherence", SYSTEM_PROMPT)
+        self.assertIn("Grammatical Range and Accuracy", SYSTEM_PROMPT)
+        self.assertIn("Lexical Resource", SYSTEM_PROMPT)
+        self.assertIn("Pronunciation", SYSTEM_PROMPT)
+        self.assertIn("Intonation patterns", SYSTEM_PROMPT)
+        self.assertIn("Stress placement", SYSTEM_PROMPT)
+        self.assertIn("Connected speech", SYSTEM_PROMPT)
+        self.assertIn("Rhythm", SYSTEM_PROMPT)
+
+    @patch("google.genai.Client")
+    @patch("os.path.isfile", return_value=True)
+    @patch("time.sleep")
+    def test_builds_question_context(self, mock_sleep, mock_isfile, MockClient):
+        """assess_session includes session questions in the contents passed to generate_content."""
+        from session.services.assessment import assess_session
+
+        mock_client = self._mock_gemini_client(self._valid_assessment_json())
+        MockClient.return_value = mock_client
+
+        assess_session(self.job)
+
+        call_args = mock_client.models.generate_content.call_args
+        contents = call_args[1].get("contents") or call_args[0][1] if call_args[0] else call_args[1]["contents"]
+        # The second element in contents is the user prompt string
+        user_prompt = next((c for c in contents if isinstance(c, str)), None)
+        self.assertIsNotNone(user_prompt)
+        self.assertIn("Tell me about your childhood", user_prompt)
+        self.assertIn("What is your favourite hobby", user_prompt)
+        self.assertIn("[Part 1]", user_prompt)
 
 
 class AIFeedbackDeliveryTests(TestCase):
@@ -1627,13 +1594,12 @@ class AIFeedbackDeliveryTests(TestCase):
 
     @patch("session.views._broadcast")
     @patch("session.services.assessment.assess_session")
-    @patch("session.services.transcription.transcribe_session")
-    def test_broadcast_called_on_done(self, mock_transcribe, mock_assess, mock_broadcast):
+    def test_broadcast_called_on_done(self, mock_assess, mock_broadcast):
         """run_ai_feedback calls _broadcast with ai_feedback_ready after success."""
-        mock_transcribe.return_value = "Test transcript"
-        mock_assess.return_value = [
-            {"criterion": i, "band": 7, "feedback": f"Feedback {i}"} for i in [1, 2, 3, 4]
-        ]
+        mock_assess.return_value = (
+            [{"criterion": i, "band": 7, "feedback": f"Feedback {i}"} for i in [1, 2, 3, 4]],
+            "Test transcript",
+        )
         job = AIFeedbackJob.objects.create(session=self.session)
         run_ai_feedback(job.pk)
         mock_broadcast.assert_called_once_with(
@@ -1642,8 +1608,8 @@ class AIFeedbackDeliveryTests(TestCase):
         )
 
     @patch("session.views._broadcast")
-    @patch("session.services.transcription.transcribe_session", side_effect=Exception("Transcription failed"))
-    def test_broadcast_not_called_on_failure(self, mock_transcribe, mock_broadcast):
+    @patch("session.services.assessment.assess_session", side_effect=Exception("Assessment failed"))
+    def test_broadcast_not_called_on_failure(self, mock_assess, mock_broadcast):
         """run_ai_feedback does NOT call _broadcast when the job fails."""
         job = AIFeedbackJob.objects.create(session=self.session)
         run_ai_feedback(job.pk)

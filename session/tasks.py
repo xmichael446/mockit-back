@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 def run_ai_feedback(job_id: int) -> None:
     """
-    Background task: transcribe audio and generate AI feedback for a session.
+    Background task: Generate AI feedback for a session via Gemini.
     Enqueued via: async_task('session.tasks.run_ai_feedback', job_id)
     """
     from session.models import AIFeedbackJob
@@ -15,17 +15,13 @@ def run_ai_feedback(job_id: int) -> None:
         job.status = AIFeedbackJob.Status.PROCESSING
         job.save(update_fields=["status", "updated_at"])
 
-        # Phase 11: transcription via faster-whisper
-        from session.services.transcription import transcribe_session
-        transcript = transcribe_session(job)
-        job.transcript = transcript
-        job.save(update_fields=["transcript", "updated_at"])
-
-        # Phase 12: AI scoring via Claude API
+        # Phase 16/17: single Gemini call returns (scores, transcript)
         from session.services.assessment import assess_session
         from session.models import SessionResult, CriterionScore, ScoreSource
 
-        scores_data = assess_session(job)
+        scores_data, transcript = assess_session(job)
+        job.transcript = transcript
+        job.save(update_fields=["transcript", "updated_at"])
         result, _ = SessionResult.objects.get_or_create(session=job.session)
         CriterionScore.objects.bulk_create([
             CriterionScore(

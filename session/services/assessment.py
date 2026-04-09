@@ -1,10 +1,12 @@
 import logging
 
+from pydantic import BaseModel, Field
+
 logger = logging.getLogger(__name__)
 
 # ─── Constants ─────────────────────────────────────────────────────────────────
 
-# Maps tool_use response keys to SpeakingCriterion enum integer values
+# Maps Pydantic field names to SpeakingCriterion enum integer values
 # FC=1, GRA=2, LR=3, PR=4 (matches SpeakingCriterion.IntegerChoices in session/models.py)
 CRITERION_MAP = {
     "fluency_and_coherence": 1,          # SpeakingCriterion.FC
@@ -13,12 +15,29 @@ CRITERION_MAP = {
     "pronunciation": 4,                  # SpeakingCriterion.PR
 }
 
-REQUIRED_KEYS = set(CRITERION_MAP.keys())
+
+# ─── Pydantic schema ──────────────────────────────────────────────────────────
+
+class CriterionAssessment(BaseModel):
+    band: int = Field(ge=1, le=9)
+    feedback: str
+
+
+class IELTSAssessment(BaseModel):
+    fluency_and_coherence: CriterionAssessment
+    grammatical_range_and_accuracy: CriterionAssessment
+    lexical_resource: CriterionAssessment
+    pronunciation: CriterionAssessment
+    transcript: str
+
+
+# ─── System prompt ─────────────────────────────────────────────────────────────
 
 SYSTEM_PROMPT = """You are an expert IELTS Speaking examiner with years of experience assessing \
 candidates across all proficiency levels. Your task is to evaluate a candidate's speaking \
-performance based on a session transcript and the questions that were asked, assigning band scores \
-and providing actionable feedback for each of the four IELTS Speaking assessment criteria.
+performance based on the audio recording of the session and the questions that were asked, \
+assigning band scores and providing actionable feedback for each of the four IELTS Speaking \
+assessment criteria.
 
 Use the official IELTS Speaking band descriptors as your reference:
 
@@ -61,125 +80,56 @@ some intrusive pronunciation features but they do not impede understanding.
 - Bands 8-9: Easy to understand throughout; uses a full range of pronunciation features with \
 precision and subtlety; only minor non-standard features that do not affect intelligibility.
 
-**Instructions:**
-- Assign a band score (integer between 1 and 9) for each criterion.
-- Provide 3-4 sentences of specific, actionable feedback for each criterion that refers to the \
-candidate's actual speech patterns and gives concrete improvement advice.
-- Base your assessment solely on the transcript provided and the questions that were asked.
-- Call the submit_ielts_assessment tool exactly once with all four criterion assessments."""
+**Audio-Specific Pronunciation Assessment:**
+When assessing pronunciation, listen carefully to the actual audio for:
+- **Intonation patterns**: Rising/falling tones, question intonation, emphasis for meaning
+- **Stress placement**: Word stress accuracy, sentence stress for highlighting key information
+- **Connected speech**: Linking, elision, assimilation between words in natural speech flow
+- **Rhythm and pacing**: Natural speech rhythm vs. syllable-timed delivery, appropriate pausing
+Base your pronunciation assessment primarily on what you HEAR in the audio, not just the \
+transcript text.
 
-TOOL_DEFINITION = {
-    "name": "submit_ielts_assessment",
-    "description": (
-        "Submit IELTS Speaking band scores and actionable feedback for all four "
-        "assessment criteria. Call this tool exactly once with scores for FC, GRA, LR, and PR."
-    ),
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "fluency_and_coherence": {
-                "type": "object",
-                "properties": {
-                    "band": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 9,
-                        "description": "Band score 1-9 for Fluency and Coherence",
-                    },
-                    "feedback": {
-                        "type": "string",
-                        "description": "3-4 sentences of specific, actionable feedback",
-                    },
-                },
-                "required": ["band", "feedback"],
-            },
-            "grammatical_range_and_accuracy": {
-                "type": "object",
-                "properties": {
-                    "band": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 9,
-                        "description": "Band score 1-9 for Grammatical Range & Accuracy",
-                    },
-                    "feedback": {
-                        "type": "string",
-                        "description": "3-4 sentences of specific, actionable feedback",
-                    },
-                },
-                "required": ["band", "feedback"],
-            },
-            "lexical_resource": {
-                "type": "object",
-                "properties": {
-                    "band": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 9,
-                        "description": "Band score 1-9 for Lexical Resource",
-                    },
-                    "feedback": {
-                        "type": "string",
-                        "description": "3-4 sentences of specific, actionable feedback",
-                    },
-                },
-                "required": ["band", "feedback"],
-            },
-            "pronunciation": {
-                "type": "object",
-                "properties": {
-                    "band": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 9,
-                        "description": "Band score 1-9 for Pronunciation",
-                    },
-                    "feedback": {
-                        "type": "string",
-                        "description": "3-4 sentences of specific, actionable feedback",
-                    },
-                },
-                "required": ["band", "feedback"],
-            },
-        },
-        "required": [
-            "fluency_and_coherence",
-            "grammatical_range_and_accuracy",
-            "lexical_resource",
-            "pronunciation",
-        ],
-    },
-}
+**Instructions:**
+- You are given the actual audio recording of the session. Use it to assess pronunciation, \
+intonation, rhythm, and connected speech directly.
+- Produce a verbatim transcript of the candidate's speech from the audio.
+- Assign a band score (integer between 1 and 9) for each criterion.
+- Provide 3-4 sentences of specific, actionable feedback for each criterion.
+- Include the session questions as context for understanding the candidate's responses."""
 
 
 # ─── Service function ──────────────────────────────────────────────────────────
 
-def assess_session(job) -> list[dict]:
+def assess_session(job) -> tuple[list[dict], str]:
     """
-    Call Claude API with the session transcript and questions, returning structured
-    IELTS band scores and feedback for all four speaking criteria.
+    Upload session audio to Gemini Files API and call generate_content with a structured
+    Pydantic schema, returning IELTS band scores and a transcript.
 
-    Returns a list of 4 dicts:
-        [{"criterion": int, "band": int, "feedback": str}, ...]
+    Returns a tuple of:
+        - list of 4 dicts: [{"criterion": int, "band": int, "feedback": str}, ...]
+        - transcript string from the Gemini response
 
-    Raises RuntimeError on any failure (anthropic import missing, API error,
-    missing criteria, or invalid band value). The caller (run_ai_feedback task)
-    is responsible for updating job.status to FAILED on exception.
+    Raises RuntimeError on any failure (missing audio file, API error, safety filter
+    rejection, or Pydantic parse failure). The caller (run_ai_feedback task) is
+    responsible for updating job.status to FAILED on exception.
 
-    Does NOT catch anthropic API exceptions — lets them propagate to the task's
-    except block so the task can record the error_message and set FAILED.
+    NOTE: tasks.py is updated in Phase 17 to unpack the tuple return value.
     """
-    try:
-        import anthropic
-    except ImportError:
-        raise RuntimeError(
-            "anthropic is not installed. Run: pip install anthropic==0.91.0"
-        )
+    import os
+    import time
 
     from django.conf import settings
+    from google import genai
+    from google.genai import types
     from session.models import SessionQuestion
 
-    # Build question context (AIAS-04)
+    # ── Step a: Get audio path ────────────────────────────────────────────────
+    recording = job.session.recording
+    audio_path = recording.audio_file.path
+    if not os.path.isfile(audio_path):
+        raise RuntimeError(f"Audio file not found: {audio_path}")
+
+    # ── Step b: Build question context ────────────────────────────────────────
     questions = (
         SessionQuestion.objects.filter(session_part__session=job.session)
         .select_related("question", "session_part")
@@ -192,58 +142,76 @@ def assess_session(job) -> list[dict]:
     ]
     questions_text = "\n".join(question_lines) if question_lines else "(no questions recorded)"
 
-    transcript_text = job.transcript or "(no transcript)"
-    user_message = (
+    # ── Step c: Build user prompt ─────────────────────────────────────────────
+    user_prompt = (
         f"Session questions asked:\n{questions_text}\n\n"
-        f"Candidate transcript:\n{transcript_text}"
+        "Assess the candidate's IELTS Speaking performance from the audio above. "
+        "Produce a verbatim transcript and band scores with feedback for all four criteria."
     )
 
-    client = anthropic.Anthropic(
-        api_key=getattr(settings, "ANTHROPIC_API_KEY", None)
-    )
+    # ── Step d: Create Gemini client ──────────────────────────────────────────
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-    logger.info("assess_session: calling Claude API for job_id=%s", job.pk)
-
-    response = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=1024,
-        system=SYSTEM_PROMPT,
-        tools=[TOOL_DEFINITION],
-        tool_choice={"type": "tool", "name": "submit_ielts_assessment"},
-        messages=[{"role": "user", "content": user_message}],
+    # ── Step e: Upload audio ──────────────────────────────────────────────────
+    logger.info("assess_session: uploading audio for job_id=%s path=%s", job.pk, audio_path)
+    uploaded_file = client.files.upload(
+        file=audio_path,
+        config=types.UploadFileConfig(mime_type="audio/webm"),
     )
+    # Brief wait for PROCESSING state — sufficient for typical session recordings.
+    # NOTE: For very large files, a polling loop on FileState.ACTIVE may be needed.
+    time.sleep(2)
 
-    # Extract the tool_use block from the response
-    tool_block = next(
-        (b for b in response.content if b.type == "tool_use"), None
+    # ── Step f: Call generate_content with retry ──────────────────────────────
+    config = types.GenerateContentConfig(
+        system_instruction=SYSTEM_PROMPT,
+        response_mime_type="application/json",
+        response_schema=IELTSAssessment,
     )
-    if tool_block is None:
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-pro",
+                contents=[uploaded_file, user_prompt],
+                config=config,
+            )
+            break
+        except Exception as exc:
+            status = getattr(exc, "status_code", None)
+            if status in (503, 429) and attempt < max_retries:
+                time.sleep(5 * attempt)
+            else:
+                raise
+
+    # ── Step g: Safety filter check ───────────────────────────────────────────
+    candidate = response.candidates[0]
+    if candidate.finish_reason != types.FinishReason.STOP:
         raise RuntimeError(
-            f"Claude did not return a tool_use block. stop_reason={response.stop_reason}"
+            f"Gemini content blocked: finish_reason={candidate.finish_reason}"
         )
 
-    data = tool_block.input  # dict matching the TOOL_DEFINITION input_schema
+    # ── Step h: Parse response ────────────────────────────────────────────────
+    try:
+        parsed = IELTSAssessment.model_validate_json(response.text)
+    except Exception as exc:
+        raise RuntimeError(f"Failed to parse Gemini response: {exc}") from exc
 
-    # All-or-nothing validation: all 4 criteria must be present
-    missing = REQUIRED_KEYS - set(data.keys())
-    if missing:
-        raise RuntimeError(f"Claude response missing criteria: {missing}")
+    # ── Step i: Build scores list ─────────────────────────────────────────────
+    scores = [
+        {
+            "criterion": CRITERION_MAP[key],
+            "band": getattr(parsed, key).band,
+            "feedback": getattr(parsed, key).feedback,
+        }
+        for key in CRITERION_MAP
+    ]
+    transcript = parsed.transcript
 
-    # Validate each band is an int in range 1-9 and build result list
-    result = []
-    for key, criterion_int in CRITERION_MAP.items():
-        entry = data[key]
-        band = entry.get("band")
-        feedback = entry.get("feedback", "")
-        if not isinstance(band, int) or not (1 <= band <= 9):
-            raise RuntimeError(
-                f"Invalid band for {key!r}: expected integer 1-9, got {band!r}"
-            )
-        result.append({"criterion": criterion_int, "band": band, "feedback": feedback})
-
+    # ── Step j: Log and return ────────────────────────────────────────────────
     logger.info(
         "assess_session: completed job_id=%s bands=%s",
         job.pk,
-        [r["band"] for r in result],
+        [s["band"] for s in scores],
     )
-    return result
+    return scores, transcript

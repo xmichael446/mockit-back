@@ -132,11 +132,8 @@ HMS_TEMPLATE_ID = os.environ["HMS_TEMPLATE_ID"]
 HMS_EXAMINER_ROLE = "examiner"
 HMS_CANDIDATE_ROLE = "candidate"
 
-# Whisper transcription
-WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "base")
-
-# Claude AI assessment
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+# Gemini AI assessment
+GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
 # AI feedback usage limits
 AI_FEEDBACK_MONTHLY_LIMIT = int(os.environ.get("AI_FEEDBACK_MONTHLY_LIMIT", "10"))
