@@ -172,7 +172,7 @@ def assess_session(job) -> tuple[list[dict], str]:
     for attempt in range(1, max_retries + 1):
         try:
             response = client.models.generate_content(
-                model="gemini-2.5-pro",
+                model=settings.GEMINI_MODEL,
                 contents=[uploaded_file, user_prompt],
                 config=config,
             )

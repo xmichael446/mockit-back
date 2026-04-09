@@ -134,6 +134,7 @@ HMS_CANDIDATE_ROLE = "candidate"
 
 # Gemini AI assessment
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
 # AI feedback usage limits
 AI_FEEDBACK_MONTHLY_LIMIT = int(os.environ.get("AI_FEEDBACK_MONTHLY_LIMIT", "10"))
