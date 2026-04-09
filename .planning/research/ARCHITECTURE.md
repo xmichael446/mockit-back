@@ -1,439 +1,353 @@
 # Architecture Research
 
-**Domain:** AI feedback integration into existing Django IELTS mock exam platform
-**Researched:** 2026-04-07
-**Confidence:** HIGH (existing codebase inspected directly; patterns verified against Django/Channels docs)
+**Domain:** IELTS Speaking assessment platform — Gemini audio integration
+**Researched:** 2026-04-09
+**Confidence:** HIGH (official Google GenAI SDK docs + direct code inspection)
 
 ## Standard Architecture
 
-### System Overview — Current State (v1.2 baseline)
+### System Overview: Current vs Target
+
+**Current (v1.3) — Two-step pipeline:**
 
 ```
-REST Client (React)                WebSocket Client (React)
-       |                                    |
-       | HTTP + Token auth                  | ws/?token=...
-       v                                    v
-┌─────────────────────────────────────────────────────────┐
-│                   Daphne (ASGI)                          │
-├──────────────────┬──────────────────────────────────────┤
-│   HTTP Router    │         WebSocket Router              │
-│  (Django views)  │      (SessionConsumer)                │
-├──────────────────┴──────────────────────────────────────┤
-│                   Django App Layer                        │
-│  ┌────────┐  ┌──────────┐  ┌───────────┐  ┌──────────┐  │
-│  │ main/  │  │questions/│  │ session/  │  │scheduling│  │
-│  │ User   │  │ Question │  │ lifecycle │  │availability│ │
-│  │profiles│  │ bank     │  │ models    │  │ requests │  │
-│  └────────┘  └──────────┘  └─────┬─────┘  └──────────┘  │
-│                                  │                        │
-│                          _broadcast()                     │
-│                     async_to_sync(group_send)             │
-│                                  │                        │
-│                    InMemoryChannelLayer                    │
-│                                  │                        │
-│               SessionConsumer.session_event()             │
-│                (forwards to WS client as-is)              │
-├──────────────────────────────────────────────────────────┤
-│                    Data Layer                             │
-│  ┌─────────────────┐  ┌────────────────┐                 │
-│  │    PostgreSQL    │  │  Media Storage │                 │
-│  │  (all models)   │  │ (audio_file,   │                 │
-│  │                 │  │  profile pics) │                 │
-│  └─────────────────┘  └────────────────┘                 │
-└──────────────────────────────────────────────────────────┘
-         |                    |
-    100ms API            Resend API
-  (video rooms)          (email)
+POST /api/sessions/<id>/ai-feedback/
+    ↓
+session/views.py (trigger, monthly limit check)
+    ↓
+django-q2: async_task('session.tasks.run_ai_feedback', job_id)
+    ↓
+session/tasks.py: run_ai_feedback()
+    ├── session/services/transcription.py: transcribe_session(job)
+    │       └── faster-whisper WhisperModel
+    │               audio_file.path → plain text transcript
+    │               job.transcript = transcript  [DB SAVE]
+    │
+    └── session/services/assessment.py: assess_session(job)
+            └── anthropic.Anthropic client
+                    job.transcript (text) → Claude tool_use → 4 criterion dicts
+                    ↓
+            CriterionScore bulk_create (source=AI)
+            AIFeedbackJob.status = DONE
+            _broadcast("ai_feedback_ready")
 ```
 
-### System Overview — Target State (v1.3 with AI Feedback)
+**Target (v1.4) — Single-step pipeline:**
 
 ```
-REST Client                        WebSocket Client
-       |                                    |
-       | POST /sessions/<pk>/ai-feedback/   |
-       v                                    v
-┌─────────────────────────────────────────────────────────┐
-│                   Daphne (ASGI)                          │
-├──────────────────┬──────────────────────────────────────┤
-│   HTTP Router    │         WebSocket Router              │
-│  (Django views)  │      (SessionConsumer)                │
-├──────────────────┴──────────────────────────────────────┤
-│                   Django App Layer                        │
-│  ┌────────┐  ┌──────────┐  ┌───────────────────────────┐ │
-│  │ main/  │  │questions/│  │       session/            │ │
-│  │  +     │  │ Question │  │  ┌─────────────────────┐  │ │
-│  │monthly │  │ bank     │  │  │ AIFeedbackJob model  │  │ │
-│  │usage   │  │          │  │  │ (status + result)   │  │ │
-│  │model   │  │          │  │  └─────────────────────┘  │ │
-│  └────────┘  └──────────┘  │  ┌─────────────────────┐  │ │
-│                             │  │ CriterionScore      │  │ │
-│                             │  │ source=CLAUDE enum  │  │ │
-│                             │  └─────────────────────┘  │ │
-│                             └───────────────────────────┘ │
-│                                                           │
-│              asyncio.create_task() [fire-and-forget]      │
-│                         |                                 │
-│         ┌───────────────┴──────────────────┐             │
-│         │     session/services/ai.py        │             │
-│         │                                   │             │
-│         │  1. asyncio.to_thread(            │             │
-│         │       whisper.transcribe)         │             │
-│         │  2. await anthropic.messages.     │             │
-│         │       create(...)                 │             │
-│         │  3. ORM write - AIFeedbackJob     │             │
-│         │  4. _broadcast("ai_feedback_done")│             │
-│         └───────────────────────────────────┘            │
-│                                                           │
-│                    InMemoryChannelLayer                    │
-├──────────────────────────────────────────────────────────┤
-│                    Data Layer                             │
-│  ┌─────────────────┐  ┌────────────────┐                 │
-│  │    PostgreSQL    │  │  Media Storage │                 │
-│  │  + AIFeedbackJob │  │  recordings/  │                 │
-│  │  + AIMonthlyUsage│  │  (audio files)│                 │
-│  └─────────────────┘  └────────────────┘                 │
-└──────────────────────────────────────────────────────────┘
-              |                   |
-        Whisper (local)     Anthropic API
-      (CPU-bound, thread)   (Claude messages)
+POST /api/sessions/<id>/ai-feedback/
+    ↓
+session/views.py (unchanged — trigger, monthly limit check)
+    ↓
+django-q2: async_task('session.tasks.run_ai_feedback', job_id)
+    ↓
+session/tasks.py: run_ai_feedback() [MODIFIED — remove transcription step]
+    └── session/services/assessment.py: assess_session(job) [REWRITTEN]
+            └── google.genai Client (Files API upload)
+                    audio_file.path → client.files.upload() → file_ref
+                    file_ref + system_prompt + question_context
+                    → generate_content() with response_json_schema
+                    → JSON: {transcript, fc, gra, lr, pr}
+                    ↓
+            job.transcript = result["transcript"]  [DB SAVE]
+            CriterionScore bulk_create (source=AI)
+            AIFeedbackJob.status = DONE
+            _broadcast("ai_feedback_ready")
 ```
 
-## Component Responsibilities
+### Component Responsibilities
 
-### Existing Components (unchanged)
+| Component | Current Responsibility | Target Responsibility | Change |
+|-----------|----------------------|----------------------|--------|
+| `session/services/transcription.py` | faster-whisper transcription | None | DELETE |
+| `session/services/assessment.py` | Claude tool_use scoring on text transcript | Gemini audio upload + single-call scoring + transcript extraction | REWRITE |
+| `session/tasks.py` | transcribe → save transcript → assess | assess (includes transcript) → save transcript | MODIFY |
+| `session/views.py` | POST trigger + GET status/scores + monthly limit | Unchanged | NO CHANGE |
+| `session/models.py` | AIFeedbackJob.transcript field | Unchanged (Gemini provides transcript too) | NO CHANGE |
+| `requirements.txt` | faster-whisper==1.2.1, anthropic==0.91.0 | google-genai (latest) | MODIFY |
+| `MockIT/settings.py` | WHISPER_MODEL_SIZE, ANTHROPIC_API_KEY | GEMINI_API_KEY | MODIFY |
 
-| Component | Responsibility |
-|-----------|---------------|
-| `session/models.py` | Session lifecycle, `CriterionScore`, `SessionResult`, `SessionRecording` |
-| `session/views.py` | All REST endpoints + `_broadcast()` helper |
-| `session/consumers.py` | WebSocket — forwards `session_event` channel messages to clients |
-| `session/services/hms.py` | 100ms video room API integration |
-| `main/models.py` | `User`, `ExaminerProfile`, `CandidateProfile`, `ScoreHistory` |
-
-### New Components
-
-| Component | Responsibility | Location | New or Modified |
-|-----------|---------------|----------|-----------------|
-| `AIFeedbackJob` model | Tracks async job status (PENDING/PROCESSING/DONE/FAILED), stores transcript + AI output | `session/models.py` | NEW |
-| `AIFeedbackStatus` choices | Status enum for job lifecycle | `session/models.py` | NEW |
-| `ScoreSource` choices | `EXAMINER=1`, `CLAUDE=2` — who generated the score | `session/models.py` | NEW |
-| `CriterionScore.source` field | Tags each score with its source | `session/models.py` | MODIFIED |
-| `AIMonthlyUsage` model | Per-examiner monthly usage counter; enforces limit | `main/models.py` | NEW |
-| `session/services/ai.py` | Whisper transcription + Claude API call, writes results, broadcasts completion | `session/services/ai.py` | NEW |
-| AI feedback trigger view | POST endpoint — usage check, job creation, task dispatch | `session/views.py` | NEW class |
-| AI feedback status view | GET endpoint — returns job status | `session/views.py` | NEW class |
-| AI feedback results view | GET endpoint — returns transcript + AI scores | `session/views.py` | NEW class |
-| `AIFeedbackJobSerializer` | Serializes job status + result fields | `session/serializers.py` | NEW |
-
-## Recommended Project Structure Changes
+## Recommended Project Structure
 
 ```
 session/
-├── migrations/
-│   └── 00XX_ai_feedback_job_score_source.py  # new migration
 ├── services/
-│   ├── hms.py                # unchanged
-│   └── ai.py                 # NEW: transcription + Claude feedback pipeline
-├── models.py                 # add AIFeedbackJob, ScoreSource enum, CriterionScore.source field
-├── views.py                  # add 3 AI feedback view classes
-├── urls.py                   # add 3 AI feedback URL patterns
-└── serializers.py            # add AIFeedbackJobSerializer
-
-main/
-└── models.py                 # add AIMonthlyUsage model + migration
+│   ├── __init__.py
+│   ├── assessment.py     # REWRITTEN: Gemini audio assessment (replaces both services)
+│   └── hms.py            # UNCHANGED
+├── tasks.py              # MODIFIED: remove transcription step
+├── views.py              # UNCHANGED
+└── tests.py              # MODIFIED: replace transcription + Claude mocks with Gemini mocks
 ```
+
+`transcription.py` is deleted. No new files are added.
 
 ### Structure Rationale
 
-- `session/services/ai.py` follows the existing `session/services/hms.py` pattern. External service integrations live in `services/`. The AI pipeline (Whisper + Claude) is session-scoped, so it belongs here, not in a new app.
-- `AIFeedbackJob` lives in `session/models.py` because it is a one-to-one extension of `IELTSMockSession`, parallel to `SessionRecording` and `SessionResult`.
-- `AIMonthlyUsage` goes in `main/models.py` because it is a per-User tracking model, matching the profile pattern — all user-scoped data (`ExaminerProfile`, `CandidateProfile`, `ScoreHistory`) lives in `main/`.
-- No new Django app is needed. This is an extension of `session/`, not a new domain boundary. Creating a new app would introduce circular import complexity without benefit.
+- **Single assessment.py:** The two-step pipeline collapses to one service function. A separate transcription module no longer has a reason to exist.
+- **No new service file:** The Gemini call is not complex enough to warrant splitting. Keep the same interface (`assess_session(job) -> ...`).
+- **tasks.py stays thin:** Remove the explicit transcription step and the intermediate DB save of the transcript. The task orchestrates job lifecycle; the service handles all AI interaction.
 
 ## Architectural Patterns
 
-### Pattern 1: Fire-and-Forget Async Task via asyncio.create_task
+### Pattern 1: Files API Upload + generate_content
 
-**What:** The trigger endpoint spawns a background coroutine using `asyncio.create_task()`, returns HTTP 202 immediately, and the task runs to completion in the background under Daphne's event loop.
+**What:** Upload the webm audio file via `client.files.upload()`, then pass the returned file reference as multimodal content alongside the text prompt in `generate_content()`.
 
-**When to use:** When Celery/Redis is out of scope and processing time is variable (Whisper takes 30-120s for a 15-min recording). The client polls for status or waits for a WebSocket push.
+**When to use:** When audio file size may exceed 20 MB (inline limit). SessionRecording files are webm recordings of IELTS sessions (typically 15-30 minutes), which will regularly exceed 20 MB. Files API is the correct path.
 
-**Trade-offs:** Tasks are lost on server restart (acceptable — examiner can re-trigger). Results are persisted to DB so completed jobs survive restarts. django-simple-task is NOT compatible with Daphne (Daphne does not implement the ASGI lifespan protocol that django-simple-task requires), making raw `asyncio.create_task()` the correct choice here.
-
-**Implementation:**
-
-```python
-# module-level strong reference set — prevents garbage collection in Python 3.12+
-_background_tasks: set = set()
-
-# In the trigger view (async def post)
-task = asyncio.create_task(run_ai_feedback(session_id))
-_background_tasks.add(task)
-task.add_done_callback(_background_tasks.discard)
-```
-
-**Confidence:** HIGH — Daphne's lack of lifespan support is a confirmed, open issue in the django-simple-task repo. asyncio.create_task in async Django views under Daphne is the documented workaround.
-
-### Pattern 2: Whisper as Blocking CPU Call Offloaded to Thread Pool
-
-**What:** `whisper.transcribe()` is synchronous and CPU-intensive. Wrap it with `asyncio.to_thread()` (Python 3.9+, available in this stack) to avoid blocking Daphne's event loop during transcription.
-
-**When to use:** Any time a synchronous CPU-bound or IO-bound blocking call must be made from an async coroutine.
-
-**Trade-offs:** Occupies a thread pool slot for the duration of transcription (30-120s). Acceptable for infrequent per-session operations. Not appropriate if many concurrent AI jobs are expected (that would need Celery workers instead).
+**Trade-offs:** Files persist for 48 hours then are auto-deleted by Google. Upload adds one extra API call per job but is mandatory for larger files. No storage cost concern for this use case.
 
 **Example:**
-
 ```python
-# session/services/ai.py
-import asyncio
-import whisper
+from google import genai
+from django.conf import settings
 
-_whisper_model = None  # module-level singleton
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-def _get_model():
-    global _whisper_model
-    if _whisper_model is None:
-        _whisper_model = whisper.load_model("base")
-    return _whisper_model
+audio_ref = client.files.upload(
+    file=audio_path,
+    config={"mime_type": "audio/webm"},
+)
 
-async def transcribe_audio(file_path: str) -> str:
-    model = _get_model()
-    result = await asyncio.to_thread(model.transcribe, file_path)
-    return result["text"]
+response = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents=[system_prompt_text, audio_ref, user_prompt_text],
+    config={
+        "response_mime_type": "application/json",
+        "response_json_schema": ASSESSMENT_SCHEMA,
+    },
+)
+import json
+result = json.loads(response.text)
 ```
 
-**Model size recommendation:** `base` (~150MB) balances speed and accuracy for IELTS audio. Load at module import or first call, not per-request.
+### Pattern 2: response_json_schema for Structured Output
 
-### Pattern 3: Status Polling via AIFeedbackJob Model
+**What:** Pass a JSON Schema dict as `response_json_schema` in the config. Gemini returns valid JSON guaranteed to match the schema — no tool_use dance, no regex, no retry on malformed output.
 
-**What:** The trigger endpoint creates an `AIFeedbackJob` record (status=PENDING), returns 202 with job metadata. The background task updates the job as it progresses. The client polls a status endpoint.
+**When to use:** Whenever structured output is needed. This replaces Claude's `tool_use` pattern entirely. The schema includes all four criterion objects AND a transcript field in one response.
 
-**When to use:** Any long-running background operation where the client needs to know when results are ready without maintaining a persistent WebSocket connection for the duration.
+**Trade-offs:** Gemini's structured output is enforced at the model level (constrained decoding), making it more reliable than prompting for JSON. Unlike Claude's tool_use, there is no separate "tool block" to extract — the full response is `response.text` (a JSON string).
 
-**Suggested model design:**
-
+**Example schema definition:**
 ```python
-class AIFeedbackStatus(models.IntegerChoices):
-    PENDING = 1, "Pending"
-    PROCESSING = 2, "Processing"
-    DONE = 3, "Done"
-    FAILED = 4, "Failed"
-
-class AIFeedbackJob(TimestampedModel):
-    session = models.OneToOneField(
-        IELTSMockSession, on_delete=models.CASCADE, related_name="ai_feedback_job"
-    )
-    status = models.PositiveSmallIntegerField(
-        choices=AIFeedbackStatus.choices,
-        default=AIFeedbackStatus.PENDING,
-        db_index=True
-    )
-    transcript = models.TextField(blank=True)
-    error_message = models.TextField(blank=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
+ASSESSMENT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "transcript": {"type": "string"},
+        "fluency_and_coherence": {
+            "type": "object",
+            "properties": {
+                "band": {"type": "integer", "minimum": 1, "maximum": 9},
+                "feedback": {"type": "string"},
+            },
+            "required": ["band", "feedback"],
+        },
+        # ... gra, lr, pr same shape
+    },
+    "required": [
+        "transcript",
+        "fluency_and_coherence",
+        "grammatical_range_and_accuracy",
+        "lexical_resource",
+        "pronunciation",
+    ],
+}
 ```
 
-**Trade-offs:** Simple, no additional infrastructure. Results survive server restarts. Background task also broadcasts a WebSocket event on completion so clients with active connections get a push notification instead of waiting for the next poll cycle.
+### Pattern 3: Preserve the assess_session(job) Interface With Tuple Return
 
-### Pattern 4: Source Enum on CriterionScore
+**What:** Keep the same function name but change the return type to a tuple: `assess_session(job) -> tuple[list[dict], str]`. The first element is the same `[{"criterion": int, "band": int, "feedback": str}, ...]` list. The second is the transcript string.
 
-**What:** Add a `source` IntegerChoices field to the existing `CriterionScore` model. AI-generated scores create rows with `source=CLAUDE`. Examiner scores use `source=EXAMINER` (default, backward-compatible).
+**When to use:** The transcript can no longer be extracted from `job.transcript` (it doesn't exist yet when `assess_session` runs). The service must return it alongside the scores so the task can save both.
 
-**Why this over a separate model:** Avoids duplicating the scoring schema. Preserves the existing `CriterionScoreSerializer` and result API shape. The only change needed is relaxing the `unique_together = [("session_result", "criterion")]` constraint to `[("session_result", "criterion", "source")]` to allow both examiner and Claude scores per criterion.
+**Trade-offs:** Changing the return type breaks the existing mock in task tests (`return_value=MOCK_ASSESSMENT_RESULT` becomes `return_value=(MOCK_ASSESSMENT_RESULT, "mock transcript")`). This is a small, mechanical change and makes the data flow explicit.
 
-**Migration impact:** Adding `source` with `default=1` (EXAMINER) is fully backward-compatible — all existing rows get `source=EXAMINER` automatically.
-
-**Guard `compute_overall_band()`:** The method uses `self.scores.values_list("band", flat=True)`. After this change, it must filter by `source=EXAMINER` to avoid mixing AI bands into the examiner calculation unless that is explicitly desired behavior.
-
-### Pattern 5: Monthly Usage Tracking with Atomic Increment
-
-**What:** `AIMonthlyUsage` model with a `(examiner, year, month)` unique constraint. Before triggering, check `count < limit`. Increment atomically with `select_for_update` + `F()` expression.
-
-**Suggested model design:**
-
+**Recommended task call site:**
 ```python
-class AIMonthlyUsage(models.Model):
-    examiner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    year = models.PositiveSmallIntegerField()
-    month = models.PositiveSmallIntegerField()
-    count = models.PositiveIntegerField(default=0)
-
-    class Meta:
-        unique_together = [("examiner", "year", "month")]
-```
-
-**Increment pattern (consistent with existing `select_for_update` use in scheduling/):**
-
-```python
-with transaction.atomic():
-    usage, _ = AIMonthlyUsage.objects.select_for_update().get_or_create(
-        examiner=examiner, year=now.year, month=now.month, defaults={"count": 0}
-    )
-    if usage.count >= MONTHLY_LIMIT:
-        raise ValidationError("Monthly AI feedback limit reached.")
-    usage.count = F("count") + 1
-    usage.save(update_fields=["count"])
+scores_data, transcript = assess_session(job)
+job.transcript = transcript
+job.save(update_fields=["transcript", "updated_at"])
 ```
 
 ## Data Flow
 
-### AI Feedback Trigger Flow
+### Request Flow (unchanged at HTTP layer)
 
 ```
-Examiner POST /api/sessions/<pk>/ai-feedback/
-    |
-    +- Guard: Session status == COMPLETED? No -> 400
-    +- Guard: SessionRecording exists? No -> 400
-    +- Guard: AIFeedbackJob not PROCESSING or DONE? No -> 409
-    +- Guard: Monthly usage < limit? No -> 429
-    |
-    +- Atomic: increment AIMonthlyUsage.count
-    +- Create or reset AIFeedbackJob (status=PENDING)
-    +- asyncio.create_task(run_ai_feedback(session_id))
-    |
-    <- HTTP 202 {"job_id": X, "status": "pending"}
-
-Background coroutine: run_ai_feedback(session_id)
-    |
-    +- await AIFeedbackJob.objects.aupdate(status=PROCESSING)
-    +- await asyncio.to_thread(whisper_model.transcribe, audio_path)
-    |     (thread pool, 30-120s for 15-min audio)
-    +- await AIFeedbackJob.objects.aupdate(transcript=text)
-    +- await anthropic_client.messages.create(model=..., messages=[...])
-    |     (async HTTP to Anthropic API)
-    +- Parse response -> 4x CriterionScore rows (source=CLAUDE)
-    +- await AIFeedbackJob.objects.aupdate(status=DONE, completed_at=now)
-    +- _broadcast(session_id, "ai_feedback_done", {"job_id": X})
-    |
-    +- (on any exception): aupdate(status=FAILED, error_message=str(e))
+Examiner: POST /api/sessions/<id>/ai-feedback/
+    ↓
+AIFeedbackTriggerView.post()
+    - monthly limit check (select_for_update)
+    - AIFeedbackJob.objects.create(session=session)
+    - async_task('session.tasks.run_ai_feedback', job.pk)
+    → 202 {"job_id": ..., "status": "pending"}
 ```
 
-### Status Poll Flow
+### Background Task Flow (modified)
 
+**v1.3 (current):**
 ```
-GET /api/sessions/<pk>/ai-feedback/status/
-    |
-    <- {status, completed_at}  (200)
-       404 if job never triggered
-```
-
-### Results Retrieval Flow
-
-```
-GET /api/sessions/<pk>/ai-feedback/
-    |
-    <- {transcript, scores: [CriterionScore x4 (source=CLAUDE)], completed_at}  (200)
-       404 if status != DONE
+run_ai_feedback(job_id)
+    job.status = PROCESSING → save
+    transcript = transcribe_session(job)        # faster-whisper, ~minutes on CPU
+    job.transcript = transcript → save          # intermediate save
+    scores = assess_session(job)                # Claude API, text-only
+    CriterionScore bulk_create
+    job.status = DONE → save
+    _broadcast("ai_feedback_ready")
 ```
 
-## API Endpoint Structure
+**v1.4 (target):**
+```
+run_ai_feedback(job_id)
+    job.status = PROCESSING → save
+    scores, transcript = assess_session(job)    # single Gemini call (audio)
+    job.transcript = transcript → save          # moved post-call
+    CriterionScore bulk_create
+    job.status = DONE → save
+    _broadcast("ai_feedback_ready")
+```
 
-| Method | URL | Purpose | Auth |
-|--------|-----|---------|------|
-| `POST` | `/api/sessions/<pk>/ai-feedback/` | Trigger AI feedback pipeline | Examiner only |
-| `GET` | `/api/sessions/<pk>/ai-feedback/status/` | Poll job status | Examiner or Candidate |
-| `GET` | `/api/sessions/<pk>/ai-feedback/` | Retrieve transcript + AI scores | Examiner or Candidate |
+The intermediate `job.transcript` DB save between transcription and assessment is removed. The failure path is simplified: any exception from `assess_session` (including the Files API upload failing) still propagates to the outer `except` block and sets `job.status = FAILED`.
 
-All three are added to `session/urls.py` and implemented as view classes in `session/views.py`, consistent with all other session views.
+### Key Data Flows
+
+1. **Audio to Gemini:** `recording.audio_file.path` (webm on disk) → `client.files.upload(path, config={"mime_type": "audio/webm"})` → Gemini Files API stores temporarily → `file_ref` URI returned → passed to `generate_content` as multimodal content part.
+
+2. **Structured response parsing:** `response.text` is a JSON string matching `ASSESSMENT_SCHEMA`. `json.loads(response.text)` → dict with `transcript` + four criterion objects. No tool block extraction needed.
+
+3. **Transcript field lifecycle:** `AIFeedbackJob.transcript` was written mid-task in v1.3 (after transcription, before assessment). In v1.4 it is written once after the single Gemini call. Field definition on the model is unchanged — the GET endpoint and WebSocket event are unaffected.
 
 ## Integration Points
 
 ### External Services
 
-| Service | Integration Point | Pattern | Notes |
-|---------|-----------------|---------|-------|
-| OpenAI Whisper (local) | `session/services/ai.py` | `await asyncio.to_thread(model.transcribe, path)` | Module-level singleton. `base` model recommended for speed vs accuracy balance. Requires `ffmpeg` installed on the server. |
-| Anthropic Claude API | `session/services/ai.py` | `await AsyncAnthropic().messages.create(...)` | Use `anthropic` SDK's `AsyncAnthropic` client for non-blocking calls. Add `ANTHROPIC_API_KEY` to `.env`. |
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| Google Gemini Files API | `client.files.upload(file=path, config={"mime_type": "audio/webm"})` | Files persist 48h; no cleanup needed for job scope |
+| Google Gemini generate_content | `client.models.generate_content(model, contents, config)` | `config.response_json_schema` enforces structured output |
+| google-genai SDK | `pip install google-genai` — NOT `google-generativeai` (deprecated) | `from google import genai; client = genai.Client(api_key=...)` |
+
+**Model string:** Use `"gemini-2.5-flash"` for the generate_content call. This is the model referenced in current SDK examples (GitHub README, April 2026). Supports audio understanding via Files API and structured JSON output via `response_json_schema`.
+
+**webm support confirmed:** `audio/webm` is in the supported MIME type list per Firebase AI Logic docs. SessionRecording stores `.webm` files — no conversion needed.
 
 ### Internal Boundaries
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| Trigger view -> background task | `asyncio.create_task()` | Must keep strong reference in module-level set |
-| Background task -> ORM | Django 4.1+ async ORM (`aget`, `aupdate`, `acreate`) | Avoids `sync_to_async` wrappers; cleaner in coroutines |
-| Background task -> WebSocket | `_broadcast()` via existing `async_to_sync(channel_layer.group_send)` | Reuse the established pattern unchanged |
-| `CriterionScore` (CLAUDE) -> `SessionResult.compute_overall_band()` | Filter by `source=EXAMINER` in the band calculation query | Must guard explicitly after adding source field |
-| `AIMonthlyUsage` -> trigger view | Inline in view with `select_for_update` transaction | No service abstraction needed at this scale |
+| `tasks.py` → `assessment.py` | Direct function call `assess_session(job)` | Return type changes: `list[dict]` → `tuple[list[dict], str]` |
+| `tasks.py` → `views.py` | `_broadcast()` import | Unchanged |
+| `assessment.py` → `session/models.py` | Read `job.session.recording.audio_file.path`, read `SessionQuestion` query | Same query pattern as current `assess_session` + `transcribe_session` combined |
+| `settings.py` → `assessment.py` | `settings.GEMINI_API_KEY` | New setting; replaces `ANTHROPIC_API_KEY` and `WHISPER_MODEL_SIZE` |
 
 ## Scaling Considerations
 
 | Scale | Architecture Adjustments |
 |-------|--------------------------|
-| 0-50 examiners, <= 10 AI jobs/month each | asyncio.create_task, InMemoryChannelLayer, local Whisper base model — sufficient |
-| 200+ examiners, concurrent AI jobs | Move Whisper transcription to Celery workers; `AIFeedbackJob` model already provides the status tracking needed for Celery without API changes |
-| High scale | Whisper GPU inference node, Redis channel layer (already planned for production), dedicated transcription worker pool |
-
-The v1.3 approach is deliberately constrained. The `AIFeedbackJob` status model means migrating to Celery later requires only changing task dispatch — not the API contract or data model.
+| Current load (dev/demo) | Single django-q2 worker, InMemoryChannelLayer — no change needed |
+| Production growth | Gemini Files API upload is synchronous in the background task; for very large files (>500 MB) a streaming upload pattern exists but is not needed at current session lengths |
+| Rate limits | Gemini API has per-minute token limits. Monthly limit of 10 jobs/user means this is not a concern at current scale |
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Using django-simple-task with Daphne
+### Anti-Pattern 1: Skipping Files API for webm Sessions
 
-**What people do:** Install `django-simple-task` to avoid Celery and call `defer(my_task)` from views.
+**What people do:** Pass audio inline as base64 bytes to save the upload roundtrip.
 
-**Why it's wrong:** `django-simple-task` requires the ASGI lifespan protocol to start its worker queue. Daphne does not implement the lifespan protocol. Tasks will silently not execute. This is a confirmed, open issue.
+**Why it's wrong:** IELTS sessions are 10-30 minutes. A 20-minute webm easily exceeds the 20 MB inline limit. Inline upload will fail. The extra Files API call takes ~1 second for large files — acceptable in a background task.
 
-**Do this instead:** Use `asyncio.create_task()` from an async view with the module-level strong-reference set pattern.
+**Do this instead:** Always use `client.files.upload()` for SessionRecording audio. Apply the same guard as current `transcribe_session`: check that `recording.audio_file.path` exists on disk before uploading.
 
-### Anti-Pattern 2: Running Whisper Synchronously in an Async View
+### Anti-Pattern 2: Using google-generativeai (deprecated legacy package)
 
-**What people do:** Call `model.transcribe(file_path)` directly inside `async def post(...)`.
+**What people do:** `pip install google-generativeai` because it appears in older docs and blog posts.
 
-**Why it's wrong:** Whisper is CPU-bound and synchronous. Calling it directly blocks Daphne's event loop, freezing all WebSocket connections and HTTP requests for 30-120s.
+**Why it's wrong:** This package is deprecated as of 2025. The new unified SDK is `google-genai`. Import pattern is different: `from google import genai` (not `import google.generativeai as genai`). The API surface is different.
 
-**Do this instead:** `await asyncio.to_thread(model.transcribe, file_path)`.
+**Do this instead:** `pip install google-genai`. Verify with `from google import genai; client = genai.Client()`.
 
-### Anti-Pattern 3: Storing AI Scores in a Parallel Model
+### Anti-Pattern 3: Leaving transcription.py as a Dead Module
 
-**What people do:** Create a separate `AICriterionScore` model to avoid touching `CriterionScore`.
+**What people do:** Leave `session/services/transcription.py` in place with a deprecation comment.
 
-**Why it's wrong:** Duplicates the scoring schema, creates divergent serializers, and makes the result API return a different shape for AI scores vs examiner scores. The frontend must handle two schemas.
+**Why it's wrong:** Tests patching `session.services.transcription.transcribe_session` will still pass, giving false confidence. Future developers may accidentally re-enable it.
 
-**Do this instead:** Add `source` IntegerChoices field to `CriterionScore`, relax the unique constraint to include `source`. Existing serializer and API shape are preserved.
+**Do this instead:** Delete `session/services/transcription.py` entirely. Delete `TranscriptionServiceTests` and all `@patch("session.services.transcription.transcribe_session")` decorators on task tests. Replace with `AssessmentServiceTests` that mock `google.genai`.
 
-### Anti-Pattern 4: Placing Monthly Usage in session/ Instead of main/
+### Anti-Pattern 4: Mimicking Claude's tool_use Pattern With Gemini
 
-**What people do:** Add `AIMonthlyUsage` to `session/models.py` because AI feedback is triggered from a session view.
+**What people do:** Prompt Gemini to "call a tool" and parse a synthetic tool block from `response.text`.
 
-**Why it's wrong:** Monthly usage is a User-scoped concern. All User-tracking models live in `main/`. Placing it in `session/` breaks this pattern and creates a circular import risk (session already imports from main for `User`, `ExaminerProfile`).
+**Why it's wrong:** Gemini does not use Claude's tool_use protocol. Prompting for tool-like output produces unreliable text requiring custom parsing.
 
-**Do this instead:** Add `AIMonthlyUsage` to `main/models.py`.
+**Do this instead:** Use `config={"response_mime_type": "application/json", "response_json_schema": ASSESSMENT_SCHEMA}`. The response is guaranteed valid JSON — no extraction logic needed.
 
-### Anti-Pattern 5: Loading Whisper Model Per Request
+## Build Order
 
-**What people do:** Call `whisper.load_model("base")` inside the transcription function on each AI job.
+The migration has clear dependency layers. Build in this order to preserve test stability at each step:
 
-**Why it's wrong:** Loading Whisper takes several seconds and allocates ~150-500MB of memory. Each job would reload the model, causing latency spikes and potential OOM under any concurrent load.
+**Step 1 — Rewrite session/services/assessment.py**
 
-**Do this instead:** Use a module-level singleton in `session/services/ai.py`. Load once on first call, cache globally.
+Replace Claude client with `google.genai` client. Define `ASSESSMENT_SCHEMA` (includes `transcript` field + four criteria). Update `SYSTEM_PROMPT` for direct audio (remove references to "transcript provided"; add pronunciation guidance on intonation, rhythm, connected speech, stress patterns). Keep `CRITERION_MAP` constant — same integer mapping. Change function signature to `assess_session(job) -> tuple[list[dict], str]`.
 
-## Build Order (Recommended)
+At this point the new service is written but nothing calls it yet. Can be tested in isolation by mocking `google.genai.Client`.
 
-Dependencies are essentially linear:
+**Step 2 — Update session/tasks.py**
 
-1. **Data models + migrations** — `AIFeedbackJob`, `AIFeedbackStatus`, `ScoreSource`, `CriterionScore.source` field, `AIMonthlyUsage`. Nothing else can be built without these. Two migrations: one for `session/`, one for `main/`.
+Remove `from session.services.transcription import transcribe_session` and its call. Change the `assess_session` call site to unpack the tuple: `scores_data, transcript = assess_session(job)`. Move the transcript save to after `assess_session` returns. Remove the intermediate transcript save block that existed between the two old steps.
 
-2. **Service layer** — `session/services/ai.py`: Whisper transcription function + Claude API call function. Testable in isolation before wiring to views.
+**Step 3 — Update settings.py and requirements.txt together**
 
-3. **Trigger endpoint** — `POST /api/sessions/<pk>/ai-feedback/` with usage check, job creation, and `asyncio.create_task()` dispatch.
+Add `GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")` to settings. Remove `WHISPER_MODEL_SIZE` and `ANTHROPIC_API_KEY`. In `requirements.txt`, add `google-genai`, remove `faster-whisper==1.2.1` and `anthropic==0.91.0`.
 
-4. **Status + results endpoints** — `GET .../status/` and `GET .../` are read-only; depend only on the models from step 1.
+**Step 4 — Delete session/services/transcription.py**
 
-5. **WebSocket broadcast** — Add `_broadcast("ai_feedback_done", ...)` call at end of background task. This is the lowest-risk change and can be added last.
+Delete the file. This intentionally breaks `TranscriptionServiceTests` and the double-patch decorators on task integration tests — expected and correct.
+
+**Step 5 — Update session/tests.py**
+
+- Delete `TranscriptionServiceTests` class entirely.
+- Rewrite `AssessmentServiceTests` to mock `google.genai.Client` instead of `anthropic`.
+- Update `AIFeedbackTaskTests`: replace the double `@patch` decorators (transcription + assessment) with a single `@patch("session.services.assessment.assess_session", return_value=(MOCK_ASSESSMENT_RESULT, "mock transcript"))`.
+- `AIFeedbackTriggerTests` and `AIScoresDeliveryTests` — NO changes required (HTTP layer and WebSocket events are unchanged).
+
+**Dependency graph:**
+```
+Step 1 (assessment.py rewrite)
+    ↓
+Step 2 (tasks.py update) — depends on new assess_session signature
+    ↓
+Steps 3 + 4 (settings/requirements + delete transcription) — do together
+    ↓
+Step 5 (tests) — depends on all prior steps complete
+```
+
+## API Contract Preservation
+
+The following surfaces are **unchanged** and require no frontend coordination:
+
+| Surface | Contract |
+|---------|---------|
+| `POST /api/sessions/<id>/ai-feedback/` | 202 `{"job_id": int, "status": "pending"}` |
+| `GET /api/sessions/<id>/ai-feedback/` | `{"status": str, "transcript": str\|null, "scores": [...]}` |
+| WebSocket event `ai_feedback_ready` | `{"type": "ai_feedback_ready", "job_id": int, "session_id": int}` |
+| `AIFeedbackJob` model fields | `status`, `transcript`, `error_message` — all unchanged |
+| `CriterionScore` records | `source=AI`, 4 records per job, same criterion integers — unchanged |
+
+The only observable change from outside: the `transcript` field in the GET response contains a Gemini-generated transcript rather than a faster-whisper one. Content quality improves; field shape is identical.
 
 ## Sources
 
-- Django Channels workers documentation: https://channels.readthedocs.io/en/stable/topics/worker.html
-- django-simple-task Daphne incompatibility (confirmed open issue): https://github.com/ericls/django-simple-task/issues/2
-- asyncio.create_task fire-and-forget with strong reference: https://mkennedy.codes/posts/fire-and-forget-or-never-with-python-s-asyncio/
-- asyncio.to_thread for blocking calls (Python 3.9+): https://docs.python.org/3/library/asyncio-task.html
-- Whisper async with run_in_executor pattern: https://github.com/openai/whisper/discussions/1310
-- Django async ORM (4.1+): https://docs.djangoproject.com/en/5.0/topics/async/
-- Anthropic Python SDK (AsyncAnthropic): https://github.com/anthropics/anthropic-sdk-python
-- Background tasks in Django without Celery (2025): https://medium.com/@joyichiro/django-background-tasks-without-celery-lightweight-alternatives-for-2025-22c5940e6928
+- [Google GenAI Python SDK (google-genai) — GitHub README](https://github.com/googleapis/python-genai)
+- [Audio understanding — Gemini API docs](https://ai.google.dev/gemini-api/docs/audio)
+- [Structured output — Gemini API docs](https://ai.google.dev/gemini-api/docs/structured-output)
+- [File input methods — Gemini API docs](https://ai.google.dev/gemini-api/docs/file-input-methods)
+- [Supported input files including audio/webm — Firebase AI Logic](https://firebase.google.com/docs/ai-logic/input-file-requirements)
+- [google-genai PyPI package](https://pypi.org/project/google-genai/)
 
 ---
-*Architecture research for: MockIT v1.3 AI Feedback integration*
-*Researched: 2026-04-07*
+*Architecture research for: MockIT v1.4 — Gemini audio assessment integration*
+*Researched: 2026-04-09*

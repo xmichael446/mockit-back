@@ -1,381 +1,317 @@
 # Pitfalls Research
 
-**Domain:** Adding AI transcription, LLM-based assessment, and async processing to an existing Django IELTS exam platform
-**Researched:** 2026-04-07
-**Confidence:** HIGH (claims cross-verified against Django 5.2 docs, Whisper GitHub, Anthropic API docs, and production post-mortems)
+**Domain:** Replacing text-based AI assessment pipeline (faster-whisper + Claude) with Gemini Pro direct audio assessment
+**Researched:** 2026-04-09
+**Confidence:** HIGH (Gemini file limits, audio format support, SDK differences); MEDIUM (latency, cost projections, safety filter behavior on speech)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Whisper Model Loaded Per-Request, Blocking the Event Loop
+### Pitfall 1: webm MIME type listed in Firebase AI docs but absent from core Gemini API audio docs
 
 **What goes wrong:**
-`whisper.load_model("base")` is called inside the async background task (or view) on every transcription request. On CPU, loading the model alone takes 3–8 seconds and uses 1–4 GB RAM. When running under Daphne (ASGI), this synchronous CPU-bound call blocks the entire event loop, freezing all WebSocket connections and HTTP responses for all users while the model loads and runs inference.
+The Gemini API audio documentation page (`ai.google.dev/gemini-api/docs/audio`) lists supported formats as: WAV, MP3, AIFF, AAC, OGG Vorbis, FLAC. It does not mention `audio/webm`. The Firebase AI Logic documentation does list `audio/webm`. These two sources contradict each other. If you assume webm is universally supported and call the API with `mime_type="audio/webm"`, you may receive a 400 INVALID_ARGUMENT error at runtime in production — silently silenced in tests that mock the Gemini client.
 
 **Why it happens:**
-Developers treat Whisper like a lightweight API call. The model load is trivially written inline, and it works fine in a local test with one request. Under production load or even a second concurrent user, the blocking becomes catastrophic.
+The existing pipeline stores recordings as webm (browser MediaRecorder default). The developer assumes format support from Firebase docs without verifying the core Gemini API docs, or tests pass because the Gemini client is mocked.
 
 **How to avoid:**
-Load the Whisper model once at process startup as a module-level singleton, not per-request. Wrap the inference call in `asyncio.get_event_loop().run_in_executor(None, ...)` or `sync_to_async` so it runs in a thread pool, not the event loop:
-
-```python
-# session/services/transcription.py — loaded once at import time
-import whisper
-_model = whisper.load_model("base")  # Loaded once per worker process
-
-async def transcribe_async(audio_path: str) -> str:
-    loop = asyncio.get_event_loop()
-    result = await loop.run_in_executor(None, _model.transcribe, audio_path)
-    return result["text"]
-```
-
-The GIL means CPU-bound work in a thread pool still serialises threads, but at least it does not block the event loop. For production, use `faster-whisper` with CTranslate2 int8 quantisation: 4x faster on CPU, 50–60% less RAM.
+1. Before writing any audio upload code, call the Gemini API with a short real webm file and confirm acceptance.
+2. If webm is rejected, add a pre-upload conversion step using `ffmpeg` or `pydub` to convert to MP3 or FLAC before sending. This must happen inside the background task, before the Gemini API call.
+3. Set `mime_type` explicitly in every audio upload — never rely on auto-detection.
+4. Add an integration smoke-test (can be outside the main suite) that sends a real 5-second webm to the Gemini API to confirm acceptance.
 
 **Warning signs:**
-- WebSocket heartbeats drop during a transcription
-- `daphne` access log shows a request taking 30–120+ seconds
-- Server OOM-kills after a few concurrent transcriptions
-- Django Channels group messages delayed
+- 400 INVALID_ARGUMENT errors in Gemini API calls referencing mime type
+- `FinishReason.OTHER` without explanation
+- Tests pass locally (all mocked) but production jobs fail immediately
 
-**Phase to address:**
-Transcription service implementation phase — before any endpoint wires it up.
+**Phase to address:** Phase 1 (Gemini client setup and audio format validation) — validate webm acceptance before writing the assessment logic.
 
 ---
 
-### Pitfall 2: Fire-and-Forget asyncio Tasks Get Garbage-Collected Before Completion
+### Pitfall 2: Files API 48-hour TTL causes silent failures for background jobs
 
 **What goes wrong:**
-A background transcription+assessment job is spawned with `asyncio.create_task(run_ai_feedback(...))` inside an async view or consumer handler. The task appears to start, but on Python 3.12+ it is silently garbage-collected mid-execution because the event loop only holds a weak reference to tasks not stored elsewhere. The job disappears with no error, no status update, and no log entry.
+The Gemini Files API automatically deletes uploaded files after 48 hours. If you upload an audio file to the Files API and store the file URI in the AIFeedbackJob, any retry of a failed job after 48 hours will receive a 404 NOT_FOUND error on the file URI. More subtly: files uploaded to the Files API require polling until their state transitions from `PROCESSING` to `ACTIVE`. If the background task sends the file URI to the model while the file is still `PROCESSING`, the API returns an error.
 
 **Why it happens:**
-`asyncio.create_task()` is documented to require the caller to retain a strong reference. Most developers miss this. The Python 3.12 garbage collector is more aggressive. In async Django views specifically, the framework closes the event loop after returning the HTTP response, killing any unfinished tasks spawned in that view.
+Developers coming from the inline-data pattern (or from faster-whisper's local file access) don't account for the asynchronous activation step in the Files API. The background task `run_ai_feedback` currently does a synchronous pipeline (transcribe → assess). With the Files API, there is now an additional async step (upload → poll → use) that breaks the linear pattern.
 
 **How to avoid:**
-Keep a module-level set of running tasks. Add each task to it on creation; remove it via a done callback:
-
-```python
-# session/services/background.py
-_running_tasks: set = set()
-
-def spawn_background_task(coro):
-    task = asyncio.create_task(coro)
-    _running_tasks.add(task)
-    task.add_done_callback(_running_tasks.discard)
-    return task
-```
-
-Never spawn background jobs from a sync view — use an async view or the Channels consumer. Alternatively, use `database_sync_to_async` inside the consumer's `receive()` to kick off work from a safe async context.
+1. Poll `client.files.get(name=file.name)` in a loop until `file.state.name == "ACTIVE"`, with a sleep of 5–10 seconds per iteration and a maximum retry count (e.g., 30 attempts = 5 minutes timeout).
+2. Raise `RuntimeError` if the file never becomes ACTIVE — this surfaces as a FAILED job with a clear error message.
+3. Do not store file URIs in the database for later re-use — they expire. The upload is always per-job.
+4. For sessions where the audio is under ~15 MB total request size (short sessions), use inline data (`types.Part.from_bytes()`) instead of the Files API to eliminate the TTL and polling concerns entirely.
 
 **Warning signs:**
-- `AIFeedbackJob` records stuck in `PENDING` status indefinitely
-- No exception logs despite a failed job
-- asyncio logs showing "Task was destroyed but it is pending!" in DEBUG mode
-- Jobs complete in development (lower GC pressure) but not in production
+- Jobs fail intermittently only on retry (first attempt succeeds)
+- Error messages contain "File not found" or "File state is not ACTIVE"
+- Processing time spikes under load (file processing backlog at Google's end)
 
-**Phase to address:**
-Background task infrastructure phase — establish the `spawn_background_task` pattern before writing any job logic.
+**Phase to address:** Phase 1 (Gemini client setup) — implement the upload-and-poll helper before any assessment logic is written.
 
 ---
 
-### Pitfall 3: ORM Calls Inside an Async Context Without sync_to_async
+### Pitfall 3: Test suite mocks the wrong layer — 103 tests break or give false confidence
 
 **What goes wrong:**
-A background coroutine updates job status or writes AI scores directly with `AIFeedbackJob.objects.filter(...).update(...)`. Django raises `SynchronousOnlyOperation: You cannot call this from an async context`. This crashes the background task silently (exceptions in unawaited tasks are not propagated) and leaves the job in a stale state with no error recorded anywhere visible.
+The existing 103 tests mock `session.services.transcription.transcribe_session` and `session.services.assessment.assess_session` at the function level (e.g., `@patch("session.services.assessment.assess_session", return_value=MOCK_ASSESSMENT_RESULT)`). They also mock `anthropic` via `patch.dict(sys.modules, {"anthropic": mock_module})`. After replacing Claude with Gemini, the `anthropic` mock becomes irrelevant, and the `assess_session` function signature and raise contract must be preserved exactly — otherwise the 103 tests that mock at the service boundary will silently diverge from production behavior.
+
+There are also transcription tests that mock `faster_whisper.WhisperModel` directly. After removing faster-whisper, these tests will either fail to import or mock a nonexistent module.
 
 **Why it happens:**
-Django's ORM is sync-only by default. Running inside `async def` (even via `asyncio.create_task`) constitutes an async context. The `SynchronousOnlyOperation` check is strict, and the error is easy to miss because the task was fire-and-forget.
+When replacing two services simultaneously (transcription + assessment), developers focus on getting the new code to work and forget to audit which tests mock at module level vs. function level. Module-level mocks survive the replacement cleanly; SDK-level mocks don't.
 
 **How to avoid:**
-All ORM operations inside async functions must use the async ORM interface or be wrapped:
-
-```python
-# Option A — async ORM methods (Django 4.1+, preferred for simple queries)
-job = await AIFeedbackJob.objects.aget(pk=job_id)
-job.status = "PROCESSING"
-await job.asave(update_fields=["status", "updated_at"])
-
-# Option B — sync_to_async for complex QuerySets or model methods
-from asgiref.sync import sync_to_async
-
-@sync_to_async
-def _save_scores(session_result_id, scores):
-    # Full sync ORM code here
-    ...
-```
-
-Establish this discipline from the first line of background task code — it is harder to retrofit later.
+1. Inventory every test that uses `patch.dict(sys.modules, {"anthropic": ...})` or `patch("faster_whisper.WhisperModel", ...)` — these are the only tests that need to change.
+2. Tests that mock at the service function boundary (`patch("session.services.assessment.assess_session", ...)`) need zero changes — they mock the same function name regardless of what's inside it.
+3. Replace anthropic module-level tests with equivalent google-genai module-level tests using `patch("google.genai.Client", ...)` or equivalent mock for the new SDK.
+4. Confirm the `assess_session` function still raises `RuntimeError` on all failure paths (missing criteria, invalid band, API error) — the task's `except Exception` block depends on this contract.
+5. Run `python manage.py test session` after removing `faster-whisper` from requirements; any remaining `ImportError` on WhisperModel indicates a test that needs updating.
 
 **Warning signs:**
-- `SynchronousOnlyOperation` in server logs (look carefully — unawaited tasks log to stderr, not request logs)
-- Jobs stuck in PENDING after a trigger request returns 202
-- Missing score rows in the database despite no explicit failure
+- `ImportError: No module named 'faster_whisper'` in tests after requirements cleanup
+- Tests pass with `patch("anthropic", ...)` that no longer imports in production
+- `assert_called_once_with` on the old SDK client passes because the mock was never exercised
 
-**Phase to address:**
-Background task infrastructure phase — alongside the fire-and-forget pattern (Pitfall 2).
+**Phase to address:** Phase 2 (replace assessment service) — run the full test suite immediately after removing the anthropic import; fix all SDK-level mocks before writing new Gemini tests.
 
 ---
 
-### Pitfall 4: Monthly Usage Limit Has a Race Condition
+### Pitfall 4: Gemini structured output integer constraints are not enforced by the SDK validator
 
 **What goes wrong:**
-Two concurrent trigger requests arrive for the same examiner at the same millisecond. Both read the current month's job count, both see `count < limit`, both pass the guard, and both create a new `AIFeedbackJob`. The examiner ends up with 11 jobs in a month where the limit is 10.
+Claude's `tool_use` with `tool_choice={"type": "tool"}` forces a structured tool call with strict schema enforcement. Gemini's `response_schema` with Pydantic or JSON schema does not enforce `minimum`/`maximum` constraints on integer fields at the SDK level — the SDK validates structure (required fields, types) but leaves value-range constraints as model-best-effort. Gemini can return a band score of 0 or 10 — values that pass SDK parsing but violate the IELTS 1–9 requirement. The existing `assess_session` function validates `1 <= band <= 9` and raises `RuntimeError` on violation; this validation must be preserved in the new implementation.
 
 **Why it happens:**
-A naive check-then-act pattern without a database-level lock:
-
-```python
-# WRONG — race condition
-count = AIFeedbackJob.objects.filter(examiner=examiner, month=...).count()
-if count >= LIMIT:
-    raise PermissionDenied(...)
-AIFeedbackJob.objects.create(...)
-```
-
-Two threads can both pass the `count >= LIMIT` check before either creates the record.
+Developers see "structured output" and assume it provides the same guarantees as Claude's tool enforcement. The Pydantic model compiles and the API call succeeds, but the band value is wrong. Since unit tests mock `assess_session`, the invalid-band path is only exercised in dedicated assessment service tests — which may have been updated to mock Gemini without preserving the validation test.
 
 **How to avoid:**
-Use `select_for_update()` on a per-examiner lock row, or use a database `unique_together` constraint combined with an atomic counter. The simplest approach for this scale:
-
-```python
-from django.db import transaction
-
-with transaction.atomic():
-    # Lock the examiner's usage record for this month
-    usage = ExaminerUsage.objects.select_for_update().get_or_create(
-        examiner=examiner, month=current_month
-    )[0]
-    if usage.ai_jobs_count >= settings.AI_JOBS_MONTHLY_LIMIT:
-        raise PermissionDenied("Monthly AI feedback limit reached.")
-    usage.ai_jobs_count = models.F("ai_jobs_count") + 1
-    usage.save(update_fields=["ai_jobs_count"])
-    AIFeedbackJob.objects.create(session=session, examiner=examiner)
-```
-
-`F()` expressions perform atomic increment at the database level, eliminating read-modify-write races.
+1. Keep the explicit `if not isinstance(band, int) or not (1 <= band <= 9)` validation in `assess_session` regardless of schema.
+2. Do not remove the existing `TestAssessmentService` tests for invalid band values — they must all pass against the new Gemini implementation.
+3. Include the range constraint in the system prompt as a redundant instruction: "band must be an integer from 1 to 9 inclusive".
+4. If using Pydantic schema, add a `Field(ge=1, le=9)` annotation even though it won't be enforced by the SDK — it documents intent and may be enforced by future SDK versions.
 
 **Warning signs:**
-- Monthly job counts exceed the configured limit under concurrent load
-- Examiners report seeing more feedback jobs than their tier allows
-- `select_for_update()` absent from the trigger view
+- Band value of 0 or 10 in CriterionScore records
+- `overall_band` computation returns unexpected values (e.g., 4.5 from a band-0 score)
+- Integration tests pass but production scores are out of range
 
-**Phase to address:**
-Usage limit + trigger endpoint phase.
+**Phase to address:** Phase 2 (replace assessment service) — ensure validation tests from `TestAssessmentServiceWithClaude` are ported to `TestAssessmentServiceWithGemini` before removing the old tests.
 
 ---
 
-### Pitfall 5: AI Scores Overwrite or Conflict with Human Examiner Scores
+### Pitfall 5: Gemini safety filters block legitimate IELTS speaking samples
 
 **What goes wrong:**
-`CriterionScore` has a `unique_together = [("session_result", "criterion")]` constraint. When AI feedback tries to create a score for `FC` on a session that the examiner already scored, the database raises `IntegrityError`. Alternatively, if the AI score creation path uses `update_or_create`, it silently overwrites the human examiner's band score — destroying authoritative data.
+Gemini's default safety settings (`BLOCK_MEDIUM_AND_ABOVE`) can classify IELTS speaking samples as potentially harmful if candidates discuss sensitive topics (crime, violence, health issues, political events — all common IELTS Part 3 themes). When a response is blocked, `response.candidates[0].finish_reason` is `FinishReason.SAFETY`, and `response.text` raises a `ValueError` (it does not return empty string). If the assessment code accesses `response.text` or the structured response without checking `finish_reason` first, it crashes with an unhandled exception — the job fails with a cryptic error message, not a clear "safety block" message.
 
 **Why it happens:**
-The source (examiner vs. AI) is not part of the uniqueness constraint in the existing model. Adding a `source` enum without updating the unique constraint still leaves one score slot per criterion, not two. The AI path then collides with the human path.
+Claude does not have equivalent safety filters that block educational/assessment content at this level. Developers porting from Claude assume the response is always a valid content completion if no exception was raised.
 
 **How to avoid:**
-Add `source` to the `unique_together` constraint so both scores can coexist:
-
-```python
-class CriterionScore(TimestampedModel):
-    class Source(models.IntegerChoices):
-        EXAMINER = 1, "Examiner"
-        AI = 2, "AI (Claude)"
-
-    session_result = models.ForeignKey(SessionResult, ...)
-    criterion = models.PositiveSmallIntegerField(choices=SpeakingCriterion.choices)
-    source = models.PositiveSmallIntegerField(choices=Source.choices, default=Source.EXAMINER)
-    band = models.PositiveSmallIntegerField(...)
-    feedback = models.TextField(null=True, blank=True)
-
-    class Meta:
-        unique_together = [("session_result", "criterion", "source")]
-```
-
-The `compute_overall_band()` method on `SessionResult` must also be updated to filter by `source=EXAMINER` — otherwise AI bands contaminate the official IELTS score calculation.
+1. After every `generate_content` call, check `response.candidates[0].finish_reason` before accessing any response content.
+2. If `finish_reason == "SAFETY"`, raise a descriptive `RuntimeError("Gemini safety filter blocked the response. Consider adjusting safety settings or rephrasing the prompt.")` — the task will record this in `job.error_message`.
+3. For the assessment use case, configure safety settings to `BLOCK_ONLY_HIGH` for `HARM_CATEGORY_DANGEROUS_CONTENT` and `HARM_CATEGORY_HARASSMENT` — these are the categories most likely to be triggered by spoken language assessment. Do not disable safety filters entirely.
+4. Test with IELTS Part 3 topics that involve crime, politics, or controversial social issues to verify safety settings are appropriate.
 
 **Warning signs:**
-- `IntegrityError: UNIQUE constraint failed` in logs after adding source field
-- `SessionResult.overall_band` changes after AI feedback runs
-- API responses mixing examiner and AI scores without a `source` field
+- Jobs fail with `ValueError: response.text` or `AttributeError` accessing structured output
+- `finish_reason` is `SAFETY` in logs
+- Certain session topics consistently cause failures while others succeed
 
-**Phase to address:**
-Model migration phase — before any AI score writes are attempted.
+**Phase to address:** Phase 2 (replace assessment service) — add safety filter handling before any test with real audio content.
 
 ---
 
-### Pitfall 6: Claude API Latency Causes Downstream Timeout or Stale Status
+### Pitfall 6: Removing the transcription step silently breaks the `transcript` field contract
 
 **What goes wrong:**
-The full pipeline (transcription + Claude API call) can take 60–180 seconds for a 15-minute audio file. If the status polling endpoint returns `PROCESSING` for that entire window, frustrated users may retry the trigger endpoint, creating duplicate jobs. If a proxy or load balancer imposes a 30-second timeout, the background task is orphaned mid-flight while the job record shows PROCESSING forever.
+`AIFeedbackJob.transcript` was populated by faster-whisper in the v1.3 pipeline. With Gemini direct audio, there is no separate transcription step — Gemini processes audio natively. If the new pipeline sets `job.transcript = None` (or never writes to it), the GET endpoint's response schema will silently change: the API currently returns `transcript` in the response body. The API docs (`docs/api/ai-feedback.md`) document this field. Downstream clients that rely on the transcript field will break.
+
+There is also a migration concern: existing `AIFeedbackJob` records in production have non-null `transcript` values from the v1.3 pipeline. New jobs will have null transcripts. The field must remain in the model and the API response — but its semantics change from "always populated" to "populated only if transcription was performed separately."
 
 **Why it happens:**
-Developers test locally with small audio clips and fast hardware. The assumption that "it will complete quickly" breaks in production with real IELTS recordings (12–17 minutes average speaking time). The background task is genuinely async but callers have no signal other than polling.
+When removing the transcription step, developers delete the `job.transcript = transcript` line and the `save(update_fields=["transcript", "updated_at"])` call without checking what the GET endpoint returns for that field.
 
 **How to avoid:**
-- Set a maximum runtime on the background task itself (use `asyncio.wait_for` with a generous 300-second timeout).
-- The trigger endpoint must return `202 Accepted` immediately — never wait for the job inside the request.
-- Add a `failed_reason` field to `AIFeedbackJob` and catch all exceptions at the top of the task:
-
-```python
-async def run_ai_feedback(job_id: int):
-    try:
-        # ... pipeline ...
-    except asyncio.TimeoutError:
-        await _mark_failed(job_id, "Timed out after 300s")
-    except Exception as e:
-        await _mark_failed(job_id, str(e))
-```
-
-- For polling: document a reasonable retry interval (10 seconds) and a maximum poll count in the API contract to prevent client stampedes.
+1. Do not remove `AIFeedbackJob.transcript` from the model — it must remain for backward compatibility with existing records.
+2. In the new pipeline, if Gemini provides a transcript alongside scores (via structured output), write it to `job.transcript`. If not, leave the field null and update the API docs to note it is optional.
+3. Update `docs/api/ai-feedback.md` to reflect that `transcript` may be null for Gemini-processed jobs.
+4. No migration needed — the field is already nullable.
 
 **Warning signs:**
-- Jobs in PROCESSING status for more than 5 minutes
-- Duplicate `AIFeedbackJob` records for the same session
-- Unhandled exception logs mid-background-task
+- GET `/api/sessions/{id}/ai-feedback/` starts returning `"transcript": null` for new jobs while old jobs returned a string
+- Frontend parsing errors if the frontend treats transcript as non-nullable
 
-**Phase to address:**
-Trigger endpoint + status polling phase.
+**Phase to address:** Phase 1 (design review) — decide the transcript field policy before writing any new assessment code.
+
+---
+
+### Pitfall 7: django-q2 worker timeout too short for Gemini audio processing
+
+**What goes wrong:**
+The existing pipeline runs two serial operations: faster-whisper CPU transcription (typically 30–120 seconds for a 15-minute session on the deploy target) + Claude API call (typically 5–15 seconds). Total: ~2 minutes. Gemini audio processing may take 30–120 seconds depending on audio length and model load, but also includes a Files API upload (network I/O to Google's servers) and a polling wait for the file to become ACTIVE. Under the default django-q2 timeout, long jobs may be killed mid-execution and left in PROCESSING status indefinitely (the task is killed, not gracefully interrupted — `except` blocks don't run).
+
+**Why it happens:**
+The django-q2 `timeout` setting in `Q_CLUSTER` was sized for the CPU-bound faster-whisper workload. Network latency to Google's API adds an unpredictable ceiling. 504 DEADLINE_EXCEEDED errors from Gemini itself for large audio have been reported in community forums.
+
+**How to avoid:**
+1. Check `settings.Q_CLUSTER["timeout"]` — if not set, the default is `None` (no timeout). If a timeout is set, increase it to at least 300 seconds (5 minutes).
+2. Set a connection timeout on the Gemini client separately to fail fast if the API hangs, before the django-q2 timeout kills the worker process.
+3. If the Files API upload is used, count the polling loop time in the total budget.
+4. Test with a 15-minute webm file from the deploy target to measure actual end-to-end task duration before deploying.
+
+**Warning signs:**
+- Jobs stuck in PROCESSING status without ever transitioning to DONE or FAILED
+- django-q2 worker logs show "Task timed out" or worker restarts
+- `job.error_message` is null on FAILED jobs (indicates worker was killed, not that an exception was caught)
+
+**Phase to address:** Phase 1 (infrastructure setup) — audit `Q_CLUSTER` config and Gemini client timeout before writing assessment code.
+
+---
+
+### Pitfall 8: Wrong SDK package — `google-generativeai` is deprecated
+
+**What goes wrong:**
+A search for "google gemini python sdk" returns both `google-generativeai` (deprecated) and `google-genai` (the current unified SDK). If `google-generativeai` is installed, the import path is `import google.generativeai as genai`. The new SDK uses `from google import genai` with a `genai.Client()` pattern. These are incompatible. Mixing documentation examples from the two SDKs produces `AttributeError` errors that are difficult to diagnose.
+
+**Why it happens:**
+PyPI search results and older tutorials still reference `google-generativeai`. The deprecation notice is not prominent in all documentation paths.
+
+**How to avoid:**
+1. Install `google-genai` (the new unified SDK), not `google-generativeai`.
+2. Use `from google import genai` and `client = genai.Client(api_key=...)` throughout.
+3. Add `# Uses google-genai SDK (not deprecated google-generativeai)` as a comment in `assessment.py` to prevent future confusion.
+
+**Warning signs:**
+- `AttributeError: module 'google.generativeai' has no attribute 'Client'`
+- Import path confusion between `google.generativeai` and `google.genai`
+
+**Phase to address:** Phase 1 (Gemini client setup) — lock the correct package in requirements before any code is written.
 
 ---
 
 ## Technical Debt Patterns
 
-Shortcuts that seem reasonable but create long-term problems.
-
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Load Whisper model per-request | No singleton management | Server OOM, blocked event loop on every job | Never — load once at startup |
-| Store AI and human scores in separate `AIScore` model (parallel table) | No migration to existing model | Two code paths for scoring display, complex `compute_overall_band`, duplicate serialisers | Never — use `source` enum on the existing `CriterionScore` |
-| Hardcode monthly limit in view code | Fast to ship | Config change requires deployment, no per-examiner overrides possible | MVP only — move to settings constant immediately |
-| Skip job status tracking, just await in-request | Simpler implementation | Request timeouts, no progress visibility, duplicate triggers | Never with 60–180s workloads |
-| Use `whisper-large` on CPU | Higher accuracy | 8–16 GB RAM, 10+ minutes per session on CPU | Never without GPU — use `whisper-base` or `faster-whisper` |
-| Use `asyncio.create_task` without strong reference set | Simple fire-and-forget | Silent task loss on Python 3.12+ | Never — always retain a reference |
-| Write raw audio file path into Claude prompt | Avoids extra read step | Model cannot read files; the transcript must be extracted first | Never — always pass text, not paths |
+| Upload audio inline (skip Files API) for all files | Simpler code, no polling | Fails for sessions > ~15 MB audio (100 MB request limit); silent 400 error | Only if sessions are guaranteed short (< 5 minutes) |
+| Skip transcript storage in new pipeline | Less code, cleaner pipeline | Breaks API contract for clients that read `transcript`; loses debugging aid | Never — keep the field, set to null if not transcribing |
+| Remove `assess_session`'s band validation after switching to structured output | Simpler code | Out-of-range bands from Gemini reach the database silently | Never — validation costs 4 lines, prevents corrupt scores |
+| Reuse existing anthropic-style `patch.dict(sys.modules, ...)` tests with Gemini mock | Less test rewriting | Tests exercise mock infrastructure that doesn't match Gemini SDK's actual interface | Never — mock the correct module for each SDK |
+| Not polling for Files API ACTIVE state | Simpler upload code | Race condition: model returns error if file still PROCESSING | Never — polling is required by the API |
+| Disable all safety filters via `BLOCK_NONE` | Eliminates safety-blocked failures | Violates Google API ToS for some use cases; may expose model to prompt injection via audio | Avoid — use `BLOCK_ONLY_HIGH` instead |
 
 ---
 
 ## Integration Gotchas
 
-Common mistakes when connecting to external services or libraries.
-
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Whisper | Calling `model.transcribe(path)` from within `async def` directly | Wrap in `run_in_executor` or `sync_to_async` — it is CPU-bound and synchronous |
-| Whisper | Using `openai-whisper` package in production | Use `faster-whisper` (CTranslate2 backend): 4x faster, 50% less memory, same accuracy |
-| Claude API | Not setting a timeout on the `httpx` client | A hung Claude API call will block the background task indefinitely — set `timeout=60.0` |
-| Claude API | Requesting free-form text, then trying to parse band scores with regex | Use Claude's structured outputs (JSON schema mode) — guarantees parseable response every time |
-| Claude API | Sending the full raw transcript in a system-prompt only | Put the transcript in the user turn, instructions in the system turn — Claude responds better to this split |
-| Claude API | Trusting band scores without range validation | Claude can hallucinate values outside 1–9; always clamp/validate before writing to DB |
-| InMemoryChannelLayer | Broadcasting job-complete events from a background thread | `async_to_sync(channel_layer.group_send)` works from sync; native `await` works only inside async context — use the correct adapter |
-| Django ORM | Calling `.save()` or `.filter()` directly inside `async def` | Use `asave()`, `afilter()`, `aget()` (Django 4.1+ async ORM) or `sync_to_async` wrappers |
-| Audio file storage | Saving to `MEDIA_ROOT` on local disk in production | Files are not persistent across deployments on most PaaS — use S3/object storage or ensure volume is mounted |
+| Gemini Files API | Call `generate_content` immediately after `client.files.upload()` returns | Poll `client.files.get(name)` until `file.state == "ACTIVE"` before calling generate_content |
+| Gemini Files API | Assume uploaded file persists for the job's lifetime | Files expire after 48 hours; upload fresh per-job, do not store the URI |
+| google-genai SDK | Access `response.text` to get model output | Check `response.candidates[0].finish_reason` first; use structured response object |
+| google-genai SDK | Catch `Exception` generically with no distinction | Use `google.api_core.exceptions.GoogleAPIError` hierarchy; distinguish `ResourceExhausted` (429) from `DeadlineExceeded` (504) |
+| google-genai SDK | Import `google.generativeai` (deprecated library) | Use `google.genai` (new unified SDK, `pip install google-genai`) |
+| Gemini structured output | Assume Pydantic `ge=1, le=9` enforces the range | Validate bands explicitly after parsing — the SDK does not enforce integer range constraints |
+| Gemini safety filters | Assume no exception means content was generated | Check `finish_reason` — `SAFETY` blocks return no exception but also no content |
+| webm audio | Pass `mime_type="audio/webm"` without verifying support | Validate against a real file in a smoke-test before deployment; prepare MP3 fallback conversion |
 
 ---
 
 ## Performance Traps
 
-Patterns that work at small scale but fail as usage grows.
-
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Whisper inference blocks Daphne worker thread | All WebSocket clients freeze during transcription | Use `run_in_executor` with a bounded thread pool | Immediately with the first concurrent user |
-| Unbounded background task queue | Memory grows unbounded if triggers arrive faster than jobs complete | Cap concurrent jobs per examiner (reject trigger if one already PROCESSING) | At 5+ concurrent examiners triggering simultaneously |
-| Polling endpoint hits DB on every request | High DB load from impatient clients polling every 1s | Cache job status in Django cache (5s TTL) keyed by job ID | At 50+ concurrent pollers |
-| Module-level Whisper model in multi-worker Daphne | N workers each hold one model in RAM | Document and enforce single-worker Daphne for AI processing, or isolate Whisper in a sidecar | With 2+ Daphne workers |
-| Storing large audio files in `MEDIA_ROOT` without cleanup | Disk fills up | Add a retention policy: delete audio file after successful transcription (or after X days) | After a few hundred sessions |
+| Loading full audio file into memory for inline upload | High memory per concurrent job | Use streaming upload via Files API; avoid `audio_file.read()` for large files | At ~2 concurrent jobs with 50 MB audio each |
+| Synchronous polling loop inside background task | Worker thread blocked; other tasks starved | Cap polling to 30 iterations × 10 seconds = 5 minutes; raise RuntimeError on timeout | At high job concurrency (5+ simultaneous jobs) |
+| Always using Files API for all audio | Extra upload latency (~2–10 sec) for short sessions | Use inline data for files under 15 MB; Files API only for larger files | Latency noticeable for short sessions (< 5 minutes) |
+| No retry logic for transient Gemini 503 errors | FAILED job on a retriable error | Catch `google.api_core.exceptions.ServiceUnavailable`, retry up to 3 times with exponential backoff | Intermittently, under Google API load |
+
+---
+
+## Cost Considerations
+
+Audio input to Gemini costs 3–7x more per token than text input, depending on model. Gemini counts 32 tokens per second of audio. A 15-minute IELTS session = 900 seconds = 28,800 audio input tokens. At Gemini 2.5 Flash rates ($1.00/M audio tokens), one assessment costs ~$0.029 in audio input alone — roughly 6–10x the previous Claude text-based assessment cost (which consumed ~2,000–3,000 text tokens per session at $3/M). The monthly limit of 10 jobs per examiner (`AI_FEEDBACK_MONTHLY_LIMIT`) was sized for the old cost model. Verify this limit remains appropriate at the new cost level before removing it.
 
 ---
 
 ## Security Mistakes
 
-Domain-specific security issues beyond general web security.
-
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Trigger endpoint accessible to candidates | Candidate triggers AI feedback on their own session, bypassing examiner intent | Permission check: only the session's examiner can trigger AI feedback |
-| Monthly limit checked in application code only | Malicious client bypasses limit with concurrent requests | Database-level lock via `select_for_update()` (Pitfall 4) |
-| AI band scores exposed in result API without `source` field | Client cannot distinguish AI from human scores; could mislead candidate | Always include `source` in serialiser — never omit it |
-| Audio file URL guessable from session ID | Candidate downloads raw audio of their own session before examiner consents to share | Use `uuid` in the upload path, not session ID; restrict `MEDIA_ROOT` behind auth |
-| Claude API key in environment but logged on error | Key appears in Sentry/log aggregator on API failure | Scrub/mask `ANTHROPIC_API_KEY` in exception reporting config |
-
----
-
-## UX Pitfalls
-
-Common user experience mistakes in this domain.
-
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Trigger returns 200 with immediate score (blocking) | Examiner waits 2–3 minutes for the response, assumes it crashed | Always 202 Accepted + job ID; examiner polls for completion |
-| No distinction between AI and examiner scores in results UI | Candidates treat AI band of 6.5 as official IELTS result | `source` field on every score; API contract documents that AI score is indicative only |
-| Status polling requires the examiner to refresh manually | Examiner has no idea when AI feedback is done | Push a WebSocket event (`ai_feedback_ready`) via Channels when the job completes — Channels consumer already has the broadcast pattern |
-| AI feedback shown before examiner releases results | Candidate sees AI score before examiner decides to release | AI feedback visibility should follow the same `is_released` gate as examiner scores |
-| Error state on job failure is opaque | Examiner sees "Failed" with no actionable message | Persist `failed_reason` on `AIFeedbackJob` and expose it in the status endpoint |
+| Logging audio file path in Gemini error messages | Audio path leaks into `error_message` field, visible in job status response | Sanitize error messages before storing in `job.error_message`; log full path only to server logs |
+| Storing `GOOGLE_API_KEY` in settings.py directly | Key committed to version control | Use `settings.GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")`; add to `.env`; same pattern as existing `ANTHROPIC_API_KEY` |
+| Passing raw candidate audio to Gemini without content review | Audio may contain PII or sensitive content not intended for Google | This is a policy decision, not a code fix; document it; ensure privacy policy covers AI processing of recordings |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-Things that appear complete but are missing critical pieces.
-
-- [ ] **Whisper integration:** Model loads on import — verify with `import session.services.transcription` in a Django shell that it does NOT block, and that a second call reuses the singleton.
-- [ ] **Background task:** Verify jobs survive a server restart (they will not — they are in-memory). Document this limitation and provide a recovery path (re-trigger endpoint).
-- [ ] **Source enum migration:** Verify `compute_overall_band()` filters by `source=EXAMINER` — add a regression test before merging the migration.
-- [ ] **Monthly limit:** Verify the limit is enforced when two requests arrive within 10ms — write a concurrent test with `asyncio.gather`.
-- [ ] **Claude response validation:** Verify band scores outside 1–9 are rejected, not saved — test by mocking Claude to return `{"FC": 15}`.
-- [ ] **Job cleanup:** Verify audio files are not accumulating indefinitely on the server — check `MEDIA_ROOT/recordings/` after 10 test sessions.
-- [ ] **Status endpoint auth:** Verify a candidate cannot query the job status of another examiner's session — write a permission test.
-- [ ] **WebSocket event:** Verify `ai_feedback_ready` is broadcast to the correct channel group — not all sessions, only the session the job belongs to.
+- [ ] **webm format acceptance:** Gemini client was tested with a real webm file, not just a mock — verify actual API acceptance in a smoke-test.
+- [ ] **Files API polling:** Code checks `file.state == "ACTIVE"` before calling `generate_content` — verify by inspecting the upload helper, not trusting that "it works in dev."
+- [ ] **Band validation preserved:** `assess_session` still raises `RuntimeError` for bands outside 1–9 — verify the existing `test_invalid_band_raises` test passes against the new implementation.
+- [ ] **Safety filter handling:** Code checks `finish_reason` before accessing response content — verify by patching a `SAFETY`-blocked response in a unit test.
+- [ ] **transcript field contract:** GET `/api/sessions/{id}/ai-feedback/` response still includes `transcript` key — verify by running the existing delivery tests after replacing the pipeline.
+- [ ] **Monthly limit and select_for_update preserved:** The race-prevention logic in views.py was not accidentally removed — verify the existing monthly limit tests still pass.
+- [ ] **Error message in FAILED job:** When Gemini returns a 429, the job transitions to FAILED with `error_message` set — verify by mocking `ResourceExhausted` and checking `job.error_message`.
+- [ ] **django-q2 timeout:** `Q_CLUSTER` timeout is at least 300 seconds OR explicitly set to `None` — verify `settings.Q_CLUSTER` before deploying.
+- [ ] **Old SDK removed from requirements:** `anthropic` and `faster-whisper` are absent from `requirements.txt` after replacement — verify no lingering import in any production code path.
+- [ ] **API docs updated:** `docs/api/ai-feedback.md` reflects that `transcript` may be null for Gemini jobs — verify docs match the actual response.
+- [ ] **Correct SDK package:** `google-genai` is installed, not `google-generativeai` — verify `pip show google-genai` and `pip show google-generativeai` outputs.
 
 ---
 
 ## Recovery Strategies
 
-When pitfalls occur despite prevention, how to recover.
-
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Whisper OOM crash (wrong model size) | LOW | Switch to `faster-whisper` with `tiny` or `base.en` model; redeploy; re-trigger failed jobs |
-| Jobs stuck in PROCESSING (orphaned task) | LOW | Add admin action to reset `AIFeedbackJob.status` to `FAILED`; expose re-trigger endpoint |
-| AI scores overwrote examiner scores (missing source constraint) | HIGH | Write a data migration to back-fill `source=EXAMINER` on all existing `CriterionScore` rows; add constraint; recompute affected `overall_band` values |
-| Monthly limit bypassed (race condition) | MEDIUM | Audit log shows over-limit jobs; admin soft-delete extra jobs; apply `select_for_update` fix; add test |
-| Background tasks lost on worker restart | LOW | Document that jobs are fire-and-forget (no persistence across restarts); add a "re-run AI feedback" button to the examiner UI |
-| Claude API down (extended outage) | LOW | Jobs fail with `failed_reason`; examiner can re-trigger when service restores; no data loss |
+| webm rejected in production | MEDIUM | Add ffmpeg conversion in the background task; redeploy; re-trigger failed jobs manually |
+| Jobs stuck in PROCESSING (timeout kill) | LOW | Write a management command to reset PROCESSING jobs older than N minutes to FAILED; configure `Q_CLUSTER["timeout"]` |
+| Safety filter blocks legitimate sessions | LOW | Add safety settings config to generate_content call (`BLOCK_ONLY_HIGH`); redeploy |
+| Out-of-range bands in database | HIGH | Write a data migration to delete CriterionScore records with band outside 1–9; add DB-level constraint via migration; re-trigger affected jobs |
+| Tests pass but production assessment broken | MEDIUM | Add a real-API smoke-test excluded from CI but run manually pre-deploy; use it to gate releases |
+| Transcript field unexpectedly null in API response | LOW | Update API docs; confirm frontend handles null gracefully; no model migration needed |
+| Wrong SDK package installed | LOW | `pip uninstall google-generativeai && pip install google-genai`; update imports; re-run test suite |
 
 ---
 
 ## Pitfall-to-Phase Mapping
 
-How roadmap phases should address these pitfalls.
-
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Whisper blocks event loop | Transcription service phase | Concurrent Daphne test: 2 simultaneous WebSocket pings don't freeze during transcription |
-| Fire-and-forget task GC'd | Background task infrastructure phase | Python 3.12 test: verify task completes after 30s with strong reference set |
-| ORM in async context | Background task infrastructure phase | Run linter or test that imports all task functions and asserts no direct `.save()` calls |
-| Monthly limit race condition | Trigger endpoint + usage limit phase | Concurrent test: 11 simultaneous trigger requests result in exactly 10 jobs |
-| AI scores overwrite human scores | Model migration phase | Assertion: `compute_overall_band()` returns same value before and after AI job runs |
-| Claude API latency / timeout | Trigger + status polling phase | Integration test with mocked 120s Claude response; verify job reaches PROCESSING then COMPLETED |
+| webm format unverified | Phase 1: Gemini client setup | Smoke-test with real webm file passes against live API |
+| Files API TTL + polling missing | Phase 1: Gemini client setup | Upload helper tested with polling loop; `ACTIVE` check present |
+| Wrong SDK package (`google-generativeai`) | Phase 1: Gemini client setup | `pip show google-generativeai` returns "not installed" |
+| django-q2 timeout too short | Phase 1: Infrastructure setup | `Q_CLUSTER` timeout documented and set in settings |
+| Transcript field contract broken | Phase 1: Design review | Existing delivery tests pass without modification |
+| Test suite mocks wrong layer | Phase 2: Replace assessment service | `python manage.py test session` passes with anthropic and faster-whisper uninstalled |
+| Band validation removed | Phase 2: Replace assessment service | Existing band-validation tests pass unchanged against new assess_session |
+| Safety filter crash | Phase 2: Replace assessment service | Unit test for `SAFETY` finish_reason passes |
+| Monthly limit / select_for_update lost | Phase 2: Replace assessment service | Existing monthly limit tests pass unchanged |
+| Old SDK not removed from requirements | Phase 3: Cleanup | Fresh venv install has no `anthropic` or `faster-whisper` |
+| API docs not updated | Phase 3: Cleanup | `docs/api/ai-feedback.md` reflects nullable transcript |
 
 ---
 
 ## Sources
 
-- Django async documentation (5.2): https://docs.djangoproject.com/en/5.2/topics/async/
-- Django Forum — correct way to create async tasks: https://forum.djangoproject.com/t/what-is-the-correct-way-to-create-an-async-task/9627
-- asyncio fire-and-forget pitfalls (Michael Kennedy): https://mkennedy.codes/posts/fire-and-forget-or-never-with-python-s-asyncio/
-- Python issue tracker — create_task GC behavior: https://github.com/python/cpython/issues/104091
-- Django Channels worker/background tasks docs: https://channels.readthedocs.io/en/stable/topics/worker.html
-- Whisper memory leak discussion: https://github.com/openai/whisper/discussions/605
-- Whisper memory requirements: https://github.com/openai/whisper/discussions/5
-- faster-whisper (CTranslate2): https://github.com/AIXerum/faster-whisper
-- Whisper microservice / OOM post-mortem: https://medium.com/@patelhet04/the-0-scalability-fix-how-whisper-microservice-saved-us-from-gpu-oom-65dfd41a2180
-- DRF throttling race condition caveat: https://www.django-rest-framework.org/api-guide/throttling/
-- Anthropic structured outputs docs: https://platform.claude.com/docs/en/build-with-claude/structured-outputs
-- Anthropic latency reduction guide: https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency
-- Kraken engineering blog — async Django lessons (Jan 2026): https://engineering.kraken.tech/news/2026/01/12/using-django-async.html
-- Loopwerk — async Django in practice (2025): https://www.loopwerk.io/articles/2025/async-django-why/
+- [Gemini API audio documentation](https://ai.google.dev/gemini-api/docs/audio) — confirmed supported formats list (webm absent from this page); 32 tokens/second; inline 20 MB limit
+- [Firebase AI Logic input file requirements](https://firebase.google.com/docs/ai-logic/input-file-requirements) — `audio/webm` listed as supported MIME type
+- [Gemini Files API documentation](https://ai.google.dev/gemini-api/docs/files) — 48-hour TTL, 2 GB max file size, 20 GB project limit
+- [Gemini API structured outputs](https://ai.google.dev/gemini-api/docs/structured-output) — JSON Schema support, Pydantic integration, no integer range enforcement
+- [Gemini API pricing](https://ai.google.dev/gemini-api/docs/pricing) — audio input 3–7x more expensive than text per million tokens
+- [Google Gen AI Python SDK documentation](https://googleapis.github.io/python-genai/) — current unified SDK reference (`google-genai` package)
+- [Gemini API safety settings](https://ai.google.dev/gemini-api/docs/safety-settings) — HARM_BLOCK_THRESHOLD configuration
+- [Gemini API 504 DEADLINE_EXCEEDED community reports](https://discuss.ai.google.dev/t/gemini-2-5-pro-throws-504-deadline-exceeded-error/90991) — confirmed latency issues for large audio files
+- [Structured output reliability comparison across LLM providers](https://www.glukhov.org/post/2025/10/structured-output-comparison-popular-llm-providers) — Gemini does not enforce integer range constraints
+- [Gemini Files API always PROCESSING community issue](https://discuss.ai.google.dev/t/file-api-always-processing/85107) — confirmed polling required before use
+- [Gemini API increased file size limits blog post](https://blog.google/innovation-and-ai/technology/developers-tools/gemini-api-new-file-limits/) — inline data increased from 20 MB to 100 MB
+- Session codebase: `session/tasks.py`, `session/services/assessment.py`, `session/services/transcription.py`, `session/tests.py`, `session/models.py`, `session/views.py`
 
 ---
-*Pitfalls research for: v1.3 AI Feedback & Assessment — MockIT*
-*Researched: 2026-04-07*
+*Pitfalls research for: Replacing text-based AI assessment pipeline with Gemini audio assessment (MockIT v1.4)*
+*Researched: 2026-04-09*
