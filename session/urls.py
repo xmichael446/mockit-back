@@ -14,6 +14,7 @@ from .views import (
     EndSessionPartView,
     EndSessionView,
     JoinSessionView,
+    LandingStatsView,
     MockPresetDeleteView,
     MockPresetListCreateView,
     NoteDeleteView,
@@ -30,6 +31,9 @@ from .views import (
 )
 
 urlpatterns = [
+    # ── Landing (public stats) ────────────────────────────────────────────────
+    path("landing/", LandingStatsView.as_view(), name="landing-stats"),
+
     # ── Presets ──────────────────────────────────────────────────────────────
     path("presets/", MockPresetListCreateView.as_view(), name="preset-list-create"),
     path("presets/<int:pk>/", MockPresetDeleteView.as_view(), name="preset-delete"),

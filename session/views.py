@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 
 from django.db.models import F
 from main.models import CandidateProfile, ExaminerProfile, ScoreHistory, User
-from questions.models import Question, FollowUpQuestion
+from questions.models import Question, FollowUpQuestion, Topic
 from questions.serializers import QuestionDetailSerializer
 from .models import (
     AIFeedbackJob,
@@ -1161,6 +1161,27 @@ class SharedSessionDetailView(APIView):
         session = share.session
         data = SharedSessionSerializer(session, context={"request": request}).data
         return Response(data)
+
+
+# ─── Landing page stats (public) ──────────────────────────────────────────────
+
+class LandingStatsView(APIView):
+    """
+    GET /api/landing/
+    Public endpoint — no authentication required.
+    Returns three aggregate counts for the marketing landing page.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({
+            "sessions_completed": IELTSMockSession.objects.filter(
+                status=SessionStatus.COMPLETED
+            ).count(),
+            "questions_in_bank": Question.objects.count(),
+            "topics_covered": Topic.objects.count(),
+        })
 
 
 # ─── Cancel ───────────────────────────────────────────────────────────────────
