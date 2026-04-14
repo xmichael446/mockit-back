@@ -1614,3 +1614,82 @@ class AIFeedbackDeliveryTests(TestCase):
         job = AIFeedbackJob.objects.create(session=self.session)
         run_ai_feedback(job.pk)
         mock_broadcast.assert_not_called()
+
+
+class LandingStatsViewTests(TestCase):
+    """GET /api/landing/ -- public landing-page stats endpoint."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.url = "/api/landing/"
+
+        # Users for sessions
+        examiner = User.objects.create_user(
+            username="landing_e1", email="landing_e1@example.com",
+            password="x", role=User.Role.EXAMINER,
+        )
+        candidate = User.objects.create_user(
+            username="landing_c1", email="landing_c1@example.com",
+            password="x", role=User.Role.CANDIDATE,
+        )
+
+        # 2 completed sessions (counted)
+        for _ in range(2):
+            IELTSMockSession.objects.create(
+                examiner=examiner, candidate=candidate,
+                status=SessionStatus.COMPLETED,
+                scheduled_at=timezone.now(),
+            )
+        # 1 scheduled + 1 in-progress (NOT counted)
+        IELTSMockSession.objects.create(
+            examiner=examiner, candidate=candidate,
+            status=SessionStatus.SCHEDULED,
+            scheduled_at=timezone.now(),
+        )
+        IELTSMockSession.objects.create(
+            examiner=examiner, candidate=candidate,
+            status=SessionStatus.IN_PROGRESS,
+            scheduled_at=timezone.now(),
+        )
+
+        # 3 topics, 5 questions
+        t1 = Topic.objects.create(
+            topic_number=1, name="Landing Family",
+            part=IELTSSpeakingPart.PART_1, slug="landing-family",
+        )
+        t2 = Topic.objects.create(
+            topic_number=2, name="Landing Hobbies",
+            part=IELTSSpeakingPart.PART_1, slug="landing-hobbies",
+        )
+        t3 = Topic.objects.create(
+            topic_number=3, name="Landing Future",
+            part=IELTSSpeakingPart.PART_3, slug="landing-future",
+        )
+        Question.objects.create(topic=t1, text="Q1")
+        Question.objects.create(topic=t1, text="Q2")
+        Question.objects.create(topic=t2, text="Q3")
+        Question.objects.create(topic=t2, text="Q4")
+        Question.objects.create(topic=t3, text="Q5")
+
+    def test_returns_200_and_exact_shape(self):
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(
+            set(resp.json().keys()),
+            {"sessions_completed", "questions_in_bank", "topics_covered"},
+        )
+
+    def test_counts_are_correct(self):
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.json(), {
+            "sessions_completed": 2,
+            "questions_in_bank": 5,
+            "topics_covered": 3,
+        })
+
+    def test_is_publicly_accessible_without_auth(self):
+        # No credentials, no token -- must still succeed.
+        client = APIClient()
+        resp = client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotIn(resp.status_code, (401, 403))
